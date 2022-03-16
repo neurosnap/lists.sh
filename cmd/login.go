@@ -93,13 +93,13 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "authenticate with lists.sh",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("Logging in with [%s] ...\n", viper.GetString("email"))
+		log.Printf("Logging in with [%s] ...\n", viper.GetString("email"))
 		verificationId, err := loginRequest()
 		if err != nil {
 			return err
 		}
 
-        fmt.Println("An email has been sent with a verification code")
+        log.Println("An email has been sent with a verification code")
         code, err := ask("Enter verification code: ")
         if err != nil {
 			return err
@@ -110,7 +110,9 @@ var loginCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println(token)
+        viper.Set("token", token)
+        viper.WriteConfig()
+        log.Println("Success!")
 
 		return nil
 	},
