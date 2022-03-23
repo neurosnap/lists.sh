@@ -2,3 +2,5 @@
 *.swp
 .env
 .envrc
+build/*
+!build/.gitkeep

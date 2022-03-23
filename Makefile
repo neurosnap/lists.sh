@@ -5,6 +5,11 @@ PGUSER?="postgres"
 PORT?="5432"
 DB_CONTAINER?=listssh_db_1
 
+build:
+	go build -o build/cli ./cmd/cli
+	go build -o build/server ./cmd/server
+.PHONY: build
+
 create:
 	docker exec -i $(DB_CONTAINER) psql -U $(PGUSER) < ./db/setup.sql
 .PHONY: create
