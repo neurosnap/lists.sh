@@ -47,5 +47,5 @@ CREATE TABLE posts (
     FOREIGN KEY(persona_id)
   REFERENCES personas(id)
   ON DELETE CASCADE,
-  CONSTRAINT unique_title_for_persona UNIQUE (persona_id, title),
+  CONSTRAINT unique_title_for_persona UNIQUE (persona_id, title)
 );
