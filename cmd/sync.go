@@ -30,7 +30,7 @@ func getFiles(dir string) ([]string, error) {
         if info.IsDir() {
             return nil
         }
-        if filepath.Ext(path) != ".md" {
+        if filepath.Ext(path) != ".txt" {
             return nil
         }
 		files = append(files, path)
