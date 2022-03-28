@@ -40,14 +40,27 @@ func sync(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	for _, post := range syncReq.Posts {
-		log.Println(post)
-	}
-
     ctx := req.Context()
 	db := ctx.Value(RequestDBKey("db")).(dbconn)
-	json.NewEncoder(w).Encode(map[string]string{"hi": "mom"})
-    fmt.Println(db)
+
+    titleMap := make(map[string]int)
+    for _, post := range syncReq.Posts {
+        titleMap[post.Title] = 1
+    }
+
+    rows, _ := db.Query(ctx, "SELECT title FROM posts")
+    for rows.Next() {
+        var title string
+        rows.Scan(&title)
+        log.Println(title)
+        titleMap[title] -= 1
+    }
+    if rows.Err() != nil {
+        log.Println("ERROR")
+    }
+    log.Println(titleMap)
+
+	json.NewEncoder(w).Encode(titleMap)
 }
 
 func pgxPoolHandler(dbpool *pgxpool.Pool) func(http.Handler) http.Handler {

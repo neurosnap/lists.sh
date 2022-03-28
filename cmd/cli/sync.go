@@ -64,7 +64,7 @@ func syncRequest(body api.SyncRequest) error {
 
 	defer resp.Body.Close()
 
-    data := &map[string]string{}
+    data := &map[string]int{}
     json.NewDecoder(resp.Body).Decode(data)
     fmt.Println(data)
 

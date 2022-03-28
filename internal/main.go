@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"strings"
+    "fmt"
 )
 
 func GetEnv(key string, defaultVal string) string {
@@ -14,5 +15,6 @@ func GetEnv(key string, defaultVal string) string {
 }
 
 func FsToTitle(basePath string, path string) string {
-	return strings.Replace(path, basePath, "", 1)
+    base := fmt.Sprintf("%s/", basePath)
+	return strings.Replace(path, base, "", 1)
 }

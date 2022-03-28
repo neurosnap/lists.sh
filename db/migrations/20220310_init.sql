@@ -2,24 +2,23 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE app_users (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  email character varying(255) NOT NULL,
-  is_verified boolean NOT NULL DEFAULT false,
   created_at timestamp without time zone NOT NULL DEFAULT NOW(),
   updated_at timestamp without time zone NOT NULL DEFAULT NOW(),
-  CONSTRAINT app_user_pkey PRIMARY KEY (id),
-  CONSTRAINT unique_email UNIQUE (email)
+  CONSTRAINT app_user_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE email_verifications (
+CREATE TABLE user_public_keys (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  email character varying(255) NOT NULL,
-  code character varying(255) NOT NULL,
-  expires_at timestamp without time zone NOT NULL,
-  used_at timestamp without time zone DEFAULT NULL,
+  owner_id uuid NOT NULL,
+  fingerprint char(64) NOT NULL,
   created_at timestamp without time zone NOT NULL DEFAULT NOW(),
-  CONSTRAINT email_verification_pkey PRIMARY KEY (id)
+  updated_at timestamp without time zone NOT NULL DEFAULT NOW(),
+  CONSTRAINT user_public_keys_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_user_public_keys_owner
+    FOREIGN KEY(owner_id)
+  REFERENCES app_users(id)
+  ON DELETE CASCADE
 );
-CREATE UNIQUE INDEX email_verifications_code ON email_verifications (code);
 
 CREATE TABLE personas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
