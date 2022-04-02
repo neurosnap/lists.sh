@@ -4,3 +4,4 @@
 .envrc
 build/*
 !build/.gitkeep
+.ssh
