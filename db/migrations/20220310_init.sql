@@ -42,9 +42,5 @@ CREATE TABLE posts (
   created_at timestamp without time zone NOT NULL DEFAULT NOW(),
   updated_at timestamp without time zone NOT NULL DEFAULT NOW(),
   CONSTRAINT posts_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_posts_persona
-    FOREIGN KEY(persona_id)
-  REFERENCES personas(id)
-  ON DELETE CASCADE,
   CONSTRAINT unique_title_for_persona UNIQUE (persona_id, title)
 );

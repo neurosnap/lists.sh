@@ -2,6 +2,7 @@ package scp
 
 import (
 	"bufio"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -27,7 +28,7 @@ func (e parseError) Error() string {
 	return fmt.Sprintf("failed to parse: %q", e.subject)
 }
 
-func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler) error {
+func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbpool *sql.DB) error {
 	// accepts the request
 	_, _ = s.Write(NULL)
 
@@ -81,7 +82,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler) err
 			// accepts the header
 			_, _ = s.Write(NULL)
 
-			written, err := handler.Write(s, &FileEntry{
+			err = handler.Write(s, &FileEntry{
 				Name:     name,
 				Filepath: filepath.Join(path, name),
 				Mode:     fs.FileMode(mode),
@@ -89,12 +90,9 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler) err
 				Mtime:    mtime,
 				Atime:    atime,
 				Reader:   newLimitReader(r, int(size)),
-			})
+			}, dbpool)
 			if err != nil {
 				return fmt.Errorf("failed to write file: %q: %w", name, err)
-			}
-			if written != size {
-				return fmt.Errorf("failed to write the file: %q: written %d out of %d bytes", name, written, size)
 			}
 
 			// read the trailing nil char
@@ -133,4 +131,3 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler) err
 	_, _ = s.Write(NULL)
 	return nil
 }
-

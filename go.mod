@@ -7,6 +7,7 @@ require (
 	github.com/charmbracelet/wish v0.3.0
 	github.com/gliderlabs/ssh v0.3.3
 	github.com/jackc/pgx/v5 v5.0.0-alpha.1
+	github.com/lib/pq v1.10.4
 	github.com/matryer/is v1.4.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.10.1

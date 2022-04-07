@@ -1,4 +1,3 @@
-DROP TABLE email_verifications CASCADE;
 DROP TABLE personas CASCADE;
 DROP TABLE posts CASCADE;
 DROP TABLE app_users CASCADE;

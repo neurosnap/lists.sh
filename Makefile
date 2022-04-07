@@ -9,6 +9,7 @@ build:
 	go build -o build/cli ./cmd/cli
 	go build -o build/server ./cmd/server
 	go build -o build/app ./cmd/app
+	go build -o build/scp ./cmd/scp
 .PHONY: build
 
 create:
