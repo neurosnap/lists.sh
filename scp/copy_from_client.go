@@ -91,6 +91,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbp
 				Atime:    atime,
 				Reader:   newLimitReader(r, int(size)),
 			}, dbpool)
+
 			if err != nil {
 				return fmt.Errorf("failed to write file: %q: %w", name, err)
 			}
