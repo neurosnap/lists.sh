@@ -2,7 +2,6 @@
 package scp
 
 import (
-	"database/sql"
 	"fmt"
 	"io"
 	"io/fs"
@@ -10,13 +9,14 @@ import (
 
 	"github.com/charmbracelet/wish"
 	"github.com/gliderlabs/ssh"
+	"github.com/neurosnap/lists.sh/internal/db"
 )
 
 // CopyFromClientHandler is a handler that can be implemented to handle files
 // being copied from the client to the server.
 type CopyFromClientHandler interface {
 	// Write should write the given file.
-	Write(ssh.Session, *FileEntry, *sql.DB) error
+	Write(ssh.Session, *FileEntry, *db.DB) error
 }
 
 // Handler is a interface that can be implemented to handle both SCP
@@ -27,7 +27,7 @@ type Handler interface {
 
 // Middleware provides a wish middleware using the given CopyToClientHandler
 // and CopyFromClientHandler.
-func Middleware(wh CopyFromClientHandler, dbpool *sql.DB) wish.Middleware {
+func Middleware(wh CopyFromClientHandler, db db.DB) wish.Middleware {
 	return func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			info := GetInfo(s.Command())
@@ -46,7 +46,7 @@ func Middleware(wh CopyFromClientHandler, dbpool *sql.DB) wish.Middleware {
 					err = fmt.Errorf("no handler provided for scp -t")
 					break
 				}
-				err = copyFromClient(s, info, wh, dbpool)
+				err = copyFromClient(s, info, wh, db)
 			}
 			if err != nil {
 				errHandler(s, err)

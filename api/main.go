@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/neurosnap/lists.sh/internal"
+	"github.com/neurosnap/lists.sh/internal/db/postgres"
 )
 
 type RequestDBKey string
@@ -17,7 +18,8 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartServer() {
 	databaseUrl := os.Getenv("DATABASE_URL")
-	log.Println(databaseUrl)
+    db := postgres.NewDB(databaseUrl)
+	log.Println(db)
 
 	http.HandleFunc("/", appHandler)
 

@@ -10,11 +10,11 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-    "database/sql"
 
 	"github.com/charmbracelet/wish"
+	_ "github.com/lib/pq"
+	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/scp"
-    _ "github.com/lib/pq"
 )
 
 const host = "localhost"
@@ -23,17 +23,14 @@ const port = 23234
 func main() {
 	handler := &scp.DbHandler{}
 	databaseUrl := os.Getenv("DATABASE_URL")
-    db, err := sql.Open("postgres", databaseUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-    defer db.Close()
+	dbh := postgres.NewDB(databaseUrl)
+	defer dbh.Close()
 
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
 		wish.WithMiddleware(
-			scp.Middleware(handler, db),
+			scp.Middleware(handler, dbh),
 		),
 	)
 	if err != nil {

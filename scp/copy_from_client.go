@@ -2,7 +2,6 @@ package scp
 
 import (
 	"bufio"
-	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gliderlabs/ssh"
+	"github.com/neurosnap/lists.sh/internal/db"
 )
 
 var (
@@ -28,7 +28,7 @@ func (e parseError) Error() string {
 	return fmt.Sprintf("failed to parse: %q", e.subject)
 }
 
-func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbpool *sql.DB) error {
+func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbpool db.DB) error {
 	// accepts the request
 	_, _ = s.Write(NULL)
 
@@ -90,7 +90,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbp
 				Mtime:    mtime,
 				Atime:    atime,
 				Reader:   newLimitReader(r, int(size)),
-			}, dbpool)
+			}, db)
 
 			if err != nil {
 				return fmt.Errorf("failed to write file: %q: %w", name, err)

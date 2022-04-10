@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -17,15 +18,30 @@ import (
 	bm "github.com/charmbracelet/wish/bubbletea"
 	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
+	"github.com/neurosnap/lists.sh/internal/db"
+	"github.com/neurosnap/lists.sh/internal/db/postgres"
 )
 
 const host = "localhost"
 const port = 23234
 
+type SSHServer struct {
+	db db.DB
+}
+
+func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
+	return true
+}
+
 func main() {
+	databaseUrl := os.Getenv("DATABASE_URL")
+	dbpool := postgres.NewDB(databaseUrl)
+    defer dbpool.Close()
+	sshServer := &SSHServer{db: dbpool}
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
+		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
 			bm.Middleware(teaHandler),
 			lm.Middleware(),
@@ -63,19 +79,33 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		fmt.Println("no active terminal, skipping")
 		return nil, nil
 	}
+	key, err := keyText(s)
+	if err != nil {
+		log.Println(err)
+	}
 	m := model{
-		term:   pty.Term,
-		width:  pty.Window.Width,
-		height: pty.Window.Height,
+		term:      pty.Term,
+		width:     pty.Window.Width,
+		height:    pty.Window.Height,
+		publicKey: key,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
 
+func keyText(s ssh.Session) (string, error) {
+	if s.PublicKey() == nil {
+		return "", fmt.Errorf("Session doesn't have public key")
+	}
+	kb := base64.StdEncoding.EncodeToString(s.PublicKey().Marshal())
+	return fmt.Sprintf("%s %s", s.PublicKey().Type(), kb), nil
+}
+
 // Just a generic tea.Model to demo terminal information of ssh.
 type model struct {
-	term   string
-	width  int
-	height int
+	term      string
+	width     int
+	height    int
+	publicKey string
 }
 
 func (m model) Init() tea.Cmd {
@@ -99,7 +129,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	s := "Your term is %s\n"
 	s += "Your window size is x: %d y: %d\n\n"
+	s += "Public key: %s\n"
 	s += "Press 'q' to quit\n"
-	return fmt.Sprintf(s, m.term, m.width, m.height)
+	return fmt.Sprintf(s, m.term, m.width, m.height, m.publicKey)
 }
-
