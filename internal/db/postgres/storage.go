@@ -4,20 +4,23 @@ import (
 	"database/sql"
 	"log"
 
+	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
 const (
-	sqlSelectPublicKey     = `SELECT id, user_id, key, created_at FROM public_key WHERE key = $1`
-	sqlSelectPublicKeys    = `SELECT id, user_id, key, created_at FROM public_keys WHERE user_id = $1`
-	sqlSelectUser          = `SELECT id, created_at FROM app_users WHERE id = $1`
-	sqlSelectPersonas      = `SELECT name FROM personas WHERE user_id = $1`
-	sqlSelectPostWithTitle = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE title = $1 AND persona_id = $2`
-	sqlSelectPost          = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE id = $1`
+	sqlSelectPublicKey      = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
+	sqlSelectPublicKeys     = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
+	sqlSelectUser           = `SELECT id, created_at FROM app_users WHERE id = $1`
+	sqlSelectPersonaForName = `SELECT id FROM personas WHERE name = $1`
+	sqlSelectPersonas       = `SELECT name FROM personas WHERE user_id = $1`
+	sqlSelectPostWithTitle  = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE title = $1 AND persona_id = $2`
+	sqlSelectPost           = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE id = $1`
 
-	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, key) VALUES ($1, $2)`
+	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
 	sqlInsertPersona   = `INSERT INTO personas (user_id, name) VALUES ($1, $2) RETURNING id`
 	sqlInsertPost      = `INSERT INTO posts (persona_id, title, text) VALUES ($1, $2, $3) RETURNING id`
+	sqlInsertUser      = `INSERT INTO app_users DEFAULT VALUES returning id`
 
 	sqlUpdatePost = `UPDATE posts SET text = $1, updated_at = $2 WHERE id = $3`
 
@@ -39,6 +42,15 @@ func NewDB(databaseUrl string) *PsqlDB {
 	}
 	d := &PsqlDB{db: db}
 	return d
+}
+
+func (me *PsqlDB) AddUser() (string, error) {
+	var id string
+	err := me.db.QueryRow(sqlInsertUser).Scan(&id)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 func (me *PsqlDB) LinkUserKey(user *db.User, key string) error {
@@ -88,6 +100,8 @@ func (me *PsqlDB) UserForKey(key string) (*db.User, error) {
 		return nil, err
 	}
 
+	user.PublicKey = pk
+
 	personas, err := me.ListPersonas(user.ID)
 	if err != nil {
 		return nil, err
@@ -104,6 +118,16 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (me *PsqlDB) ValidateName(name string) bool {
+	var id string
+	r := me.db.QueryRow(sqlSelectPersonaForName, name)
+	err := r.Scan(&id)
+	if err != nil {
+		return true
+	}
+	return id == ""
 }
 
 func (me *PsqlDB) ListPersonas(userID string) ([]string, error) {
@@ -128,6 +152,9 @@ func (me *PsqlDB) ListPersonas(userID string) ([]string, error) {
 }
 
 func (me *PsqlDB) AddPersona(userID string, persona string) (string, error) {
+	if !me.ValidateName(persona) {
+		return "", db.ErrNameTaken
+	}
 	var id string
 	err := me.db.QueryRow(sqlInsertPersona, userID, persona).Scan(&id)
 	if err != nil {

@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS app_users (
 
 CREATE TABLE IF NOT EXISTS public_keys (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  owner_id uuid NOT NULL,
+  user_id uuid NOT NULL,
   public_key varchar(2048) NOT NULL,
   created_at timestamp without time zone NOT NULL DEFAULT NOW(),
   CONSTRAINT user_public_keys_pkey PRIMARY KEY (id),
-  CONSTRAINT unique_key_for_user UNIQUE (owner_id, public_key),
+  CONSTRAINT unique_key_for_user UNIQUE (user_id, public_key),
   CONSTRAINT fk_user_public_keys_owner
-    FOREIGN KEY(owner_id)
+    FOREIGN KEY(user_id)
   REFERENCES app_users(id)
   ON DELETE CASCADE
   ON UPDATE CASCADE
@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS public_keys (
 
 CREATE TABLE IF NOT EXISTS personas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  owner_id uuid NOT NULL,
+  user_id uuid NOT NULL,
   name character varying(25) NOT NULL,
   created_at timestamp without time zone NOT NULL DEFAULT NOW(),
   CONSTRAINT personas_pkey PRIMARY KEY (id),
   CONSTRAINT unique_name UNIQUE (name),
   CONSTRAINT fk_personas_owner
-    FOREIGN KEY(owner_id)
+    FOREIGN KEY(user_id)
   REFERENCES app_users(id)
   ON DELETE CASCADE
   ON UPDATE CASCADE

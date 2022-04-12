@@ -1,6 +1,11 @@
 package db
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrNameTaken = errors.New("name taken")
 
 type PublicKey struct {
 	ID        string     `json:"id"`
@@ -16,6 +21,12 @@ type User struct {
 	CreatedAt *time.Time `json:"created_at"`
 }
 
+type Persona struct {
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	CreatedAt *time.Time `json:"created_at"`
+}
+
 type Post struct {
 	ID        string     `json:"id"`
 	PersonaID string     `json:"persona_id"`
@@ -25,12 +36,14 @@ type Post struct {
 }
 
 type DB interface {
+	AddUser() (string, error)
 	LinkUserKey(user *User, key string) error
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
 
 	UserForKey(key string) (*User, error)
 	User(userID string) (*User, error)
+	ValidateName(name string) bool
 
 	ListPersonas(userID string) ([]string, error)
 	AddPersona(userID string, persona string) (string, error)

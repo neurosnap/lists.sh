@@ -16,7 +16,7 @@ import (
 // being copied from the client to the server.
 type CopyFromClientHandler interface {
 	// Write should write the given file.
-	Write(ssh.Session, *FileEntry, *db.DB) error
+	Write(ssh.Session, *FileEntry, db.DB) error
 }
 
 // Handler is a interface that can be implemented to handle both SCP
