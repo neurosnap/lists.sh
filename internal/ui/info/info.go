@@ -74,7 +74,7 @@ func (m Model) View() string {
 func (m Model) bioView() string {
 	var username string
 	if len(m.User.Personas) > 0 {
-		username = m.User.Personas[0]
+		username = m.User.Personas[0].Name
 	} else {
 		username = m.styles.Subtle.Render("(none set)")
 	}

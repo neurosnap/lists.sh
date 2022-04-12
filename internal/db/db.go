@@ -17,7 +17,7 @@ type PublicKey struct {
 type User struct {
 	ID        string     `json:"id"`
 	PublicKey *PublicKey `json:"public_key,omitempty"`
-	Personas  []string   `json:"personas"`
+	Personas  []*Persona  `json:"personas"`
 	CreatedAt *time.Time `json:"created_at"`
 }
 
@@ -45,8 +45,8 @@ type DB interface {
 	User(userID string) (*User, error)
 	ValidateName(name string) bool
 
-	ListPersonas(userID string) ([]string, error)
-	AddPersona(userID string, persona string) (string, error)
+	ListPersonas(userID string) ([]*Persona, error)
+	AddPersona(userID string, persona string) (*Persona, error)
 	RemovePersona(persona string) error
 
 	FindPost(postID string) (*Post, error)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/wish"
+	"github.com/gliderlabs/ssh"
 	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/scp"
@@ -20,7 +21,14 @@ import (
 const host = "localhost"
 const port = 23234
 
+type SSHServer struct{}
+
+func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
+	return true
+}
+
 func main() {
+	sshServer := &SSHServer{}
 	handler := &scp.DbHandler{}
 	databaseUrl := os.Getenv("DATABASE_URL")
 	dbh := postgres.NewDB(databaseUrl)
@@ -29,6 +37,7 @@ func main() {
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
+		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
 			scp.Middleware(handler, dbh),
 		),

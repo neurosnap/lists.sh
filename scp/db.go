@@ -1,6 +1,8 @@
 package scp
 
 import (
+	"encoding/base64"
+	"fmt"
 	"io"
 	"log"
 
@@ -8,11 +10,34 @@ import (
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
+func keyText(s ssh.Session) (string, error) {
+	if s.PublicKey() == nil {
+		return "", fmt.Errorf("Session doesn't have public key")
+	}
+	kb := base64.StdEncoding.EncodeToString(s.PublicKey().Marshal())
+	return fmt.Sprintf("%s %s", s.PublicKey().Type(), kb), nil
+}
+
 type DbHandler struct{}
 
-func (h *DbHandler) Write(_ ssh.Session, entry *FileEntry, dbpool db.DB) error {
-	personaId := "8c4de632-e27a-491f-8c07-877349c91600"
-	post, err := dbpool.FindPostWithTitle(entry.Filepath, personaId)
+func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, dbpool db.DB) error {
+	key, err := keyText(s)
+	if err != nil {
+		return err
+	}
+
+	user, err := dbpool.UserForKey(key)
+	if err != nil {
+		return err
+	}
+
+	if len(user.Personas) == 0 {
+		return fmt.Errorf("User must set a username before publishing content")
+	}
+
+	personaID := user.Personas[0].ID
+
+	post, err := dbpool.FindPostWithTitle(entry.Filepath, personaID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -24,15 +49,15 @@ func (h *DbHandler) Write(_ ssh.Session, entry *FileEntry, dbpool db.DB) error {
 
 	if post == nil {
 		log.Printf("%s not found, adding record", entry.Filepath)
-		post, err = dbpool.InsertPost(personaId, entry.Filepath, text)
+		post, err = dbpool.InsertPost(personaID, entry.Filepath, text)
 		if err != nil {
-			log.Printf("error for %s: %v", entry.Filepath, err)
+			return fmt.Errorf("error for %s: %v", entry.Filepath, err)
 		}
 	} else {
 		log.Printf("%s found, updating record", entry.Filepath)
 		post, err = dbpool.UpdatePost(post.ID, text)
 		if err != nil {
-			log.Printf("error for %s: %v", entry.Filepath, err)
+			return fmt.Errorf("error for %s: %v", entry.Filepath, err)
 		}
 	}
 

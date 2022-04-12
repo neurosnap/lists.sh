@@ -13,7 +13,8 @@ const (
 	sqlSelectPublicKeys     = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
 	sqlSelectUser           = `SELECT id, created_at FROM app_users WHERE id = $1`
 	sqlSelectPersonaForName = `SELECT id FROM personas WHERE name = $1`
-	sqlSelectPersonas       = `SELECT name FROM personas WHERE user_id = $1`
+	sqlSelectPersona        = `SELECT id, name, created_at FROM personas where id = $1`
+	sqlSelectPersonas       = `SELECT id, name, created_at FROM personas WHERE user_id = $1`
 	sqlSelectPostWithTitle  = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE title = $1 AND persona_id = $2`
 	sqlSelectPost           = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE id = $1`
 
@@ -130,17 +131,17 @@ func (me *PsqlDB) ValidateName(name string) bool {
 	return id == ""
 }
 
-func (me *PsqlDB) ListPersonas(userID string) ([]string, error) {
-	var personas []string
+func (me *PsqlDB) ListPersonas(userID string) ([]*db.Persona, error) {
+	var personas []*db.Persona
 	rs, err := me.db.Query(sqlSelectPersonas, userID)
 	for rs.Next() {
-		var name string
-		err := rs.Scan(&name)
+		persona := &db.Persona{}
+		err := rs.Scan(&persona.ID, &persona.Name, &persona.CreatedAt)
 		if err != nil {
 			return personas, err
 		}
 
-		personas = append(personas, name)
+		personas = append(personas, persona)
 	}
 	if err != nil {
 		return personas, err
@@ -151,16 +152,22 @@ func (me *PsqlDB) ListPersonas(userID string) ([]string, error) {
 	return personas, nil
 }
 
-func (me *PsqlDB) AddPersona(userID string, persona string) (string, error) {
+func (me *PsqlDB) FindPersona(personaID string) (*db.Persona, error) {
+	persona := &db.Persona{}
+	err := me.db.QueryRow(sqlSelectPersona, personaID).Scan(&persona.ID, &persona.Name, &persona.CreatedAt)
+	return persona, err
+}
+
+func (me *PsqlDB) AddPersona(userID string, persona string) (*db.Persona, error) {
 	if !me.ValidateName(persona) {
-		return "", db.ErrNameTaken
+		return nil, db.ErrNameTaken
 	}
 	var id string
 	err := me.db.QueryRow(sqlInsertPersona, userID, persona).Scan(&id)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return id, nil
+	return me.FindPersona(id)
 }
 
 func (me *PsqlDB) RemovePersona(persona string) error {

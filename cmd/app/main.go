@@ -283,7 +283,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	case username.NameSetMsg:
 		m.status = statusReady
-		m.info.User.Personas = []string{string(msg)}
+		m.info.User.Personas = []*db.Persona{msg}
 		m.user = m.info.User
 		m.username = username.NewModel(m.dbpool, m.user) // reset the state
 	}
