@@ -20,6 +20,40 @@ func keyText(s ssh.Session) (string, error) {
 
 type DbHandler struct{}
 
+func (h *DbHandler) Delete(s ssh.Session, files []string, dbpool db.DB) error {
+	key, err := keyText(s)
+	if err != nil {
+		return err
+	}
+
+	user, err := dbpool.UserForKey(key)
+	if err != nil {
+		return err
+	}
+
+	posts, err := dbpool.PostsForUser(user.ID)
+	toDelete := []string{}
+	for _, post := range posts {
+		found := false
+		for _, file := range files {
+			if post.Title == file {
+				found = true
+			}
+		}
+		if !found {
+			toDelete = append(toDelete, post.ID)
+		}
+	}
+
+	if len(toDelete) > 0 {
+		err = dbpool.RemovePosts(toDelete)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	return err
+}
+
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, dbpool db.DB) error {
 	key, err := keyText(s)
 	if err != nil {

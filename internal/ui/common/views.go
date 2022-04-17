@@ -105,3 +105,31 @@ func styledButton(str string, underlined, focused bool) string {
 	}
 	return st.Render(str)
 }
+
+var (
+	helpDivider = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}).
+			Padding(0, 1).
+			Render("•")
+
+	helpSection = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#9B9B9B", Dark: "#5C5C5C"})
+)
+
+// HelpView renders text intended to display at help text, often at the
+// bottom of a view.
+func HelpView(sections ...string) string {
+	var s string
+	if len(sections) == 0 {
+		return s
+	}
+
+	for i := 0; i < len(sections); i++ {
+		s += helpSection.Render(sections[i])
+		if i < len(sections)-1 {
+			s += helpDivider
+		}
+	}
+
+	return s
+}

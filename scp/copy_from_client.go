@@ -31,6 +31,7 @@ func (e parseError) Error() string {
 func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbpool db.DB) error {
 	// accepts the request
 	_, _ = s.Write(NULL)
+    fmt.Println("MADEE IT")
 
 	var (
 		path  = info.Path

@@ -27,6 +27,7 @@ import (
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 	"github.com/neurosnap/lists.sh/internal/ui/info"
+	"github.com/neurosnap/lists.sh/internal/ui/posts"
 	"github.com/neurosnap/lists.sh/internal/ui/username"
 )
 
@@ -41,7 +42,7 @@ const (
 	statusFetching
 	statusReady
 	statusLinking
-	statusBrowsingKeys
+	statusBrowsingPosts
 	statusSettingUsername
 	statusQuitting
 	statusError
@@ -52,9 +53,8 @@ func (s status) String() string {
 		"initializing",
 		"fetching",
 		"ready",
-		"linking",
-		"browsing keys",
 		"setting username",
+		"browsing posts",
 		"quitting",
 		"error",
 	}[s]
@@ -65,16 +65,16 @@ type menuChoice int
 
 // menu choices
 const (
-	keysChoice menuChoice = iota
-	personasChoice
+	personasChoice menuChoice = iota
+	postsChoice
 	exitChoice
 	unsetChoice // set when no choice has been made
 )
 
 // menu text corresponding to menu choices. these are presented to the user.
 var menuChoices = map[menuChoice]string{
-	keysChoice:     "Manage linked keys",
 	personasChoice: "Set username",
+	postsChoice:    "Manage posts",
 	exitChoice:     "Exit",
 }
 
@@ -188,6 +188,7 @@ type model struct {
 	info          info.Model
 	spinner       spinner.Model
 	username      username.Model
+	posts         posts.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -280,6 +281,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.user = msg
 		m.username = username.NewModel(m.dbpool, m.user)
 		m.info, cmd = info.Update(msg, m.info)
+		m.posts = posts.NewModel(m.dbpool, m.user)
 		cmds = append(cmds, cmd)
 	case username.NameSetMsg:
 		m.status = statusReady
@@ -309,6 +311,22 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		return m, cmd
+	case statusBrowsingPosts:
+		newModel, newCmd := m.posts.Update(msg)
+		postsModel, ok := newModel.(posts.Model)
+		if !ok {
+			panic("could not perform assertion on posts model")
+		}
+		m.posts = postsModel
+		cmd = newCmd
+
+		if m.posts.Exit {
+			m.posts = posts.NewModel(m.dbpool, m.user)
+			m.status = statusReady
+		} else if m.posts.Quit {
+			m.status = statusQuitting
+			return m, tea.Quit
+		}
 	// Username tool
 	case statusSettingUsername:
 		m.username, cmd = username.Update(msg, m.username)
@@ -327,6 +345,10 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 		m.status = statusSettingUsername
 		m.menuChoice = unsetChoice
 		cmd = username.InitialCmd()
+	case postsChoice:
+		m.status = statusBrowsingPosts
+		m.menuChoice = unsetChoice
+		cmd = posts.LoadPosts(m.posts)
 	case exitChoice:
 		m.status = statusQuitting
 		cmd = tea.Quit
@@ -362,37 +384,11 @@ func (m model) quitView() string {
 	return "Thanks for using lists.sh!\n"
 }
 
-var (
-	helpDivider = lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"}).
-			Padding(0, 1).
-			Render("•")
-
-	helpSection = lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#9B9B9B", Dark: "#5C5C5C"})
-)
-
-func helpView(sections ...string) string {
-	var s string
-	if len(sections) == 0 {
-		return s
-	}
-
-	for i := 0; i < len(sections); i++ {
-		s += helpSection.Render(sections[i])
-		if i < len(sections)-1 {
-			s += helpDivider
-		}
-	}
-
-	return s
-}
-
 func footerView(m model) string {
 	if m.err != nil {
 		return m.errorView(m.err)
 	}
-	return "\n\n" + helpView("j/k, ↑/↓: choose", "enter: select")
+	return "\n\n" + common.HelpView("j/k, ↑/↓: choose", "enter: select")
 }
 
 func (m model) errorView(err error) string {
@@ -419,6 +415,8 @@ func (m model) View() string {
 		s += footerView(m)
 	case statusSettingUsername:
 		s += username.View(m.username)
+	case statusBrowsingPosts:
+		s += m.posts.View()
 	}
 	return m.styles.App.Render(wrap.String(wordwrap.String(s, w), w))
 	// s := "Public key: %s\n"

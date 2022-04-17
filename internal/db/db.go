@@ -50,10 +50,11 @@ type DB interface {
 	RemovePersona(persona string) error
 
 	FindPost(postID string) (*Post, error)
+    PostsForUser(userID string) ([]*Post, error)
 	FindPostWithTitle(title string, personaID string) (*Post, error)
 	InsertPost(personaID string, title string, text string) (*Post, error)
 	UpdatePost(postID string, text string) (*Post, error)
-	RemovePost(postID string) error
+	RemovePosts(postIDs []string) error
 
 	Close() error
 }

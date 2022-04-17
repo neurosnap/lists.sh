@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal/db"
@@ -17,6 +18,7 @@ const (
 	sqlSelectPersonas       = `SELECT id, name, created_at FROM personas WHERE user_id = $1`
 	sqlSelectPostWithTitle  = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE title = $1 AND persona_id = $2`
 	sqlSelectPost           = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE id = $1`
+	sqlSelectPostsForUser   = `SELECT posts.id, persona_id, title, text, publish_at FROM posts LEFT OUTER JOIN personas ON personas.id = posts.persona_id WHERE personas.user_id = $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
 	sqlInsertPersona   = `INSERT INTO personas (user_id, name) VALUES ($1, $2) RETURNING id`
@@ -26,7 +28,7 @@ const (
 	sqlUpdatePost = `UPDATE posts SET text = $1, updated_at = $2 WHERE id = $3`
 
 	sqlRemovePersona = `DELETE FROM personas WHERE name = $1`
-	sqlRemovePost    = `DELETE FROM posts WHERE id = $1`
+	sqlRemovePosts    = `DELETE FROM posts WHERE id IN ($1)`
 )
 
 type PsqlDB struct {
@@ -216,9 +218,30 @@ func (me *PsqlDB) UpdatePost(postID string, text string) (*db.Post, error) {
 	return me.FindPost(postID)
 }
 
-func (me *PsqlDB) RemovePost(postID string) error {
-	_, err := me.db.Exec(sqlRemovePost, postID)
+func (me *PsqlDB) RemovePosts(postIDs []string) error {
+	_, err := me.db.Exec(sqlRemovePosts, strings.Join(postIDs, ","))
 	return err
+}
+
+func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
+	var posts []*db.Post
+	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
+	for rs.Next() {
+		post := &db.Post{}
+		err := rs.Scan(&post.ID, &post.PersonaID, &post.Title, &post.Text, &post.PublishAt)
+		if err != nil {
+			return posts, err
+		}
+
+		posts = append(posts, post)
+	}
+	if err != nil {
+		return posts, err
+	}
+	if rs.Err() != nil {
+		return posts, rs.Err()
+	}
+	return posts, nil
 }
 
 func (me *PsqlDB) Close() error {
