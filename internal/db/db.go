@@ -16,20 +16,14 @@ type PublicKey struct {
 
 type User struct {
 	ID        string     `json:"id"`
-	PublicKey *PublicKey `json:"public_key,omitempty"`
-	Personas  []*Persona  `json:"personas"`
-	CreatedAt *time.Time `json:"created_at"`
-}
-
-type Persona struct {
-	ID        string     `json:"id"`
 	Name      string     `json:"name"`
+	PublicKey *PublicKey `json:"public_key,omitempty"`
 	CreatedAt *time.Time `json:"created_at"`
 }
 
 type Post struct {
 	ID        string     `json:"id"`
-	PersonaID string     `json:"persona_id"`
+	UserID    string     `json:"user_id"`
 	Title     string     `json:"title"`
 	Text      string     `json:"text"`
 	PublishAt *time.Time `json:"publish_at"`
@@ -37,22 +31,19 @@ type Post struct {
 
 type DB interface {
 	AddUser() (string, error)
-	LinkUserKey(user *User, key string) error
+	LinkUserKey(userID string, key string) error
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
 
 	UserForKey(key string) (*User, error)
 	User(userID string) (*User, error)
 	ValidateName(name string) bool
-
-	ListPersonas(userID string) ([]*Persona, error)
-	AddPersona(userID string, persona string) (*Persona, error)
-	RemovePersona(persona string) error
+	SetUserName(userID string, name string) error
 
 	FindPost(postID string) (*Post, error)
-    PostsForUser(userID string) ([]*Post, error)
-	FindPostWithTitle(title string, personaID string) (*Post, error)
-	InsertPost(personaID string, title string, text string) (*Post, error)
+	PostsForUser(userID string) ([]*Post, error)
+	FindPostWithTitle(title string, userID string) (*Post, error)
+	InsertPost(userID string, title string, text string) (*Post, error)
 	UpdatePost(postID string, text string) (*Post, error)
 	RemovePosts(postIDs []string) error
 

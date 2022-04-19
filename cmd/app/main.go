@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -23,6 +22,7 @@ import (
 	"github.com/muesli/reflow/indent"
 	"github.com/muesli/reflow/wordwrap"
 	"github.com/muesli/reflow/wrap"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
@@ -39,7 +39,6 @@ type status int
 
 const (
 	statusInit status = iota
-	statusFetching
 	statusReady
 	statusLinking
 	statusBrowsingPosts
@@ -51,7 +50,6 @@ const (
 func (s status) String() string {
 	return [...]string{
 		"initializing",
-		"fetching",
 		"ready",
 		"setting username",
 		"browsing posts",
@@ -65,7 +63,7 @@ type menuChoice int
 
 // menu choices
 const (
-	personasChoice menuChoice = iota
+	setUserChoice menuChoice = iota
 	postsChoice
 	exitChoice
 	unsetChoice // set when no choice has been made
@@ -73,9 +71,9 @@ const (
 
 // menu text corresponding to menu choices. these are presented to the user.
 var menuChoices = map[menuChoice]string{
-	personasChoice: "Set username",
-	postsChoice:    "Manage posts",
-	exitChoice:     "Exit",
+	setUserChoice: "Set username",
+	postsChoice:   "Manage posts",
+	exitChoice:    "Exit",
 }
 
 type SSHServer struct{}
@@ -132,14 +130,6 @@ func NewSpinner() spinner.Model {
 
 type GotDBMsg db.DB
 
-func GetDB() tea.Cmd {
-	return func() tea.Msg {
-		databaseUrl := os.Getenv("DATABASE_URL")
-		dbpool := postgres.NewDB(databaseUrl)
-		return dbpool
-	}
-}
-
 // You can wire any Bubble Tea model up to the middleware with a function that
 // handles the incoming ssh.Session. Here we just grab the terminal info and
 // pass it to the new model. You can also return tea.ProgramOptions (such as
@@ -150,28 +140,28 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		fmt.Println("no active terminal, skipping")
 		return nil, nil
 	}
-	key, err := keyText(s)
+	key, err := internal.KeyText(s)
 	if err != nil {
 		log.Println(err)
 	}
 
+	databaseUrl := os.Getenv("DATABASE_URL")
+	dbpool := postgres.NewDB(databaseUrl)
+	user, err := FindOrRegisterUser(dbpool, key)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	m := model{
 		publicKey:  key,
-		dbpool:     nil,
-		user:       nil,
-		status:     statusReady,
+		dbpool:     dbpool,
+		user:       user,
+		status:     statusInit,
 		menuChoice: unsetChoice,
 		spinner:    common.NewSpinner(),
 	}
-	return m, []tea.ProgramOption{tea.WithAltScreen()}
-}
 
-func keyText(s ssh.Session) (string, error) {
-	if s.PublicKey() == nil {
-		return "", fmt.Errorf("Session doesn't have public key")
-	}
-	kb := base64.StdEncoding.EncodeToString(s.PublicKey().Marshal())
-	return fmt.Sprintf("%s %s", s.PublicKey().Type(), kb), nil
+	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
 
 // Just a generic tea.Model to demo terminal information of ssh.
@@ -193,34 +183,32 @@ type model struct {
 
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
-		GetDB(),
 		spinner.Tick,
 	)
 }
 
-func (m model) RegisterUser() {
-	if m.user == nil {
-		log.Println("User already exists, cannot create")
-		return
+func FindOrRegisterUser(dbpool db.DB, publicKey string) (*db.User, error) {
+	user, err := dbpool.UserForKey(publicKey)
+	if user != nil {
+		return user, nil
 	}
 
-	userId, err := m.dbpool.AddUser()
+	userID, err := dbpool.AddUser()
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, err
 	}
 
-	user, err := m.dbpool.User(userId)
+	err = dbpool.LinkUserKey(userID, publicKey)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, err
 	}
 
-	err = m.dbpool.LinkUserKey(user, m.publicKey)
+	user, err = dbpool.UserForKey(publicKey)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, err
 	}
+
+	return user, nil
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -236,8 +224,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
-		case "r":
-			m.RegisterUser()
 		}
 
 		if m.status == statusReady { // Process keys for the menu
@@ -266,28 +252,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-	case spinner.TickMsg:
-		switch m.status {
-		case statusInit, statusFetching:
-			m.spinner, cmd = m.spinner.Update(msg)
-			return m, cmd
-		}
-	case GotDBMsg:
-		m.dbpool = msg
-		m.status = statusFetching
-		return m, info.GetUser(msg, m.publicKey)
-	case info.GotUserMsg:
-		m.status = statusReady
-		m.user = msg
-		m.username = username.NewModel(m.dbpool, m.user)
-		m.info, cmd = info.Update(msg, m.info)
-		m.posts = posts.NewModel(m.dbpool, m.user)
-		cmds = append(cmds, cmd)
 	case username.NameSetMsg:
 		m.status = statusReady
-		m.info.User.Personas = []*db.Persona{msg}
+		m.info.User.Name = string(msg)
 		m.user = m.info.User
 		m.username = username.NewModel(m.dbpool, m.user) // reset the state
+	}
+
+	switch m.status {
+	case statusInit:
+		m.username = username.NewModel(m.dbpool, m.user)
+		m.info = info.NewModel(m.user)
+		m.posts = posts.NewModel(m.dbpool, m.user)
+		m.status = statusReady
 	}
 
 	m, cmd = updateChilden(msg, m)
@@ -303,14 +280,6 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 
 	switch m.status {
 	// User info
-	case statusFetching:
-		m.info, cmd = info.Update(msg, m.info)
-		if m.info.Quit {
-			m.status = statusQuitting
-			m.err = m.info.Err
-			return m, tea.Quit
-		}
-		return m, cmd
 	case statusBrowsingPosts:
 		newModel, newCmd := m.posts.Update(msg)
 		postsModel, ok := newModel.(posts.Model)
@@ -341,7 +310,7 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 
 	// Handle the menu
 	switch m.menuChoice {
-	case personasChoice:
+	case setUserChoice:
 		m.status = statusSettingUsername
 		m.menuChoice = unsetChoice
 		cmd = username.InitialCmd()
@@ -402,13 +371,6 @@ func (m model) View() string {
 	w := m.terminalWidth - m.styles.App.GetHorizontalFrameSize()
 	s := m.styles.Logo.String() + "\n\n"
 	switch m.status {
-	case statusInit:
-		s += m.spinner.View() + " Initializing..."
-	case statusFetching:
-		if m.info.User == nil {
-			s += m.spinner.View()
-		}
-		s += m.info.View()
 	case statusReady:
 		s += m.info.View()
 		s += "\n\n" + m.menuView()
@@ -419,12 +381,4 @@ func (m model) View() string {
 		s += m.posts.View()
 	}
 	return m.styles.App.Render(wrap.String(wordwrap.String(s, w), w))
-	// s := "Public key: %s\n"
-	// if m.user == nil {
-	// 	s += "Press 'r' to register public key\n"
-	// } else {
-	// 	s += fmt.Sprintf("User id: %s\n", m.user.ID)
-	// }
-	// s += "Press 'q' to quit\n"
-	// return fmt.Sprintf(s, m.publicKey)
 }

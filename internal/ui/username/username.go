@@ -28,7 +28,7 @@ const (
 
 // NameSetMsg is sent when a new name has been set successfully. It contains
 // the new name.
-type NameSetMsg *db.Persona
+type NameSetMsg string
 
 // NameTakenMsg is sent when the requested username has already been taken.
 type NameTakenMsg struct{}
@@ -269,13 +269,13 @@ func setName(m Model) tea.Cmd {
 			return NameInvalidMsg{}
 		}
 
-		persona, err := m.dbpool.AddPersona(m.user.ID, m.newName)
+		err := m.dbpool.SetUserName(m.user.ID, m.newName)
 		if err == db.ErrNameTaken {
 			return NameTakenMsg{}
 		} else if err != nil {
 			return errMsg{err}
 		}
 
-		return NameSetMsg(persona)
+		return NameSetMsg(m.newName)
 	}
 }

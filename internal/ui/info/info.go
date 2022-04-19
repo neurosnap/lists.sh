@@ -8,10 +8,6 @@ import (
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 )
 
-// GotBioMsg is sent when we've successfully fetched the user's bio. It
-// contains the user's profile data.
-type GotUserMsg *db.User
-
 type errMsg struct {
 	err error
 }
@@ -30,10 +26,10 @@ type Model struct {
 }
 
 // NewModel returns a new Model in its initial state.
-func NewModel() Model {
+func NewModel(user *db.User) Model {
 	return Model{
 		Quit:   false,
-		User:   nil,
+		User:   user,
 		styles: common.DefaultStyles(),
 	}
 }
@@ -49,8 +45,6 @@ func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
 			m.Quit = true
 			return m, nil
 		}
-	case GotUserMsg:
-		m.User = msg
 	case errMsg:
 		// If there's an error we print the error and exit
 		m.Err = msg
@@ -73,8 +67,8 @@ func (m Model) View() string {
 
 func (m Model) bioView() string {
 	var username string
-	if len(m.User.Personas) > 0 {
-		username = m.User.Personas[0].Name
+	if m.User.Name != "" {
+		username = m.User.Name
 	} else {
 		username = m.styles.Subtle.Render("(none set)")
 	}
@@ -83,15 +77,4 @@ func (m Model) bioView() string {
 		"Public key", m.User.PublicKey.Key,
 		"Joined", m.User.CreatedAt.Format("02 Jan 2006"),
 	)
-}
-
-func GetUser(dbpool db.DB, publicKey string) tea.Cmd {
-	return func() tea.Msg {
-		user, err := dbpool.UserForKey(publicKey)
-		if err != nil {
-			return errMsg{err}
-		}
-
-		return GotUserMsg(user)
-	}
 }

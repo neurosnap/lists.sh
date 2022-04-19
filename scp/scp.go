@@ -9,6 +9,7 @@ import (
 
 	"github.com/charmbracelet/wish"
 	"github.com/gliderlabs/ssh"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
@@ -16,7 +17,7 @@ import (
 // being copied from the client to the server.
 type CopyFromClientHandler interface {
 	// Write should write the given file.
-	Write(ssh.Session, *FileEntry, db.DB) error
+	Write(ssh.Session, *FileEntry, *db.User, db.DB) error
 }
 
 // Handler is a interface that can be implemented to handle both SCP
@@ -27,7 +28,7 @@ type Handler interface {
 
 // Middleware provides a wish middleware using the given CopyToClientHandler
 // and CopyFromClientHandler.
-func Middleware(wh CopyFromClientHandler, db db.DB) wish.Middleware {
+func Middleware(wh CopyFromClientHandler, dbpool db.DB) wish.Middleware {
 	return func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			info := GetInfo(s.Command())
@@ -36,7 +37,30 @@ func Middleware(wh CopyFromClientHandler, db db.DB) wish.Middleware {
 				return
 			}
 
+			if info.Recursive {
+				err := fmt.Errorf("recursive not supported. try `scp ./blog/*.txt lists.sh` instead")
+				errHandler(s, err)
+				return
+			}
+
 			var err error
+			key, err := internal.KeyText(s)
+			if err != nil {
+				errHandler(s, fmt.Errorf("key not found"))
+				return
+			}
+
+			user, err := dbpool.UserForKey(key)
+			if err != nil {
+				errHandler(s, fmt.Errorf("user not found"))
+				return
+			}
+
+			if user.Name == "" {
+				errHandler(s, fmt.Errorf("must have username set"))
+				return
+			}
+
 			switch info.Op {
 			case OpCopyToClient:
 				err = fmt.Errorf("copying from server to client not supported")
@@ -46,7 +70,7 @@ func Middleware(wh CopyFromClientHandler, db db.DB) wish.Middleware {
 					err = fmt.Errorf("no handler provided for scp -t")
 					break
 				}
-				err = copyFromClient(s, info, wh, db)
+				err = copyFromClient(s, info, wh, user, dbpool)
 			}
 			if err != nil {
 				errHandler(s, err)

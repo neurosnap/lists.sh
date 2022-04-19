@@ -28,10 +28,9 @@ func (e parseError) Error() string {
 	return fmt.Sprintf("failed to parse: %q", e.subject)
 }
 
-func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbpool db.DB) error {
+func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, user *db.User, dbpool db.DB) error {
 	// accepts the request
 	_, _ = s.Write(NULL)
-    fmt.Println("MADEE IT")
 
 	var (
 		path  = info.Path
@@ -91,7 +90,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, dbp
 				Mtime:    mtime,
 				Atime:    atime,
 				Reader:   newLimitReader(r, int(size)),
-			}, dbpool)
+			}, user, dbpool)
 
 			if err != nil {
 				return fmt.Errorf("failed to write file: %q: %w", name, err)

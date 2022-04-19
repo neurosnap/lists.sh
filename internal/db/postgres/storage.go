@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"strings"
 
@@ -10,25 +11,23 @@ import (
 )
 
 const (
-	sqlSelectPublicKey      = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
-	sqlSelectPublicKeys     = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
-	sqlSelectUser           = `SELECT id, created_at FROM app_users WHERE id = $1`
-	sqlSelectPersonaForName = `SELECT id FROM personas WHERE name = $1`
-	sqlSelectPersona        = `SELECT id, name, created_at FROM personas where id = $1`
-	sqlSelectPersonas       = `SELECT id, name, created_at FROM personas WHERE user_id = $1`
-	sqlSelectPostWithTitle  = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE title = $1 AND persona_id = $2`
-	sqlSelectPost           = `SELECT id, persona_id, title, text, publish_at FROM posts WHERE id = $1`
-	sqlSelectPostsForUser   = `SELECT posts.id, persona_id, title, text, publish_at FROM posts LEFT OUTER JOIN personas ON personas.id = posts.persona_id WHERE personas.user_id = $1`
+	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
+	sqlSelectPublicKeys  = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
+	sqlSelectUser        = `SELECT id, name, created_at FROM app_users WHERE id = $1`
+	sqlSelectUserForName = `SELECT id FROM app_users WHERE name = $1`
+
+	sqlSelectPostWithTitle = `SELECT id, user_id, title, text, publish_at FROM posts WHERE title = $1 AND user_id = $2`
+	sqlSelectPost          = `SELECT id, user_id, title, text, publish_at FROM posts WHERE id = $1`
+	sqlSelectPostsForUser  = `SELECT id, user_id, title, text, publish_at FROM posts WHERE user_id = $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
-	sqlInsertPersona   = `INSERT INTO personas (user_id, name) VALUES ($1, $2) RETURNING id`
-	sqlInsertPost      = `INSERT INTO posts (persona_id, title, text) VALUES ($1, $2, $3) RETURNING id`
+	sqlInsertPost      = `INSERT INTO posts (user_id, title, text) VALUES ($1, $2, $3) RETURNING id`
 	sqlInsertUser      = `INSERT INTO app_users DEFAULT VALUES returning id`
 
-	sqlUpdatePost = `UPDATE posts SET text = $1, updated_at = $2 WHERE id = $3`
+	sqlUpdatePost     = `UPDATE posts SET text = $1, updated_at = $2 WHERE id = $3`
+	sqlUpdateUserName = `UPDATE app_users SET name = $1 WHERE id = $2`
 
-	sqlRemovePersona = `DELETE FROM personas WHERE name = $1`
-	sqlRemovePosts    = `DELETE FROM posts WHERE id IN ($1)`
+	sqlRemovePosts = `DELETE FROM posts WHERE id IN ($1)`
 )
 
 type PsqlDB struct {
@@ -56,8 +55,8 @@ func (me *PsqlDB) AddUser() (string, error) {
 	return id, nil
 }
 
-func (me *PsqlDB) LinkUserKey(user *db.User, key string) error {
-	_, err := me.db.Exec(sqlInsertPublicKey, user.ID, key)
+func (me *PsqlDB) LinkUserKey(userID string, key string) error {
+	_, err := me.db.Exec(sqlInsertPublicKey, userID, key)
 	return err
 }
 
@@ -105,27 +104,26 @@ func (me *PsqlDB) UserForKey(key string) (*db.User, error) {
 
 	user.PublicKey = pk
 
-	personas, err := me.ListPersonas(user.ID)
-	if err != nil {
-		return nil, err
-	}
-	user.Personas = personas
 	return user, nil
 }
 
 func (me *PsqlDB) User(userID string) (*db.User, error) {
 	user := &db.User{}
+	var un sql.NullString
 	r := me.db.QueryRow(sqlSelectUser, userID)
-	err := r.Scan(&user.ID, &user.CreatedAt)
+	err := r.Scan(&user.ID, &un, &user.CreatedAt)
 	if err != nil {
 		return nil, err
+	}
+	if un.Valid {
+		user.Name = un.String
 	}
 	return user, nil
 }
 
 func (me *PsqlDB) ValidateName(name string) bool {
 	var id string
-	r := me.db.QueryRow(sqlSelectPersonaForName, name)
+	r := me.db.QueryRow(sqlSelectUserForName, name)
 	err := r.Scan(&id)
 	if err != nil {
 		return true
@@ -133,54 +131,19 @@ func (me *PsqlDB) ValidateName(name string) bool {
 	return id == ""
 }
 
-func (me *PsqlDB) ListPersonas(userID string) ([]*db.Persona, error) {
-	var personas []*db.Persona
-	rs, err := me.db.Query(sqlSelectPersonas, userID)
-	for rs.Next() {
-		persona := &db.Persona{}
-		err := rs.Scan(&persona.ID, &persona.Name, &persona.CreatedAt)
-		if err != nil {
-			return personas, err
-		}
+func (me *PsqlDB) SetUserName(userID string, name string) error {
+	if !me.ValidateName(name) {
+		return errors.New("name is already taken")
+	}
 
-		personas = append(personas, persona)
-	}
-	if err != nil {
-		return personas, err
-	}
-	if rs.Err() != nil {
-		return personas, rs.Err()
-	}
-	return personas, nil
-}
-
-func (me *PsqlDB) FindPersona(personaID string) (*db.Persona, error) {
-	persona := &db.Persona{}
-	err := me.db.QueryRow(sqlSelectPersona, personaID).Scan(&persona.ID, &persona.Name, &persona.CreatedAt)
-	return persona, err
-}
-
-func (me *PsqlDB) AddPersona(userID string, persona string) (*db.Persona, error) {
-	if !me.ValidateName(persona) {
-		return nil, db.ErrNameTaken
-	}
-	var id string
-	err := me.db.QueryRow(sqlInsertPersona, userID, persona).Scan(&id)
-	if err != nil {
-		return nil, err
-	}
-	return me.FindPersona(id)
-}
-
-func (me *PsqlDB) RemovePersona(persona string) error {
-	_, err := me.db.Exec(sqlRemovePersona, persona)
+	_, err := me.db.Exec(sqlUpdateUserName, name, userID)
 	return err
 }
 
 func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, error) {
 	post := &db.Post{}
 	r := me.db.QueryRow(sqlSelectPostWithTitle, title, persona_id)
-	err := r.Scan(&post.ID, &post.PersonaID, &post.Title, &post.Text, &post.PublishAt)
+	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +154,7 @@ func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, 
 func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	post := &db.Post{}
 	r := me.db.QueryRow(sqlSelectPost, postID)
-	err := r.Scan(&post.ID, &post.PersonaID, &post.Title, &post.Text, &post.PublishAt)
+	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
 	if err != nil {
 		return nil, err
 	}
@@ -199,9 +162,9 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	return post, nil
 }
 
-func (me *PsqlDB) InsertPost(personaID string, title string, text string) (*db.Post, error) {
+func (me *PsqlDB) InsertPost(userID string, title string, text string) (*db.Post, error) {
 	var id string
-	err := me.db.QueryRow(sqlInsertPost, personaID, title, text).Scan(&id)
+	err := me.db.QueryRow(sqlInsertPost, userID, title, text).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +191,7 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
 	for rs.Next() {
 		post := &db.Post{}
-		err := rs.Scan(&post.ID, &post.PersonaID, &post.Title, &post.Text, &post.PublishAt)
+		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
 		if err != nil {
 			return posts, err
 		}
