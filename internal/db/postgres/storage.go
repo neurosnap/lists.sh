@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"os"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -34,7 +35,8 @@ type PsqlDB struct {
 	db *sql.DB
 }
 
-func NewDB(databaseUrl string) *PsqlDB {
+func NewDB() *PsqlDB {
+	databaseUrl := os.Getenv("DATABASE_URL")
 	var err error
 	log.Printf("Connecting to postgres: %s\n", databaseUrl)
 

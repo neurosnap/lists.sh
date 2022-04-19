@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
@@ -17,8 +16,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer() {
-	databaseUrl := os.Getenv("DATABASE_URL")
-    db := postgres.NewDB(databaseUrl)
+	db := postgres.NewDB()
 	log.Println(db)
 
 	http.HandleFunc("/", appHandler)

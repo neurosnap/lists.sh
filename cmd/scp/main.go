@@ -30,8 +30,7 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 func main() {
 	sshServer := &SSHServer{}
 	handler := &scp.DbHandler{}
-	databaseUrl := os.Getenv("DATABASE_URL")
-	dbh := postgres.NewDB(databaseUrl)
+	dbh := postgres.NewDB()
 	defer dbh.Close()
 
 	s, err := wish.NewServer(

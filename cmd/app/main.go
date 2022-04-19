@@ -145,8 +145,7 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		log.Println(err)
 	}
 
-	databaseUrl := os.Getenv("DATABASE_URL")
-	dbpool := postgres.NewDB(databaseUrl)
+	dbpool := postgres.NewDB()
 	user, err := FindOrRegisterUser(dbpool, key)
 	if err != nil {
 		fmt.Println(err)
