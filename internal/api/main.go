@@ -80,7 +80,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postCollection := make([]PostItemData, len(posts))
+	postCollection := make([]PostItemData, 0, len(posts))
 	for _, post := range posts {
 		p := PostItemData{
 			URL:         fmt.Sprintf("/%s/%s", post.Username, post.Title),
@@ -219,7 +219,6 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 
 var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/", marketingHandler),
-	routeHelper.NewRoute("GET", "/reset.css", serveFile("reset.css", "text/css")),
 	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
 	routeHelper.NewRoute("GET", "/read", readHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),

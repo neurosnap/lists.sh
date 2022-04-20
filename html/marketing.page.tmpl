@@ -12,7 +12,7 @@
     <div class="sections">
         <div class="container">
             <section>
-                <h2 class="text-xl">Create an account with Public-Key Cryptography</h2>
+                <h2 class="text-lg font-bold">Create an account with Public-Key Cryptography</h2>
                 <p>No email address required.</p>
                 <p>To get started, simply ssh into our content management system:</p>
                 <pre>ssh cms.lists.sh</pre>
@@ -21,7 +21,7 @@
             </section>
 
             <section>
-                <h2 class="text-xl">You control the source content</h2>
+                <h2 class="text-lg font-bold">You control the source content</h2>
                 <p>Create lists using your favorite editor and then send them to our server:</p>
                 <pre>scp ~/blog/* send.lists.sh</pre>
                 <p class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</p>
@@ -29,30 +29,66 @@
             </section>
 
             <section>
-                <h2 class="text-xl">Plain text format</h2>
+                <h2 class="text-lg font-bold">Plain text format</h2>
                 <p>A simple specification that is flexible and with no frills.</p>
                 <p><a href="/spec">specification</a></p>
             </section>
 
             <section>
-                <h2 class="text-xl">No distractions</h2>
+                <h2 class="text-lg font-bold">Features</h2>
                 <ul>
-                    <li>No ads</li>
-                    <li>No clutter</li>
+                    <li>Just lists</li>
+                    <li>Bring your own editor</li>
+                    <li>You control the source content</li>
+                    <li>Public-key based authentication</li>
+                    <li>No ads, zero tracking</li>
+                    <li>No platform lock-in</li>
+                    <li>No javascript</li>
+                    <li>Subscriptions</li>
+                    <ul class="mx-2">
+                        <li>RSS</li>
+                        <li>Email</li>
+                    </ul>
                     <li>Not a platform for todos</li>
                     <li>Minimalist design</li>
-                    <li>Just lists</li>
+                    <li>100% open source</li>
                 </ul>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold">Philosophy</h2>
+                <p>
+                    I love writing lists.  I think restricting thought to a set of lists can really
+                    help improve clarity in prose.  The goal of this blog is to make it dead simple
+                    to use the tools you love to write and publish lists.  There is no installation,
+                    signup is as easy as SSH'ing into our CMS, and publishing content is as easy as
+                    copying files to our server.
+                </p>
+                <p>
+                    Another goal of this microblog platform is to satisfy my own needs.  I like to
+                    write and share lists with people because it's fun to categorize items into lists.
+                </p>
+                <p>
+                    Other blogging platforms support writing lists, but they don't
+                    <span class="font-bold">emphasize</span> them.  Writing lists is pretty popular
+                    on Twitter, but discoverability is terrible.  If I want to reference a list that
+                    I wrote a few years ago, finding it is a pain.  It also clutters the readability
+                    with its design and emphasis on engagement.  Other regular blogging platforms
+                    focus on prose.
+                </p>
             </section>
         </div>
     </div>
 
     <footer>
         <hr />
-        <div class="links">
-        <a href="/about">about</a>
-        <a href="/help">help</a>
-        <a href="https://twitter.com/neurosnap">twitter</a>
+        <p class="font-italic">Built and maintained by <a href="https://erock.io">Eric Bower</a>.</p>
+        <div>
+            <a href="/ops">ops</a> |
+            <a href="/privacy">privacy</a> |
+            <a href="/transparency">transparency</a> |
+            <a href="https://github.com/neurosnap/lists.sh">source</a> |
+            <a href="/help">help</a>
         </div>
     </footer>
 </body>

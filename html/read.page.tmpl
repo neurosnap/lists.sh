@@ -12,8 +12,10 @@
     <div class="posts">
         {{range .Posts}}
         <article>
-            <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
-            <div class="text-lg">{{.PublishedAt}}</div>
+            <div class="flex items-center">
+                <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
+                <div class="font-italic mx">&#8212; {{.PublishedAt}}</div>
+            </div>
             <div class="text-sm">from <a href="/{{.Username}}">{{.Username}}</a></div>
         </article>
         {{end}}

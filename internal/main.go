@@ -28,6 +28,10 @@ func SanitizeFileExt(fname string) string {
 	return strings.TrimSuffix(fname, filepath.Ext(fname))
 }
 
+type ListItem struct {}
+
+func ParseText(text string) {}
+
 func KeyText(s ssh.Session) (string, error) {
 	if s.PublicKey() == nil {
 		return "", fmt.Errorf("Session doesn't have public key")

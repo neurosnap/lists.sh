@@ -6,12 +6,15 @@
 <body id="collection">
     <header>
         <h1 class="text-2xl font-bold">{{.Username}}</h1>
+        <hr />
     </header>
     <div class="posts">
         {{range .Posts}}
         <article>
-            <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
-            <div class="text-lg">{{.PublishedAt}}</div>
+            <div class="flex items-center">
+                <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
+                <div class="font-italic mx">&#8212; {{.PublishedAt}}</div>
+            </div>
         </article>
         {{end}}
     </div>
