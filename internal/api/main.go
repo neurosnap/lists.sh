@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	routeHelper "github.com/neurosnap/lists.sh/internal/router"
+	"github.com/neurosnap/lists.sh/pkg"
 )
 
 func renderTemplate(templates []string) (*template.Template, error) {
@@ -20,6 +20,7 @@ func renderTemplate(templates []string) (*template.Template, error) {
 	files = append(
 		files,
 		"./html/footer.partial.tmpl",
+		"./html/marketing-footer.partial.tmpl",
 		"./html/base.layout.tmpl",
 	)
 
@@ -30,21 +31,21 @@ func renderTemplate(templates []string) (*template.Template, error) {
 	return ts, nil
 }
 
-func marketingHandler(w http.ResponseWriter, r *http.Request) {
-	ts, err := renderTemplate([]string{
-		"./html/marketing.page.tmpl",
-	})
+func createPageHandler(fname string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ts, err := renderTemplate([]string{fname})
 
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal Server Error", 500)
-		return
-	}
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal Server Error", 500)
+			return
+		}
 
-	err = ts.Execute(w, nil)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal Server Error", 500)
+		err = ts.Execute(w, nil)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal Server Error", 500)
+		}
 	}
 }
 
@@ -83,9 +84,9 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	postCollection := make([]PostItemData, 0, len(posts))
 	for _, post := range posts {
 		p := PostItemData{
-			URL:         fmt.Sprintf("/%s/%s", post.Username, post.Title),
-			Title:       internal.FilenameToTitle(post.Title),
-			PublishedAt: post.PublishAt.Format("Mon January 2, 2006"),
+			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Title),
+			Title:     internal.FilenameToTitle(post.Title),
+			PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
 		}
 		postCollection = append(postCollection, p)
 	}
@@ -103,15 +104,12 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type ItemData struct {
-	Text string
-}
-
 type PostData struct {
 	PageTitle string
 	Title     string
 	Username  string
-	Items     []ItemData
+	PublishAt string
+	Items     []*pkg.ListItem
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
@@ -131,16 +129,14 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	items := []ItemData{}
-	itemsArr := strings.Split(post.Text, "\n")
-	for _, text := range itemsArr {
-		items = append(items, ItemData{Text: text})
-	}
+	parsedText := pkg.ParseText(post.Text)
+
 	data := PostData{
 		PageTitle: post.Title,
 		Title:     internal.FilenameToTitle(post.Title),
+		PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
 		Username:  username,
-		Items:     items,
+		Items:     parsedText.Items,
 	}
 
 	ts, err := renderTemplate([]string{
@@ -159,10 +155,10 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type PostItemData struct {
-	URL         string
-	Title       string
-	Username    string
-	PublishedAt string
+	URL       string
+	Title     string
+	Username  string
+	PublishAt string
 }
 
 type ReadData struct {
@@ -190,10 +186,10 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	data := ReadData{}
 	for _, post := range posts {
 		item := PostItemData{
-			URL:         fmt.Sprintf("/%s/%s", post.Username, post.Title),
-			Title:       internal.FilenameToTitle(post.Title),
-			Username:    post.Username,
-			PublishedAt: post.PublishAt.Format("Mon January 2, 2006"),
+			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Title),
+			Title:     internal.FilenameToTitle(post.Title),
+			Username:  post.Username,
+			PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
 		}
 		data.Posts = append(data.Posts, item)
 	}
@@ -218,7 +214,12 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 }
 
 var routes = []routeHelper.Route{
-	routeHelper.NewRoute("GET", "/", marketingHandler),
+	routeHelper.NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
+	routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
+	routeHelper.NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
+	routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
+	routeHelper.NewRoute("GET", "/transparency", createPageHandler("./html/transparency.page.tmpl")),
+	routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
 	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
 	routeHelper.NewRoute("GET", "/read", readHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),

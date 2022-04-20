@@ -1,0 +1,72 @@
+{{template "base"}}
+
+{{define "title"}}Plain text list specification{{end}}
+
+{{define "body"}}
+<body id="doc">
+    <header>
+        <h1 class="text-2xl">Plain text list specification (v0)</h1>
+        <p class="text-sm font-italic">Last updated: 04/20/2022</p>
+    </header>
+    <div>
+        <p>
+            The goal of this specification is to understand how we render plain text lists.
+            The overall design of this format is to be simple and easy parse and render.  List
+            items are separated by newline characters <code>\n</code>. Each block type can be determined by
+            reading the first two characters of a line.
+        </p>
+
+        <p>
+            The source code for our own parser can be found
+            <a href="https://github.com/neurosnap/lists.sh/pkg/parser.go">here</a>.
+        </p>
+
+        <h2 class="text-xl">List item</h2>
+        <p>
+            Each list item is on its own line.  A list item does not require any special formatting.
+            A list item can contain as much text as it wants.  We encourage soft wraping for readability
+            in your editor of choice.  Hard wrapping is not permitted as it will create a new list item.
+        </p>
+        <p>
+            Empty list items are permitted but no more than one consecutive empty list item at a time.
+            We also remove the last list item if it is empty.
+        </p>
+
+        <h2 class="text-xl">Hyperlinks</h2>
+        <p>
+            Hyperlinks are denoted by the prefix <code>=></code>.  The following text should then be
+            the hyperlink.
+        </p>
+        <pre>=> https://lists.sh</pre>
+        <p>Optionally you can supply the hyperlink text immediately following the link.</p>
+        <pre>=> https://lists.sh microblog for your lists</pre>
+
+        <h2 class="text-xl">Headers</h2>
+        <p>
+            List items can be represented as headers.  We support two headers currently.
+        </p>
+        <pre># Header One
+## Header Two</pre>
+
+        <h2 class="text-xl">Blockquotes</h2>
+        <p>
+            List items can be represented as blockquotes.
+        </p>
+        <pre>> This is a blockquote.</pre>
+
+        <h2 class="text-xl">Variables</h2>
+        <p>
+            Variables allow us to store metadata within our system.  Variables are list items with
+            key value pairs denoted by <code>=@</code> followed by the key and then a whitespace character
+            and then the value.
+        </p>
+        <pre>=@publish_at 2022-04-20</pre>
+        <p>These variables will not be rendered to the user.</p>
+        <p>List of known variables:</p>
+        <ul>
+            <li>publish_at</li>
+        </ul>
+    </div>
+    {{template "marketing-footer" .}}
+</body>
+{{end}}

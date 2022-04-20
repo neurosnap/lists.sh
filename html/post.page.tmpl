@@ -5,13 +5,31 @@
 {{define "body"}}
 <body id="post">
     <header>
-        <h1><a href="/{{.Username}}" class="text-2xl">{{.Username}}</a></h1>
+        <h1 class="text-2xl font-bold">{{.Title}}</h1>
+        <p class="font-bold">{{.PublishAt}} on <a href="/{{.Username}}">{{.Username}}'s blog</a></p>
     </header>
     <article>
-        <h2 class="text-xl font-bold">{{.Title}}</h2>
         <ul>
             {{range .Items}}
-                <li>{{.Text}}</li>
+                {{if .IsURL}}
+                <li><a href="{{.URL}}">{{.Value}}</a></li>
+                {{end}}
+
+                {{if .IsText}}
+                <li>{{.Value}}</li>
+                {{end}}
+
+                {{if .IsBlock}}
+                <li><blockquote>{{.Value}}</blockquote></li>
+                {{end}}
+
+                {{if .IsHeaderOne}}
+                <li><h2 class="text-xl font-bold">{{.Value}}</h2></li>
+                {{end}}
+
+                {{if .IsHeaderTwo}}
+                <li><h3 class="text-lg font-bold">{{.Value}}</h3></li>
+                {{end}}
             {{end}}
         </ul>
     </article>

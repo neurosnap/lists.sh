@@ -24,10 +24,10 @@ const (
 	sqlSelectAllPosts      = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
-	sqlInsertPost      = `INSERT INTO posts (user_id, title, text) VALUES ($1, $2, $3) RETURNING id`
+	sqlInsertPost      = `INSERT INTO posts (user_id, title, text, publish_at) VALUES ($1, $2, $3, $4) RETURNING id`
 	sqlInsertUser      = `INSERT INTO app_users DEFAULT VALUES returning id`
 
-	sqlUpdatePost     = `UPDATE posts SET text = $1, updated_at = $2 WHERE id = $3`
+	sqlUpdatePost     = `UPDATE posts SET text = $1, updated_at = $2, publish_at = $3 WHERE id = $4`
 	sqlUpdateUserName = `UPDATE app_users SET name = $1 WHERE id = $2`
 
 	sqlRemovePosts = `DELETE FROM posts WHERE id IN ($1)`
@@ -192,9 +192,9 @@ func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
 	return posts, nil
 }
 
-func (me *PsqlDB) InsertPost(userID string, title string, text string) (*db.Post, error) {
+func (me *PsqlDB) InsertPost(userID string, title string, text string, publishAt *time.Time) (*db.Post, error) {
 	var id string
-	err := me.db.QueryRow(sqlInsertPost, userID, title, text).Scan(&id)
+	err := me.db.QueryRow(sqlInsertPost, userID, title, text, publishAt).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -202,8 +202,8 @@ func (me *PsqlDB) InsertPost(userID string, title string, text string) (*db.Post
 	return me.FindPost(id)
 }
 
-func (me *PsqlDB) UpdatePost(postID string, text string) (*db.Post, error) {
-	_, err := me.db.Exec(sqlUpdatePost, text, time.Now(), postID)
+func (me *PsqlDB) UpdatePost(postID string, text string, publishAt *time.Time) (*db.Post, error) {
+	_, err := me.db.Exec(sqlUpdatePost, text, time.Now(), publishAt, postID)
 	if err != nil {
 		return nil, err
 	}

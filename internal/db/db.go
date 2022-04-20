@@ -46,8 +46,8 @@ type DB interface {
 	PostsForUser(userID string) ([]*Post, error)
 	FindPostWithTitle(title string, userID string) (*Post, error)
 	FindAllPosts(page int) ([]*Post, error)
-	InsertPost(userID string, title string, text string) (*Post, error)
-	UpdatePost(postID string, text string) (*Post, error)
+	InsertPost(userID string, title string, text string, publishAt *time.Time) (*Post, error)
+	UpdatePost(postID string, text string, publishAt *time.Time) (*Post, error)
 	RemovePosts(postIDs []string) error
 
 	Close() error
