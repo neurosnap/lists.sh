@@ -1,0 +1,59 @@
+{{template "base" .}}
+
+{{define "body"}}
+<body id="marketing">
+    <header>
+        <h1 class="text-2xl font-bold">lists.sh</h1>
+        <p>A microblog for your lists</p>
+        <a href="/read">discover</a> some interesting lists
+        <hr />
+    </header>
+
+    <div class="sections">
+        <div class="container">
+            <section>
+                <h2 class="text-xl">Create an account with Public-Key Cryptography</h2>
+                <p>No email address required.</p>
+                <p>To get started, simply ssh into our content management system:</p>
+                <pre>ssh cms.lists.sh</pre>
+                <p class="text-sm font-italic note">note: currently only Ed25519 signing algorithm is supported.</p>
+                <p>After that, just set a username. It's as simple as that!</p>
+            </section>
+
+            <section>
+                <h2 class="text-xl">You control the source content</h2>
+                <p>Create lists using your favorite editor and then send them to our server:</p>
+                <pre>scp ~/blog/* send.lists.sh</pre>
+                <p class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</p>
+                <p>We'll either create or update the lists for you.</p>
+            </section>
+
+            <section>
+                <h2 class="text-xl">Plain text format</h2>
+                <p>A simple specification that is flexible and with no frills.</p>
+                <p><a href="/spec">specification</a></p>
+            </section>
+
+            <section>
+                <h2 class="text-xl">No distractions</h2>
+                <ul>
+                    <li>No ads</li>
+                    <li>No clutter</li>
+                    <li>Not a platform for todos</li>
+                    <li>Minimalist design</li>
+                    <li>Just lists</li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <hr />
+        <div class="links">
+        <a href="/about">about</a>
+        <a href="/help">help</a>
+        <a href="https://twitter.com/neurosnap">twitter</a>
+        </div>
+    </footer>
+</body>
+{{end}}

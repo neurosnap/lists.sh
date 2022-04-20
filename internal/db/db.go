@@ -27,6 +27,7 @@ type Post struct {
 	Title     string     `json:"title"`
 	Text      string     `json:"text"`
 	PublishAt *time.Time `json:"publish_at"`
+	Username  string     `json:"username"`
 }
 
 type DB interface {
@@ -35,6 +36,7 @@ type DB interface {
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
 
+	UserForName(name string) (string, error)
 	UserForKey(key string) (*User, error)
 	User(userID string) (*User, error)
 	ValidateName(name string) bool
@@ -43,6 +45,7 @@ type DB interface {
 	FindPost(postID string) (*Post, error)
 	PostsForUser(userID string) ([]*Post, error)
 	FindPostWithTitle(title string, userID string) (*Post, error)
+	FindAllPosts(page int) ([]*Post, error)
 	InsertPost(userID string, title string, text string) (*Post, error)
 	UpdatePost(postID string, text string) (*Post, error)
 	RemovePosts(postIDs []string) error

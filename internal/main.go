@@ -6,10 +6,27 @@ import (
 	"math"
 	"os"
 	pathpkg "path"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/gliderlabs/ssh"
 )
+
+var fnameRe = regexp.MustCompile(`[-_]+`)
+
+func FilenameToTitle(url string) string {
+	pre := fnameRe.ReplaceAllString(url, " ")
+	r := []rune(pre)
+	r[0] = unicode.ToUpper(r[0])
+	return string(r)
+}
+
+func SanitizeFileExt(fname string) string {
+	return strings.TrimSuffix(fname, filepath.Ext(fname))
+}
 
 func KeyText(s ssh.Session) (string, error) {
 	if s.PublicKey() == nil {

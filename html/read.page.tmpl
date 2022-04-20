@@ -1,0 +1,23 @@
+{{template "base" .}}
+
+{{define "title"}}discover lists{{end}}
+
+{{define "body"}}
+<body id="collection">
+    <header>
+        <h1 class="text-2xl font-bold">read</h1>
+        <p class="text-lg">discover interesting lists</p>
+        <hr />
+    </header>
+    <div class="posts">
+        {{range .Posts}}
+        <article>
+            <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
+            <div class="text-lg">{{.PublishedAt}}</div>
+            <div class="text-sm">from <a href="/{{.Username}}">{{.Username}}</a></div>
+        </article>
+        {{end}}
+    </div>
+    {{template "footer" .}}
+</body>
+{{end}}

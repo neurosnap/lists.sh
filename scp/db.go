@@ -22,11 +22,8 @@ type DbHandler struct{}
 
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool db.DB) error {
 	userID := user.ID
-
-	post, err := dbpool.FindPostWithTitle(entry.Name, userID)
-	if err != nil {
-		log.Println(err)
-	}
+	title := internal.SanitizeFileExt(entry.Name)
+	post, err := dbpool.FindPostWithTitle(title, userID)
 
 	var text string
 	if b, err := io.ReadAll(entry.Reader); err == nil {
@@ -34,20 +31,20 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	}
 
 	if !internal.IsTextFile(text, entry.Filepath) {
-		return fmt.Errorf("File must be a text file")
+		return fmt.Errorf("file must be a text file")
 	}
 
 	if post == nil {
-		log.Printf("%s not found, adding record", entry.Filepath)
-		post, err = dbpool.InsertPost(userID, entry.Filepath, text)
+		log.Printf("%s not found, adding record", title)
+		post, err = dbpool.InsertPost(userID, title, text)
 		if err != nil {
-			return fmt.Errorf("error for %s: %v", entry.Filepath, err)
+			return fmt.Errorf("error for %s: %v", title, err)
 		}
 	} else {
-		log.Printf("%s found, updating record", entry.Filepath)
+		log.Printf("%s found, updating record", title)
 		post, err = dbpool.UpdatePost(post.ID, text)
 		if err != nil {
-			return fmt.Errorf("error for %s: %v", entry.Filepath, err)
+			return fmt.Errorf("error for %s: %v", title, err)
 		}
 	}
 

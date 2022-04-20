@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal/db"
@@ -17,9 +18,10 @@ const (
 	sqlSelectUser        = `SELECT id, name, created_at FROM app_users WHERE id = $1`
 	sqlSelectUserForName = `SELECT id FROM app_users WHERE name = $1`
 
-	sqlSelectPostWithTitle = `SELECT id, user_id, title, text, publish_at FROM posts WHERE title = $1 AND user_id = $2`
-	sqlSelectPost          = `SELECT id, user_id, title, text, publish_at FROM posts WHERE id = $1`
-	sqlSelectPostsForUser  = `SELECT id, user_id, title, text, publish_at FROM posts WHERE user_id = $1`
+	sqlSelectPostWithTitle = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE title = $1 AND user_id = $2`
+	sqlSelectPost          = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
+	sqlSelectPostsForUser  = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1`
+	sqlSelectAllPosts      = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
 	sqlInsertPost      = `INSERT INTO posts (user_id, title, text) VALUES ($1, $2, $3) RETURNING id`
@@ -124,13 +126,18 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 }
 
 func (me *PsqlDB) ValidateName(name string) bool {
+	userID, _ := me.UserForName(name)
+	return userID == ""
+}
+
+func (me *PsqlDB) UserForName(name string) (string, error) {
 	var id string
 	r := me.db.QueryRow(sqlSelectUserForName, name)
 	err := r.Scan(&id)
 	if err != nil {
-		return true
+		return "", err
 	}
-	return id == ""
+	return id, nil
 }
 
 func (me *PsqlDB) SetUserName(userID string, name string) error {
@@ -145,7 +152,7 @@ func (me *PsqlDB) SetUserName(userID string, name string) error {
 func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, error) {
 	post := &db.Post{}
 	r := me.db.QueryRow(sqlSelectPostWithTitle, title, persona_id)
-	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
+	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -156,12 +163,33 @@ func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, 
 func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	post := &db.Post{}
 	r := me.db.QueryRow(sqlSelectPost, postID)
-	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
+	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	return post, nil
+}
+
+func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
+	var posts []*db.Post
+	rs, err := me.db.Query(sqlSelectAllPosts, offset)
+	for rs.Next() {
+		post := &db.Post{}
+		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
+		if err != nil {
+			return posts, err
+		}
+
+		posts = append(posts, post)
+	}
+	if err != nil {
+		return posts, err
+	}
+	if rs.Err() != nil {
+		return posts, rs.Err()
+	}
+	return posts, nil
 }
 
 func (me *PsqlDB) InsertPost(userID string, title string, text string) (*db.Post, error) {
@@ -175,7 +203,7 @@ func (me *PsqlDB) InsertPost(userID string, title string, text string) (*db.Post
 }
 
 func (me *PsqlDB) UpdatePost(postID string, text string) (*db.Post, error) {
-	_, err := me.db.Exec(sqlInsertPost, text, postID)
+	_, err := me.db.Exec(sqlUpdatePost, text, time.Now(), postID)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +221,7 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
 	for rs.Next() {
 		post := &db.Post{}
-		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt)
+		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
 		if err != nil {
 			return posts, err
 		}

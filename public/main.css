@@ -1,0 +1,157 @@
+html, body {
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+	padding: 0;
+	border: 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+hr {
+  border: 0;
+  margin: 0;
+  height: 1px;
+  background: #ccc;
+  margin: 4rem auto;
+  max-width: 40rem;
+  text-align: center;
+}
+
+pre {
+  background-color: #eee;
+  border-radius: 5px;
+  padding: 1rem;
+}
+
+a {
+  text-decoration: underline;
+  color: #414558;
+}
+
+a:hover, a:visited:hover {
+  text-decoration: underline;
+  color: #ff80bf;
+}
+
+a:visited {
+  color: #bd93f9;
+}
+
+body#marketing header {
+  max-width: 40rem;
+  text-align: center;
+  margin: 3rem auto 4rem;
+  font-size: 1.3rem;
+}
+
+body#marketing .sections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body#marketing section {
+  max-width: 40rem;
+  font-size: 1.2rem;
+  margin-bottom: 4rem;
+}
+
+body#marketing section:last-child {
+  margin-bottom: 0;
+}
+
+body#marketing footer {
+  margin-bottom: 4rem;
+}
+
+footer .links {
+  display: flex;
+  flex-direction: column;
+}
+
+body#marketing pre {
+  margin-bottom: 0;
+}
+
+body#marketing .note {
+  margin-top: 0.2rem;
+}
+
+body#post header {
+  padding: 1rem 2rem;
+  margin: 0 auto;
+}
+
+body#post article {
+  max-width: 40rem;
+  margin: 0 auto;
+  font-size: 1.2rem;
+}
+
+body#collection header {
+  max-width: 40rem;
+  margin: 3rem auto 4rem;
+  text-align: center;
+}
+
+body#collection .posts {
+  margin: 0 auto;
+  max-width: 40rem;
+}
+
+body#collection article {
+  margin: 1rem 0;
+}
+
+body#collection article > div {
+  margin: 0.5rem 0;
+}
+
+ul, ol {
+  padding: 0;
+}
+
+li {
+  margin: 0.8rem 0;
+}
+
+footer {
+  text-align: center;
+}
+
+.text-2xl {
+  font-size: 2.0rem;
+}
+
+.text-xl {
+  font-size: 1.8rem;
+}
+
+.text-lg {
+  font-size: 1.3rem;
+}
+
+.text-sm {
+  font-size: 0.8rem;
+}
+
+.font-normal {
+  font-weight: normal;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.font-italic {
+  font-style: italic;
+}
+
+.container {
+  max-width: 40rem;
+}
