@@ -233,7 +233,7 @@ func StartServer() {
 	handler := routeHelper.CreateServe(routes, db)
 	router := http.HandlerFunc(handler)
 
-	port := internal.GetEnv("LISTS_WEB_PORT", "80")
+	port := internal.GetEnv("LISTS_WEB_PORT", "3000")
 	portStr := fmt.Sprintf(":%s", port)
 	log.Printf("Starting server on port %s", port)
 	log.Fatal(http.ListenAndServe(portStr, router))

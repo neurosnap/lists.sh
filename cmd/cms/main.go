@@ -86,7 +86,7 @@ func main() {
 	sshServer := &SSHServer{}
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
-		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
+		wish.WithHostKeyPath("ssh_data/term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
 			bm.Middleware(teaHandler),

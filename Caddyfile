@@ -1,5 +1,5 @@
 lists.sh {
-    reverse_proxy :80
+    reverse_proxy :3000
 }
 
 cms.lists.sh {

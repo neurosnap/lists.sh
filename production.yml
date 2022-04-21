@@ -1,34 +1,37 @@
 version: "3.4"
 services:
   caddy:
-    image: abiosoft/caddy:no-stats
-    restart: always
-    environment:
-      - ACME_AGREE=true
+    image: caddy:alpine
+    restart: unless-stopped
     volumes:
-      - ./Caddyfile:/etc/Caddyfile
-      - ./caddy:/etc/caddycerts
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "443:443"
+      - "80:80"
+
   db:
     image: postgres
-    restart: always
+    restart: unless-stopped
     ports:
       - "5432:5432"
     env_file:
       - .env.prod
     volumes:
-      - data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
   web:
     image: neurosnap/lists-web
-    restart: always
+    restart: unless-stopped
     ports:
-      - "80:80"
+      - "3000:3000"
     env_file:
       - .env.prod
     links:
       - db
   cms:
     image: neurosnap/lists-cms
-    restart: always
+    restart: unless-stopped
     ports:
       - "2222:2222"
     env_file:
@@ -37,7 +40,7 @@ services:
       - db
   send:
     image: neurosnap/lists-send
-    restart: always
+    restart: unless-stopped
     ports:
       - "2223:2223"
     env_file:
@@ -45,4 +48,7 @@ services:
     links:
       - db
 volumes:
-  data:
+  db_data:
+  caddy_data:
+    external: true
+  caddy_config:
