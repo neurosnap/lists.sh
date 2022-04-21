@@ -38,6 +38,8 @@ services:
       - .env.prod
     links:
       - db
+    volumes:
+      - ssh_data:/app/ssh_data
   send:
     image: neurosnap/lists-send
     restart: unless-stopped
@@ -47,8 +49,10 @@ services:
       - .env.prod
     links:
       - db
+    volumes:
+      - ssh_data:/app/ssh_data
 volumes:
   db_data:
   caddy_data:
-    external: true
   caddy_config:
+  ssh_data:

@@ -34,7 +34,7 @@ func main() {
 
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
-		wish.WithHostKeyPath("ssh_data/term_info_ed25519"),
+		wish.WithHostKeyPath("ssh_data/send_term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
 			scp.Middleware(handler, dbh),
