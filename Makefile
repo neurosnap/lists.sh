@@ -51,3 +51,9 @@ image-push:
 
 bp: image-build image-push
 .PHONY: bp
+
+deploy:
+	docker system prune -f
+	docker-compose -f production.yml pull --ignore-pull-failures
+	docker-compose -f production.yml up --no-deps -d
+.PHONY: deploy
