@@ -1,11 +1,11 @@
 lists.sh {
-    reverse_proxy :3000
+    reverse_proxy web:3000
 }
 
 cms.lists.sh {
-    reverse_proxy :2222
+    reverse_proxy cms:2222
 }
 
 send.lists.sh {
-    reverse_proxy :2223
+    reverse_proxy send:2223
 }
