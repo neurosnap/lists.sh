@@ -1,5 +1,4 @@
-email webmaster@lists.sh
-
 lists.sh {
-    reverse_proxy web:3000
+	tls webmaster@lists.sh
+	reverse_proxy web:3000
 }
