@@ -24,7 +24,7 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 }
 
 func main() {
-	host := "localhost"
+	host := "0.0.0.0"
 	port := internal.GetEnv("LISTS_SEND_PORT", "2223")
 
 	sshServer := &SSHServer{}

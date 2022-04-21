@@ -15,7 +15,7 @@
                 <h2 class="text-lg font-bold">Create an account with Public-Key Cryptography</h2>
                 <p>No email address required.</p>
                 <p>To get started, simply ssh into our content management system:</p>
-                <pre>ssh cms.lists.sh</pre>
+                <pre>ssh -P 2222 lists.sh</pre>
                 <p class="text-sm font-italic note">note: currently only Ed25519 signing algorithm is supported.</p>
                 <p>After that, just set a username. It's as simple as that!</p>
             </section>
@@ -23,7 +23,7 @@
             <section>
                 <h2 class="text-lg font-bold">You control the source content</h2>
                 <p>Create lists using your favorite editor and then send them to our server:</p>
-                <pre>scp ~/blog/* send.lists.sh</pre>
+                <pre>scp -P 2223 ~/blog/* lists.sh:</pre>
                 <p class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</p>
                 <p>We'll either create or update the lists for you.</p>
             </section>

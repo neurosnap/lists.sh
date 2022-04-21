@@ -80,7 +80,7 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 }
 
 func main() {
-	host := "localhost"
+	host := "0.0.0.0"
 	port := internal.GetEnv("LISTS_CMS_PORT", "2222")
 
 	sshServer := &SSHServer{}
