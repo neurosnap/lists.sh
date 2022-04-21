@@ -1,23 +1,15 @@
-package main
+package cms
 
 // An example Bubble Tea server. This will put an ssh session into alt screen
 // and continually print up to date terminal information.
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/wish"
-	bm "github.com/charmbracelet/wish/bubbletea"
-	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
 	"github.com/muesli/reflow/indent"
 	"github.com/muesli/reflow/wordwrap"
@@ -73,48 +65,6 @@ var menuChoices = map[menuChoice]string{
 	exitChoice:    "Exit",
 }
 
-type SSHServer struct{}
-
-func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
-	return true
-}
-
-func main() {
-	host := "0.0.0.0"
-	port := internal.GetEnv("LISTS_CMS_PORT", "2222")
-
-	sshServer := &SSHServer{}
-	s, err := wish.NewServer(
-		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
-		wish.WithHostKeyPath("ssh_data/cms_term_info_ed25519"),
-		wish.WithPublicKeyAuth(sshServer.authHandler),
-		wish.WithMiddleware(
-			bm.Middleware(teaHandler),
-			lm.Middleware(),
-		),
-	)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Printf("Starting SSH server on %s:%s", host, port)
-	go func() {
-		if err = s.ListenAndServe(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
-	<-done
-	log.Println("Stopping SSH server")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer func() { cancel() }()
-	if err := s.Shutdown(ctx); err != nil {
-		log.Fatalln(err)
-	}
-}
-
 var (
 	spinnerStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#8E8E8E", Dark: "#747373"})
@@ -134,7 +84,7 @@ type GotDBMsg db.DB
 // handles the incoming ssh.Session. Here we just grab the terminal info and
 // pass it to the new model. You can also return tea.ProgramOptions (such as
 // teaw.WithAltScreen) on a session by session basis
-func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	_, _, active := s.Pty()
 	if !active {
 		fmt.Println("no active terminal, skipping")

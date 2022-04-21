@@ -1,5 +1,8 @@
 package main
 
+// An example Bubble Tea server. This will put an ssh session into alt screen
+// and continually print up to date terminal information.
+
 import (
 	"context"
 	"fmt"
@@ -10,12 +13,15 @@ import (
 	"time"
 
 	"github.com/charmbracelet/wish"
+	bm "github.com/charmbracelet/wish/bubbletea"
+	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
-	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/internal/scp"
+	"github.com/neurosnap/lists.sh/internal/cms"
 )
+
 
 type SSHServer struct{}
 
@@ -23,22 +29,50 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 	return true
 }
 
+func withMiddleware(mw ...wish.Middleware) ssh.Handler {
+	h := func(s ssh.Session) {}
+	for _, m := range mw {
+		h = m(h)
+	}
+	return h
+}
+
+func proxyMiddleware() wish.Middleware {
+	return func(sh ssh.Handler) ssh.Handler {
+		return func(s ssh.Session) {
+			cmd := s.Command()
+			fmt.Println(cmd)
+
+			if len(cmd) == 0 {
+				fn := withMiddleware(
+					bm.Middleware(cms.Handler),
+					lm.Middleware(),
+				)
+				fn(s)
+				return
+			}
+
+			if cmd[0] == "scp" {
+				handler := &scp.DbHandler{}
+				dbh := postgres.NewDB()
+				fn := withMiddleware(scp.Middleware(handler, dbh))
+				fn(s)
+				return
+			}
+		}
+	}
+}
+
 func main() {
-	host := "0.0.0.0"
-	port := internal.GetEnv("LISTS_SEND_PORT", "2223")
+	host := internal.GetEnv("LISTS_HOST", "0.0.0.0")
+	port := internal.GetEnv("LISTS_SSH_PORT", "2222")
 
 	sshServer := &SSHServer{}
-	handler := &scp.DbHandler{}
-	dbh := postgres.NewDB()
-	defer dbh.Close()
-
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
-		wish.WithHostKeyPath("ssh_data/send_term_info_ed25519"),
+		wish.WithHostKeyPath("ssh_data/term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
-		wish.WithMiddleware(
-			scp.Middleware(handler, dbh),
-		),
+		wish.WithMiddleware(proxyMiddleware()),
 	)
 	if err != nil {
 		log.Fatalln(err)

@@ -7,8 +7,7 @@ DB_CONTAINER?=listssh_db_1
 
 build:
 	go build -o build/web ./cmd/web
-	go build -o build/cms ./cmd/cms
-	go build -o build/send ./cmd/send
+	go build -o build/ssh ./cmd/ssh
 .PHONY: build
 
 create:
@@ -38,14 +37,12 @@ restore:
 .PHONY: restore
 
 image-build:
-	docker build -t neurosnap/lists-cms --target cms .
-	docker build -t neurosnap/lists-send --target send .
+	docker build -t neurosnap/lists-ssh --target ssh .
 	docker build -t neurosnap/lists-web --target web .
 .PHONY: build
 
 image-push:
-	docker push neurosnap/lists-cms
-	docker push neurosnap/lists-send
+	docker push neurosnap/lists-ssh
 	docker push neurosnap/lists-web
 .PHONY: push
 

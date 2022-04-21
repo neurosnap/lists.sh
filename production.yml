@@ -32,21 +32,10 @@ services:
     links:
       - db
   cms:
-    image: neurosnap/lists-cms
+    image: neurosnap/lists-ssh
     restart: unless-stopped
     ports:
-      - "2222:2222"
-    env_file:
-      - .env.prod
-    links:
-      - db
-    volumes:
-      - ssh_data:/app/ssh_data
-  send:
-    image: neurosnap/lists-send
-    restart: unless-stopped
-    ports:
-      - "2223:2223"
+      - "22:2222"
     env_file:
       - .env.prod
     links:

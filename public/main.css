@@ -68,6 +68,7 @@ code {
 pre {
   border-radius: 5px;
   padding: 1rem;
+  overflow-x: auto;
 }
 
 small {
@@ -177,7 +178,7 @@ body#collection article > div {
 
 body#doc header {
   max-width: 40rem;
-  margin: 0 auto;
+  margin: 1rem auto;
 }
 
 body#doc > div {
@@ -263,6 +264,10 @@ footer {
 
   body#marketing header {
     margin: 2rem auto 2rem;
+  }
+
+  body#doc header {
+    margin: 0.3rem auto;
   }
 
   hr {
