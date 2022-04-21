@@ -5,19 +5,13 @@ COPY . ./
 RUN apk add --no-cache git
 
 RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/cms ./cmd/cms
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/send ./cmd/send
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/ssh ./cmd/ssh
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/web ./cmd/web
 
-FROM alpine:3.15 AS cms
+FROM alpine:3.15 AS ssh
 WORKDIR /app
-COPY --from=0 /app/build/cms ./
-CMD ["./cms"]
-
-FROM alpine:3.15 AS send
-WORKDIR /app
-COPY --from=0 /app/build/send ./
-CMD ["./send"]
+COPY --from=0 /app/build/ssh ./
+CMD ["./ssh"]
 
 FROM alpine:3.15 AS web
 WORKDIR /app
