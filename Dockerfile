@@ -22,4 +22,6 @@ CMD ["./send"]
 FROM alpine:3.15 AS web
 WORKDIR /app
 COPY --from=0 /app/build/web ./
+COPY --from=0 /app/html ./
+COPY --from=0 /app/public ./
 CMD ["./web"]
