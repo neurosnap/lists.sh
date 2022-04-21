@@ -20,7 +20,7 @@ const (
 
 	sqlSelectPostWithTitle = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE title = $1 AND user_id = $2`
 	sqlSelectPost          = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
-	sqlSelectPostsForUser  = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1`
+	sqlSelectPostsForUser  = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
 	sqlSelectAllPosts      = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
