@@ -31,7 +31,7 @@ services:
       - .env.prod
     links:
       - db
-  cms:
+  ssh:
     image: neurosnap/lists-ssh
     restart: unless-stopped
     ports:
