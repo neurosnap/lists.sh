@@ -1,13 +1,16 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/gorilla/feeds"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	routeHelper "github.com/neurosnap/lists.sh/internal/router"
@@ -141,6 +144,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := renderTemplate([]string{
 		"./html/post.page.tmpl",
+		"./html/list.partial.tmpl",
 	})
 
 	if err != nil {
@@ -213,6 +217,66 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 	}
 }
 
+func rssHandler(w http.ResponseWriter, r *http.Request) {
+	username := routeHelper.GetField(r, 0)
+	dbpool := routeHelper.GetDB(r)
+	userID, err := dbpool.UserForName(username)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	posts, err := dbpool.PostsForUser(userID)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	ts, err := template.ParseFiles("./html/rss.page.tmpl", "./html/list.partial.tmpl")
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	feed := &feeds.Feed{
+		Title:       fmt.Sprintf("%s's blog", username),
+		Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/rss", username)},
+		Description: "",
+		Author:      &feeds.Author{Name: username},
+		Created:     time.Now(),
+	}
+
+	var feedItems []*feeds.Item
+	for _, post := range posts {
+		parsed := pkg.ParseText(post.Text)
+		var tpl bytes.Buffer
+		data := &PostData{Items: parsed.Items}
+		if err := ts.Execute(&tpl, data); err != nil {
+			continue
+		}
+		feedItems = append(feedItems, &feeds.Item{
+			Id:          post.ID,
+			Title:       post.Title,
+			Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/%s", username, post.Title)},
+			Description: "",
+			Content:     tpl.String(),
+			Created:     *post.PublishAt,
+		})
+	}
+	feed.Items = feedItems
+
+	rss, err := feed.ToAtom()
+	if err != nil {
+		log.Fatal(err)
+		http.Error(w, "Could not generate atom rss feed", 500)
+	}
+
+	w.Header().Add("Content-Type", "application/atom+xml")
+	fmt.Fprintf(w, rss)
+}
+
 var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
 	routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
@@ -223,6 +287,7 @@ var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
 	routeHelper.NewRoute("GET", "/read", readHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
+	routeHelper.NewRoute("GET", "/([^/]+)/rss", rssHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
 }
 
