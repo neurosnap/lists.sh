@@ -1,7 +1,5 @@
 package main
 
-// An example SCP server. This will serve files from and to ./examples/scp/testdata.
-
 import (
 	"context"
 	"fmt"
@@ -14,12 +12,10 @@ import (
 	"github.com/charmbracelet/wish"
 	"github.com/gliderlabs/ssh"
 	_ "github.com/lib/pq"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
-	"github.com/neurosnap/lists.sh/scp"
+	"github.com/neurosnap/lists.sh/internal/scp"
 )
-
-const host = "localhost"
-const port = 23234
 
 type SSHServer struct{}
 
@@ -28,13 +24,16 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 }
 
 func main() {
+	host := "localhost"
+	port := internal.GetEnv("LISTS_SEND_PORT", "2223")
+
 	sshServer := &SSHServer{}
 	handler := &scp.DbHandler{}
 	dbh := postgres.NewDB()
 	defer dbh.Close()
 
 	s, err := wish.NewServer(
-		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
+		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
@@ -45,10 +44,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	log.Println("Starting scp app")
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Printf("Starting SSH server on %s:%d", host, port)
+	log.Printf("Starting SSH server on %s:%s", host, port)
 	go func() {
 		if err = s.ListenAndServe(); err != nil {
 			log.Fatalln(err)

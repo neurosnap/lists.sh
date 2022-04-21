@@ -31,9 +31,6 @@ import (
 	"github.com/neurosnap/lists.sh/internal/ui/username"
 )
 
-const host = "localhost"
-const port = 23234
-
 // status is used to indicate a high level application state.
 type status int
 
@@ -83,9 +80,12 @@ func (me *SSHServer) authHandler(ctx ssh.Context, key ssh.PublicKey) bool {
 }
 
 func main() {
+	host := "localhost"
+	port := internal.GetEnv("LISTS_CMS_PORT", "2222")
+
 	sshServer := &SSHServer{}
 	s, err := wish.NewServer(
-		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
+		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
 		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
 		wish.WithMiddleware(
@@ -99,7 +99,7 @@ func main() {
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Printf("Starting SSH server on %s:%d", host, port)
+	log.Printf("Starting SSH server on %s:%s", host, port)
 	go func() {
 		if err = s.ListenAndServe(); err != nil {
 			log.Fatalln(err)

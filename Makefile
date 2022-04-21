@@ -6,9 +6,9 @@ PORT?="5432"
 DB_CONTAINER?=listssh_db_1
 
 build:
-	go build -o build/server ./cmd/server
-	go build -o build/app ./cmd/app
-	go build -o build/scp ./cmd/scp
+	go build -o build/web ./cmd/web
+	go build -o build/cms ./cmd/cms
+	go build -o build/send ./cmd/send
 .PHONY: build
 
 create:
@@ -36,3 +36,18 @@ restore:
 	docker exec -it $(DB_CONTAINER) /bin/bash
 	# psql postgres -U postgres < /backup.sql
 .PHONY: restore
+
+image-build:
+	docker build -t neurosnap/lists-cms --target cms .
+	docker build -t neurosnap/lists-send --target send .
+	docker build -t neurosnap/lists-web --target web .
+.PHONY: build
+
+image-push:
+	docker push neurosnap/lists-cms
+	docker push neurosnap/lists-send
+	docker push neurosnap/lists-web
+.PHONY: push
+
+bp: image-build image-push
+.PHONY: bp

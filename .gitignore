@@ -5,3 +5,4 @@
 build/*
 !build/.gitkeep
 .ssh
+.env.prod

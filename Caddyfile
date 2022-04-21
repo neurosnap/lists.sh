@@ -1,0 +1,11 @@
+lists.sh {
+    reverse_proxy :80
+}
+
+cms.lists.sh {
+    reverse_proxy :2222
+}
+
+send.lists.sh {
+    reverse_proxy :2223
+}
