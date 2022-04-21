@@ -3,11 +3,3 @@ email webmaster@lists.sh
 lists.sh {
     reverse_proxy web:3000
 }
-
-cms.lists.sh {
-    reverse_proxy cms:2222
-}
-
-send.lists.sh {
-    reverse_proxy send:2223
-}

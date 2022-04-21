@@ -13,9 +13,6 @@ services:
       - "80:80"
     links:
       - web
-      - cms
-      - send
-
   db:
     image: postgres
     restart: unless-stopped
