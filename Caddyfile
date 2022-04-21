@@ -1,3 +1,5 @@
+email webmaster@lists.sh
+
 lists.sh {
     reverse_proxy web:3000
 }
