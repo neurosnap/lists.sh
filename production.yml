@@ -1,4 +1,5 @@
-version: "3.4"
+version: "3.7"
+
 services:
   caddy:
     image: caddy:alpine
@@ -51,8 +52,9 @@ services:
       - db
     volumes:
       - ssh_data:/app/ssh_data
+
 volumes:
   db_data:
   caddy_data:
-  caddy_config:
   ssh_data:
+  caddy_config:
