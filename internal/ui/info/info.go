@@ -3,6 +3,8 @@ package info
 // Fetch a user's basic Charm account info
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
@@ -74,6 +76,7 @@ func (m Model) bioView() string {
 	}
 	return common.KeyValueView(
 		"Username", username,
+		"Blog URL", fmt.Sprintf("https://lists.sh/%s", username),
 		"Public key", m.User.PublicKey.Key,
 		"Joined", m.User.CreatedAt.Format("02 Jan 2006"),
 	)

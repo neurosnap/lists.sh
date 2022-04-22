@@ -15,19 +15,19 @@ import (
 const (
 	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
 	sqlSelectPublicKeys  = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
-	sqlSelectUser        = `SELECT id, name, created_at FROM app_users WHERE id = $1`
-	sqlSelectUserForName = `SELECT id FROM app_users WHERE name = $1`
+	sqlSelectUser        = `SELECT id, name, bio, created_at FROM app_users WHERE id = $1`
+	sqlSelectUserForName = `SELECT id, name, bio, created_at FROM app_users WHERE name = $1`
 
-	sqlSelectPostWithTitle = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE title = $1 AND user_id = $2`
-	sqlSelectPost          = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
-	sqlSelectPostsForUser  = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
-	sqlSelectAllPosts      = `SELECT posts.id, user_id, title, text, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
+	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
+	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
+	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
+	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
-	sqlInsertPost      = `INSERT INTO posts (user_id, title, text, publish_at) VALUES ($1, $2, $3, $4) RETURNING id`
+	sqlInsertPost      = `INSERT INTO posts (user_id, filename, title, text, publish_at, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	sqlInsertUser      = `INSERT INTO app_users DEFAULT VALUES returning id`
 
-	sqlUpdatePost     = `UPDATE posts SET text = $1, updated_at = $2, publish_at = $3 WHERE id = $4`
+	sqlUpdatePost     = `UPDATE posts SET text = $1, title = $2, description = $3, updated_at = $4, publish_at = $5 WHERE id = $6`
 	sqlUpdateUserName = `UPDATE app_users SET name = $1 WHERE id = $2`
 
 	sqlRemovePosts = `DELETE FROM posts WHERE id IN ($1)`
@@ -115,7 +115,7 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 	user := &db.User{}
 	var un sql.NullString
 	r := me.db.QueryRow(sqlSelectUser, userID)
-	err := r.Scan(&user.ID, &un, &user.CreatedAt)
+	err := r.Scan(&user.ID, &un, &user.Bio, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -126,18 +126,18 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 }
 
 func (me *PsqlDB) ValidateName(name string) bool {
-	userID, _ := me.UserForName(name)
-	return userID == ""
+	user, _ := me.UserForName(name)
+	return user == nil
 }
 
-func (me *PsqlDB) UserForName(name string) (string, error) {
-	var id string
+func (me *PsqlDB) UserForName(name string) (*db.User, error) {
+	user := &db.User{}
 	r := me.db.QueryRow(sqlSelectUserForName, name)
-	err := r.Scan(&id)
+	err := r.Scan(&user.ID, &user.Name, &user.Bio, &user.CreatedAt)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return id, nil
+	return user, nil
 }
 
 func (me *PsqlDB) SetUserName(userID string, name string) error {
@@ -149,10 +149,19 @@ func (me *PsqlDB) SetUserName(userID string, name string) error {
 	return err
 }
 
-func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, error) {
+func (me *PsqlDB) FindPostWithFilename(filename string, persona_id string) (*db.Post, error) {
 	post := &db.Post{}
-	r := me.db.QueryRow(sqlSelectPostWithTitle, title, persona_id)
-	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
+	r := me.db.QueryRow(sqlSelectPostWithFilename, filename, persona_id)
+	err := r.Scan(
+		&post.ID,
+		&post.UserID,
+		&post.Filename,
+		&post.Title,
+		&post.Text,
+		&post.Description,
+		&post.PublishAt,
+		&post.Username,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +172,16 @@ func (me *PsqlDB) FindPostWithTitle(title string, persona_id string) (*db.Post, 
 func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	post := &db.Post{}
 	r := me.db.QueryRow(sqlSelectPost, postID)
-	err := r.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
+	err := r.Scan(
+		&post.ID,
+		&post.UserID,
+		&post.Filename,
+		&post.Title,
+		&post.Text,
+		&post.Description,
+		&post.PublishAt,
+		&post.Username,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +194,16 @@ func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
 	rs, err := me.db.Query(sqlSelectAllPosts, offset)
 	for rs.Next() {
 		post := &db.Post{}
-		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
+		err := rs.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Filename,
+			&post.Title,
+			&post.Text,
+			&post.Description,
+			&post.PublishAt,
+			&post.Username,
+		)
 		if err != nil {
 			return posts, err
 		}
@@ -192,9 +219,9 @@ func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
 	return posts, nil
 }
 
-func (me *PsqlDB) InsertPost(userID string, title string, text string, publishAt *time.Time) (*db.Post, error) {
+func (me *PsqlDB) InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*db.Post, error) {
 	var id string
-	err := me.db.QueryRow(sqlInsertPost, userID, title, text, publishAt).Scan(&id)
+	err := me.db.QueryRow(sqlInsertPost, userID, filename, title, text, publishAt, description).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -202,8 +229,8 @@ func (me *PsqlDB) InsertPost(userID string, title string, text string, publishAt
 	return me.FindPost(id)
 }
 
-func (me *PsqlDB) UpdatePost(postID string, text string, publishAt *time.Time) (*db.Post, error) {
-	_, err := me.db.Exec(sqlUpdatePost, text, time.Now(), publishAt, postID)
+func (me *PsqlDB) UpdatePost(postID string, title string, text string, description string, publishAt *time.Time) (*db.Post, error) {
+	_, err := me.db.Exec(sqlUpdatePost, title, text, description, time.Now(), publishAt, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +248,16 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
 	for rs.Next() {
 		post := &db.Post{}
-		err := rs.Scan(&post.ID, &post.UserID, &post.Title, &post.Text, &post.PublishAt, &post.Username)
+		err := rs.Scan(
+			&post.ID,
+			&post.UserID,
+			&post.Filename,
+			&post.Title,
+			&post.Text,
+			&post.Description,
+			&post.PublishAt,
+			&post.Username,
+		)
 		if err != nil {
 			return posts, err
 		}

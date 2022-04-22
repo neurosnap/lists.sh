@@ -1,11 +1,40 @@
 {{template "base"}}
 
-{{define "title"}}ops{{end}}
+{{define "title"}}help -- lists.sh{{end}}
 
 {{define "body"}}
 <body id="doc">
+    <header>
+        <h1 class="text-2xl">Need helps?</h1>
+    </header>
     <div>
-    <p>This is the help page.</p>
+        <h2 class="text-xl">Generating a new SSH key</h2>
+        <p>
+            <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">Github reference</a>
+        </p>
+        <pre>ssh-keygen -t ed25519 -C "your_email@example.com"</pre>
+        <ol>
+            <li>When you're prompted to "Enter a file in which to save the key," press Enter. This accepts the default file location.</li>
+            <li>At the prompt, type a secure passphrase.</li>
+        </ol>
+
+        <h2 class="text-xl">How do I update a list?</h2>
+        <p>
+            Updating a list requires that you update the source document and then run the <code>scp</code>
+            command again.  If the filename remains the same, then the list will be updated.
+        </p>
+
+        <h2 class="text-xl">How do I delete a list?</h2>
+        <p>
+            Because <code>scp</code> does not natively support deleting files, I didn't want to bake
+            that behavior into my ssh server.  Instead, in order to delete a list, you need to
+            <code>ssh lists.sh</code> and select "Manage posts."  Then you can highlight the post you
+            want to delete and then press "X."  It will ask for comfirmation before actually removing
+            the list.
+        </p>
+
+        <h2 class="text-xl">What is my blog URL?</h2>
+        <pre>https://lists.sh/<username></pre>
     </div>
     {{template "marketing-footer" .}}
 </body>

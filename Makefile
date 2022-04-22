@@ -20,7 +20,12 @@ teardown:
 
 migrate:
 	docker exec -i $(DB_CONTAINER) psql -U $(PGUSER) -d $(PGDATABASE) < ./db/migrations/20220310_init.sql
+	docker exec -i $(DB_CONTAINER) psql -U $(PGUSER) -d $(PGDATABASE) < ./db/migrations/20220422_add_desc_to_user_and_post.sql
 .PHONY: migrate
+
+latest:
+	docker exec -i $(DB_CONTAINER) psql -U $(PGUSER) -d $(PGDATABASE) < ./db/migrations/20220422_add_desc_to_user_and_post.sql
+.PHONY: latest
 
 psql:
 	docker exec -it $(DB_CONTAINER) psql -U $(PGUSER)

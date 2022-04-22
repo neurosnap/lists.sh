@@ -23,7 +23,9 @@ type ListItem struct {
 }
 
 type MetaData struct {
-	PublishAt *time.Time
+	PublishAt   *time.Time
+	Title       string
+	Description string
 }
 
 var urlToken = "=>"
@@ -89,10 +91,18 @@ func ParseText(text string) *ParsedText {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			if split.Key == "publish_at" {
 				date, err := time.Parse("2006-02-15", split.Value)
-                if err != nil {
-                    fmt.Println(err)
-                }
+				if err != nil {
+					fmt.Println(err)
+				}
 				meta.PublishAt = &date
+			}
+
+			if split.Key == "title" {
+				meta.Title = split.Value
+			}
+
+			if split.Key == "description" {
+				meta.Description = split.Value
 			}
 			continue
 		} else if strings.HasPrefix(li.Value, headerTwoToken) {

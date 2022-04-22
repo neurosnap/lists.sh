@@ -17,17 +17,20 @@ type PublicKey struct {
 type User struct {
 	ID        string     `json:"id"`
 	Name      string     `json:"name"`
+	Bio       string     `json:"bio"`
 	PublicKey *PublicKey `json:"public_key,omitempty"`
 	CreatedAt *time.Time `json:"created_at"`
 }
 
 type Post struct {
-	ID        string     `json:"id"`
-	UserID    string     `json:"user_id"`
-	Title     string     `json:"title"`
-	Text      string     `json:"text"`
-	PublishAt *time.Time `json:"publish_at"`
-	Username  string     `json:"username"`
+	ID          string     `json:"id"`
+	UserID      string     `json:"user_id"`
+	Filename    string     `json:"filename"`
+	Title       string     `json:"title"`
+	Text        string     `json:"text"`
+	Description string     `json:"description"`
+	PublishAt   *time.Time `json:"publish_at"`
+	Username    string     `json:"username"`
 }
 
 type DB interface {
@@ -36,7 +39,7 @@ type DB interface {
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
 
-	UserForName(name string) (string, error)
+	UserForName(name string) (*User, error)
 	UserForKey(key string) (*User, error)
 	User(userID string) (*User, error)
 	ValidateName(name string) bool
@@ -44,10 +47,10 @@ type DB interface {
 
 	FindPost(postID string) (*Post, error)
 	PostsForUser(userID string) ([]*Post, error)
-	FindPostWithTitle(title string, userID string) (*Post, error)
+	FindPostWithFilename(filename string, userID string) (*Post, error)
 	FindAllPosts(page int) ([]*Post, error)
-	InsertPost(userID string, title string, text string, publishAt *time.Time) (*Post, error)
-	UpdatePost(postID string, text string, publishAt *time.Time) (*Post, error)
+	InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*Post, error)
+	UpdatePost(postID string, title string, text string, description string, publishAt *time.Time) (*Post, error)
 	RemovePosts(postIDs []string) error
 
 	Close() error

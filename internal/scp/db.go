@@ -24,8 +24,9 @@ type DbHandler struct{}
 
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool db.DB) error {
 	userID := user.ID
-	title := internal.SanitizeFileExt(entry.Name)
-	post, err := dbpool.FindPostWithTitle(title, userID)
+	filename := internal.SanitizeFileExt(entry.Name)
+    title := filename
+	post, err := dbpool.FindPostWithFilename(filename, userID)
 
 	var text string
 	if b, err := io.ReadAll(entry.Reader); err == nil {
@@ -37,6 +38,10 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	}
 
 	parsedText := pkg.ParseText(text)
+    if parsedText.MetaData.Title != "" {
+        title = parsedText.MetaData.Title
+    }
+    description := parsedText.MetaData.Description
 
 	if post == nil {
 		publishAt := time.Now()
@@ -44,7 +49,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 			publishAt = *parsedText.MetaData.PublishAt
 		}
 		log.Printf("%s not found, adding record", title)
-		post, err = dbpool.InsertPost(userID, title, text, &publishAt)
+		post, err = dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", title, err)
 		}
@@ -55,7 +60,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 			publishAt = parsedText.MetaData.PublishAt
 		}
 		log.Printf("%s found, updating record", title)
-		post, err = dbpool.UpdatePost(post.ID, text, publishAt)
+		post, err = dbpool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", title, err)
 		}

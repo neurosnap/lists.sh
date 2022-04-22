@@ -17,8 +17,12 @@ import (
 
 var fnameRe = regexp.MustCompile(`[-_]+`)
 
-func FilenameToTitle(url string) string {
-	pre := fnameRe.ReplaceAllString(url, " ")
+func FilenameToTitle(filename string, title string) string {
+	if filename != title {
+		return title
+	}
+
+	pre := fnameRe.ReplaceAllString(title, " ")
 	r := []rune(pre)
 	r[0] = unicode.ToUpper(r[0])
 	return string(r)

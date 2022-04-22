@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/feeds"
 	"github.com/neurosnap/lists.sh/internal"
+	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	routeHelper "github.com/neurosnap/lists.sh/internal/router"
 	"github.com/neurosnap/lists.sh/pkg"
@@ -54,20 +55,29 @@ func createPageHandler(fname string) http.HandlerFunc {
 
 type BlogData struct {
 	PageTitle string
+	Bio       string
 	Username  string
 	Posts     []PostItemData
+}
+
+func getBlogTitle(user *db.User) string {
+	if user.Bio == "" {
+		return user.Name
+	}
+
+	return fmt.Sprintf("%s: %s", user.Name, user.Bio)
 }
 
 func blogHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
-	userID, err := dbpool.UserForName(username)
+	user, err := dbpool.UserForName(username)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	posts, err := dbpool.PostsForUser(userID)
+	posts, err := dbpool.PostsForUser(user.ID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
@@ -87,15 +97,16 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	postCollection := make([]PostItemData, 0, len(posts))
 	for _, post := range posts {
 		p := PostItemData{
-			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Title),
-			Title:     internal.FilenameToTitle(post.Title),
+			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Filename),
+			Title:     internal.FilenameToTitle(post.Filename, post.Title),
 			PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
 		}
 		postCollection = append(postCollection, p)
 	}
 
 	data := BlogData{
-		PageTitle: fmt.Sprintf("%s -- lists.sh", username),
+		PageTitle: getBlogTitle(user),
+		Bio:       user.Bio,
 		Username:  username,
 		Posts:     postCollection,
 	}
@@ -108,24 +119,29 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type PostData struct {
-	PageTitle string
-	Title     string
-	Username  string
-	PublishAt string
-	Items     []*pkg.ListItem
+	PageTitle   string
+	Title       string
+	Description string
+	Username    string
+	PublishAt   string
+	Items       []*pkg.ListItem
+}
+
+func getPostTitle(post *db.Post) string {
+	return fmt.Sprintf("%s: %s", post.Title, post.Description)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
-	title := routeHelper.GetField(r, 1)
+	filename := routeHelper.GetField(r, 1)
 	dbpool := routeHelper.GetDB(r)
-	userID, err := dbpool.UserForName(username)
+	user, err := dbpool.UserForName(username)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	post, err := dbpool.FindPostWithTitle(title, userID)
+	post, err := dbpool.FindPostWithFilename(filename, user.ID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
@@ -135,11 +151,12 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	parsedText := pkg.ParseText(post.Text)
 
 	data := PostData{
-		PageTitle: post.Title,
-		Title:     internal.FilenameToTitle(post.Title),
-		PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
-		Username:  username,
-		Items:     parsedText.Items,
+		PageTitle:   getPostTitle(post),
+		Description: post.Description,
+		Title:       internal.FilenameToTitle(post.Filename, post.Title),
+		PublishAt:   post.PublishAt.Format("Mon January 2, 2006"),
+		Username:    username,
+		Items:       parsedText.Items,
 	}
 
 	ts, err := renderTemplate([]string{
@@ -159,10 +176,11 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type PostItemData struct {
-	URL       string
-	Title     string
-	Username  string
-	PublishAt string
+	URL         string
+	Title       string
+	Description string
+	Username    string
+	PublishAt   string
 }
 
 type ReadData struct {
@@ -190,10 +208,11 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	data := ReadData{}
 	for _, post := range posts {
 		item := PostItemData{
-			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Title),
-			Title:     internal.FilenameToTitle(post.Title),
-			Username:  post.Username,
-			PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
+			URL:         fmt.Sprintf("/%s/%s", post.Username, post.Filename),
+			Title:       internal.FilenameToTitle(post.Filename, post.Title),
+			Description: post.Description,
+			Username:    post.Username,
+			PublishAt:   post.PublishAt.Format("Mon January 2, 2006"),
 		}
 		data.Posts = append(data.Posts, item)
 	}
@@ -220,13 +239,13 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
-	userID, err := dbpool.UserForName(username)
+	user, err := dbpool.UserForName(username)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	posts, err := dbpool.PostsForUser(userID)
+	posts, err := dbpool.PostsForUser(user.ID)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
@@ -243,7 +262,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s's blog", username),
 		Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/rss", username)},
-		Description: "",
+		Description: user.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
 	}
@@ -260,7 +279,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 			Id:          post.ID,
 			Title:       post.Title,
 			Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/%s", username, post.Title)},
-			Description: "",
+			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
 		})
