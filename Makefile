@@ -41,17 +41,17 @@ restore:
 	# psql postgres -U postgres < /backup.sql
 .PHONY: restore
 
-image-build:
+bp-ssh:
 	docker build -t neurosnap/lists-ssh --target ssh .
-	docker build -t neurosnap/lists-web --target web .
-.PHONY: build
-
-image-push:
 	docker push neurosnap/lists-ssh
-	docker push neurosnap/lists-web
-.PHONY: push
+.PHONY: bp-ssh
 
-bp: image-build image-push
+bp-web:
+	docker build -t neurosnap/lists-web --target web .
+	docker push neurosnap/lists-web
+.PHONY: bp-web
+
+bp: bp-ssh bp-web
 .PHONY: bp
 
 deploy:
