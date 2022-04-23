@@ -23,6 +23,26 @@
             <li>At the prompt, type a secure passphrase.</li>
         </ol>
 
+        <h2 class="text-xl">What should my blog folder look like?</h2>
+        <p>
+            Currently <a href="/">lists.sh</a> only supports a flat folder structure.  Therefore,
+            <code>scp -r</code> is not permitted.  We also only permit text files from being uploaded.
+        </p>
+        <p>
+            <a href="https://github.com/neurosnap/lists-blog">Here is the source to my blog on this platform</a>
+        </p>
+        <p>
+        Below is an example of what your blog folder should look like:
+        </p>
+            <pre>blog/
+    first-post.txt
+    second-post.txt
+    third-post.txt</pre>
+        </p>
+        <p>
+            Underscores and hyphens are permitted and will be automatically removed from the title of the list.
+        </p>
+
         <h2 class="text-xl">How do I update a list?</h2>
         <p>
             Updating a list requires that you update the source document and then run the <code>scp</code>
