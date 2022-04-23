@@ -1,4 +1,3 @@
-BIN=./node_modules/.bin
 PGDATABASE?="lists"
 PGHOST?="db"
 PGUSER?="postgres"
