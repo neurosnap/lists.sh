@@ -14,7 +14,7 @@
         {{if .Bio}}<p>{{.Bio}}</p>{{end}}
         <hr />
     </header>
-    <div class="posts">
+    <main class="posts">
         {{range .Posts}}
         <article>
             <div class="flex items-center">
@@ -23,7 +23,7 @@
             </div>
         </article>
         {{end}}
-    </div>
+    </main>
     {{template "footer" .}}
 </body>
 {{end}}

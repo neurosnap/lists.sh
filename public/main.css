@@ -112,72 +112,72 @@ a:visited {
   color: var(--purple);
 }
 
-body#marketing header {
+#marketing header {
   max-width: 40rem;
   text-align: center;
   margin: 2rem auto 3rem;
   font-size: 1.3rem;
 }
 
-body#marketing .sections {
+#marketing main {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-body#marketing section {
+#marketing section {
   max-width: 40rem;
   margin-bottom: 2rem;
 }
 
-body#marketing section:last-child {
+#marketing section:last-child {
   margin-bottom: 0;
 }
 
-body#marketing pre {
+#marketing pre {
   margin-bottom: 0;
 }
 
-body#marketing .note {
+#marketing .note {
   margin-top: 0.2rem;
 }
 
-body#post header {
-  max-width: 40rem;
-  margin: 1rem auto 1rem;
-}
-
-body#post header > p {
-  margin: 0;
-}
-
-body#post article {
-  max-width: 40rem;
-  margin: 0 auto;
-  font-size: 1.2rem;
-}
-
-body#collection header {
+#collection header {
   max-width: 40rem;
   margin: 1rem auto 2rem;
   text-align: center;
 }
 
-body#collection .posts {
+#collection main {
   margin: 0 auto;
   max-width: 40rem;
 }
 
-body#collection article {
+#collection article {
   margin: 0.5rem 0;
 }
 
-body#doc header {
+#post header {
+  max-width: 40rem;
+  margin: 1rem auto 1rem;
+}
+
+#post header > p {
+  margin: 0;
+}
+
+#post article {
+  max-width: 40rem;
+  margin: 0 auto;
+  font-size: 1.2rem;
+}
+
+#doc header {
   max-width: 40rem;
   margin: 1rem auto;
 }
 
-body#doc > div {
+#doc main {
   max-width: 40rem;
   margin: 0 auto;
 }
@@ -200,6 +200,10 @@ li {
 footer {
   text-align: center;
   margin-bottom: 4rem;
+}
+
+.post-date {
+  width: 100px;
 }
 
 .text-2xl {
@@ -257,10 +261,6 @@ footer {
   justify-content: space-between;
 }
 
-.post-date {
-  width: 100px;
-}
-
 .flex-1 {
   flex: 1;
 }
@@ -270,20 +270,20 @@ footer {
     padding: 1rem 1.8rem;
   }
 
-  body#post header {
+  hr {
+    margin: 2rem auto;
+  }
+
+  #post header {
     padding: 0;
     margin: 0;
   }
 
-  body#marketing header {
+  #marketing header {
     margin: 2rem auto 2rem;
   }
 
-  body#doc header {
+  #doc header {
     margin: 0.3rem auto;
-  }
-
-  hr {
-    margin: 2rem auto;
   }
 }

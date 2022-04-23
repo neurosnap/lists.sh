@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -239,18 +239,6 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serveFile(file string, contentType string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		contents, err := os.ReadFile(fmt.Sprintf("./public/%s", file))
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "File not found", 404)
-		}
-		w.Header().Add("Content-Type", contentType)
-		fmt.Fprintf(w, string(contents))
-	}
-}
-
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
@@ -309,6 +297,18 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/atom+xml")
 	fmt.Fprintf(w, rss)
+}
+
+func serveFile(file string, contentType string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		contents, err := ioutil.ReadFile(fmt.Sprintf("./public/%s", file))
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "File not found", 404)
+		}
+		w.Header().Add("Content-Type", contentType)
+		w.Write(contents)
+	}
 }
 
 var routes = []routeHelper.Route{

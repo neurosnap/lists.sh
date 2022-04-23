@@ -13,9 +13,11 @@
         <p class="font-bold">{{.PublishAt}} on <a href="/{{.Username}}">{{.Username}}'s blog</a></p>
         {{if .Description}}<div class="my font-italic">{{.Description}}</div>{{end}}
     </header>
-    <article>
-        {{template "list" .}}
-    </article>
+    <main>
+        <article>
+            {{template "list" .}}
+        </article>
+    </main>
 </body>
 {{template "footer" .}}
 {{end}}
