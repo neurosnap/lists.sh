@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ const (
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
 	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
 	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
+	sqlSelectPostCount        = `SELECT count(id) FROM posts`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
 	sqlInsertPost      = `INSERT INTO posts (user_id, filename, title, text, publish_at, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
@@ -189,7 +191,7 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	return post, nil
 }
 
-func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
+func (me *PsqlDB) FindAllPosts(offset int) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
 	rs, err := me.db.Query(sqlSelectAllPosts, offset)
 	for rs.Next() {
@@ -205,18 +207,29 @@ func (me *PsqlDB) FindAllPosts(offset int) ([]*db.Post, error) {
 			&post.Username,
 		)
 		if err != nil {
-			return posts, err
+			return nil, err
 		}
 
 		posts = append(posts, post)
 	}
 	if err != nil {
-		return posts, err
+		return nil, err
 	}
 	if rs.Err() != nil {
-		return posts, rs.Err()
+		return nil, rs.Err()
 	}
-	return posts, nil
+
+	var count int
+	err = me.db.QueryRow(sqlSelectPostCount).Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+
+	pager := &db.Paginate[*db.Post]{
+		Data:  posts,
+		Total: int(math.Ceil(float64(count) / 10)),
+	}
+	return pager, nil
 }
 
 func (me *PsqlDB) InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*db.Post, error) {

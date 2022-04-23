@@ -99,7 +99,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		p := PostItemData{
 			URL:       fmt.Sprintf("/%s/%s", post.Username, post.Filename),
 			Title:     internal.FilenameToTitle(post.Filename, post.Title),
-			PublishAt: post.PublishAt.Format("Mon January 2, 2006"),
+			PublishAt: post.PublishAt.Format("02 Jan, 2006"),
 		}
 		postCollection = append(postCollection, p)
 	}
@@ -184,13 +184,15 @@ type PostItemData struct {
 }
 
 type ReadData struct {
-	Posts []PostItemData
+	Posts    []PostItemData
+	NextPage string
+	PrevPage string
 }
 
 func readHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	posts, err := dbpool.FindAllPosts(page)
+	pager, err := dbpool.FindAllPosts(page)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", 500)
@@ -205,14 +207,27 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 	}
 
-	data := ReadData{}
-	for _, post := range posts {
+	nextPage := ""
+	if page < pager.Total-1 {
+		nextPage = fmt.Sprintf("/read?page=%d", page+1)
+	}
+
+	prevPage := ""
+	if page > 0 {
+		prevPage = fmt.Sprintf("/read?page=%d", page-1)
+	}
+
+	data := ReadData{
+		NextPage: nextPage,
+		PrevPage: prevPage,
+	}
+	for _, post := range pager.Data {
 		item := PostItemData{
 			URL:         fmt.Sprintf("/%s/%s", post.Username, post.Filename),
 			Title:       internal.FilenameToTitle(post.Filename, post.Title),
 			Description: post.Description,
 			Username:    post.Username,
-			PublishAt:   post.PublishAt.Format("Mon January 2, 2006"),
+			PublishAt:   post.PublishAt.Format("02 Jan, 2006"),
 		}
 		data.Posts = append(data.Posts, item)
 	}

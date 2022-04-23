@@ -17,12 +17,18 @@
         {{range .Posts}}
         <article>
             <div class="flex items-center">
-                <div class="text-xl font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
-                <div class="font-italic mx">&#8212; {{.PublishAt}}</div>
+                <div class="font-italic text-sm post-date">{{.PublishAt}}</div>
+                <div>
+                    <div class="text-lg font-bold flex-1"><a href="{{.URL}}">{{.Title}}</a></div>
+                    <div class="text-sm">by <a href="/{{.Username}}">{{.Username}}</a></div>
+                </div>
             </div>
-            <div class="text-sm">from <a href="/{{.Username}}">{{.Username}}</a></div>
         </article>
         {{end}}
+    </div>
+    <div>
+        {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
+        {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
     </div>
     {{template "footer" .}}
 </body>
