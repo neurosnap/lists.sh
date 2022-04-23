@@ -28,13 +28,17 @@ Default port for web server is `3000`.
 
 ## Deployment
 
-I use `docker-compose` for deployment.  First you need `.env.prod`.  The
-`production.yml` file in this repo uses my docker hub images for deployment.
+I use `docker-compose` for deployment.  First you need `.env.prod`. 
 
 ```bash
 cp .env.example .env.prod
 ```
 
+The `production.yml` file in this repo uses my docker hub images for deployment.
+
 ```bash
-docker-compose up -d
+docker-compose -f production.yml up -d
 ```
+
+If you want to deploy using your own domain then you'll need to edit the
+`Caddyfile` with your domain.
