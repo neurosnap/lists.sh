@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -93,7 +94,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, use
 			}, user, dbpool)
 
 			if err != nil {
-				return fmt.Errorf("failed to write file: %q: %w", name, err)
+				log.Printf("failed to write file: %q: %v", name, err)
 			}
 
 			// read the trailing nil char

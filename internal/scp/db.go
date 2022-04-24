@@ -55,7 +55,6 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 		}
 	} else {
 		publishAt := post.PublishAt
-		fmt.Println(parsedText.MetaData.PublishAt)
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = parsedText.MetaData.PublishAt
 		}

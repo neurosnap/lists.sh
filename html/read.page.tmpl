@@ -25,11 +25,11 @@
             </div>
         </article>
         {{end}}
+        <div>
+            {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
+            {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
+        </div>
     </main>
-    <div>
-        {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
-        {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
-    </div>
     {{template "footer" .}}
 </body>
 {{end}}

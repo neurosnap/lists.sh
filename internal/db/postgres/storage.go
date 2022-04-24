@@ -13,6 +13,8 @@ import (
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
+var PAGER_SIZE = 10
+
 const (
 	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
 	sqlSelectPublicKeys  = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
@@ -193,7 +195,7 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 
 func (me *PsqlDB) FindAllPosts(offset int) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
-	rs, err := me.db.Query(sqlSelectAllPosts, offset)
+	rs, err := me.db.Query(sqlSelectAllPosts, offset*PAGER_SIZE)
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(
@@ -227,7 +229,7 @@ func (me *PsqlDB) FindAllPosts(offset int) (*db.Paginate[*db.Post], error) {
 
 	pager := &db.Paginate[*db.Post]{
 		Data:  posts,
-		Total: int(math.Ceil(float64(count) / 10)),
+		Total: int(math.Ceil(float64(count) / float64(PAGER_SIZE))),
 	}
 	return pager, nil
 }

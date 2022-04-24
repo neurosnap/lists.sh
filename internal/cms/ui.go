@@ -87,7 +87,7 @@ type GotDBMsg db.DB
 func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	_, _, active := s.Pty()
 	if !active {
-		fmt.Println("no active terminal, skipping")
+		log.Println("no active terminal, skipping")
 		return nil, nil
 	}
 	key, err := internal.KeyText(s)
@@ -98,7 +98,7 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	dbpool := postgres.NewDB()
 	user, err := FindOrRegisterUser(dbpool, key)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	m := model{

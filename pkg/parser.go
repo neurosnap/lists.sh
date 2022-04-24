@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -92,7 +92,7 @@ func ParseText(text string) *ParsedText {
 			if split.Key == "publish_at" {
 				date, err := time.Parse("2006-02-15", split.Value)
 				if err != nil {
-					fmt.Println(err)
+					log.Println(err)
 				}
 				meta.PublishAt = &date
 			}

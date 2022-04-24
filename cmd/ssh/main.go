@@ -40,7 +40,6 @@ func proxyMiddleware() wish.Middleware {
 	return func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			cmd := s.Command()
-			fmt.Println(cmd)
 
 			if len(cmd) == 0 {
 				fn := withMiddleware(
