@@ -42,4 +42,3 @@ func TestLimitedReader(t *testing.T) {
 		is.Equal("another text", string(bts))
 	})
 }
-

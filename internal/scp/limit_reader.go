@@ -33,4 +33,3 @@ func (r *limitReader) Read(b []byte) (int, error) {
 	r.left -= n
 	return n, err
 }
-

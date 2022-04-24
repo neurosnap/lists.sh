@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gliderlabs/ssh"
+	"golang.org/x/exp/slices"
 )
 
 var fnameRe = regexp.MustCompile(`[-_]+`)
@@ -68,21 +69,16 @@ func IsText(s string) bool {
 	return true
 }
 
-// textExt[x] is true if the extension x indicates a text file, and false otherwise.
-var textExt = map[string]bool{
-	".css": false, // must be served raw
-	".js":  false, // must be served raw
-	".svg": false, // must be served raw
-}
+var allowedExtensions = []string{".txt"}
 
 // IsTextFile reports whether the file has a known extension indicating
 // a text file, or if a significant chunk of the specified file looks like
 // correct UTF-8; that is, if it is likely that the file contains human-
 // readable text.
 func IsTextFile(text string, filename string) bool {
-	// if the extension is known, use it for decision making
-	if isText, found := textExt[pathpkg.Ext(filename)]; found {
-		return isText
+	ext := pathpkg.Ext(filename)
+	if !slices.Contains(allowedExtensions, ext) {
+		return false
 	}
 
 	num := math.Min(float64(len(text)), 1024)

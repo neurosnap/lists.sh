@@ -35,7 +35,7 @@ func CreateServe(routes []Route, dbpool db.DB) ServeFn {
 					allow = append(allow, route.method)
 					continue
 				}
-                dbCtx := context.WithValue(r.Context(), ctxDBKey{}, dbpool)
+				dbCtx := context.WithValue(r.Context(), ctxDBKey{}, dbpool)
 				ctx := context.WithValue(dbCtx, ctxKey{}, matches[1:])
 				route.handler(w, r.WithContext(ctx))
 				return

@@ -25,7 +25,7 @@ type DbHandler struct{}
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool db.DB) error {
 	userID := user.ID
 	filename := internal.SanitizeFileExt(entry.Name)
-    title := filename
+	title := filename
 	post, err := dbpool.FindPostWithFilename(filename, userID)
 
 	var text string
@@ -38,10 +38,10 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	}
 
 	parsedText := pkg.ParseText(text)
-    if parsedText.MetaData.Title != "" {
-        title = parsedText.MetaData.Title
-    }
-    description := parsedText.MetaData.Description
+	if parsedText.MetaData.Title != "" {
+		title = parsedText.MetaData.Title
+	}
+	description := parsedText.MetaData.Description
 
 	if post == nil {
 		publishAt := time.Now()
@@ -55,7 +55,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 		}
 	} else {
 		publishAt := post.PublishAt
-        fmt.Println(parsedText.MetaData.PublishAt)
+		fmt.Println(parsedText.MetaData.PublishAt)
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = parsedText.MetaData.PublishAt
 		}

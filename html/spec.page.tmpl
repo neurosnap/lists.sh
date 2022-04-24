@@ -15,14 +15,20 @@
     <main>
         <p>
             The goal of this specification is to understand how we render plain text lists.
-            The overall design of this format is to be simple and easy parse and render.  List
-            items are separated by newline characters <code>\n</code>. Each block type can be determined by
-            reading the first two characters of a line.
+            The overall design of this format is to be easy to parse and render.  List
+            items are separated by newline characters <code>\n</code>. Each block type can be
+            determined by reading the first two characters of a line.
         </p>
 
         <p>
-            The source code for our own parser can be found
+            The source code for our parser can be found
             <a href="https://github.com/neurosnap/lists.sh/pkg/parser.go">here</a>.
+        </p>
+
+        <h2 class="text-xl">File extension</h2>
+        <p>
+            <a href="/">lists.sh</a> only supports the <code>.txt</code> file extension and will
+            ignore all other file extensions.
         </p>
 
         <h2 class="text-xl">List item</h2>

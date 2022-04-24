@@ -26,10 +26,10 @@ const (
 	sqlSelectPostCount        = `SELECT count(id) FROM posts`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
-	sqlInsertPost      = `INSERT INTO posts (user_id, filename, title, text, publish_at, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	sqlInsertPost      = `INSERT INTO posts (user_id, filename, title, text, description, publish_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	sqlInsertUser      = `INSERT INTO app_users DEFAULT VALUES returning id`
 
-	sqlUpdatePost     = `UPDATE posts SET text = $1, title = $2, description = $3, updated_at = $4, publish_at = $5 WHERE id = $6`
+	sqlUpdatePost     = `UPDATE posts SET title = $1, text = $2, description = $3, updated_at = $4, publish_at = $5 WHERE id = $6`
 	sqlUpdateUserName = `UPDATE app_users SET name = $1 WHERE id = $2`
 
 	sqlRemovePosts = `DELETE FROM posts WHERE id IN ($1)`
@@ -234,7 +234,7 @@ func (me *PsqlDB) FindAllPosts(offset int) (*db.Paginate[*db.Post], error) {
 
 func (me *PsqlDB) InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*db.Post, error) {
 	var id string
-	err := me.db.QueryRow(sqlInsertPost, userID, filename, title, text, publishAt, description).Scan(&id)
+	err := me.db.QueryRow(sqlInsertPost, userID, filename, title, text, description, publishAt).Scan(&id)
 	if err != nil {
 		return nil, err
 	}

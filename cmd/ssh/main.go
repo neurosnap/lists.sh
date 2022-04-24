@@ -17,11 +17,10 @@ import (
 	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
 	"github.com/neurosnap/lists.sh/internal"
+	"github.com/neurosnap/lists.sh/internal/cms"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/internal/scp"
-	"github.com/neurosnap/lists.sh/internal/cms"
 )
-
 
 type SSHServer struct{}
 

@@ -9,6 +9,10 @@ build:
 	go build -o build/ssh ./cmd/ssh
 .PHONY: build
 
+format:
+	go fmt ./...
+.PHONY: format
+
 create:
 	docker exec -i $(DB_CONTAINER) psql -U $(PGUSER) < ./db/setup.sql
 .PHONY: create
