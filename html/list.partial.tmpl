@@ -1,12 +1,20 @@
 {{define "list"}}
-<ul>
+<ul style="list-style-type: {{.ListType}}">
     {{range .Items}}
+        {{if .IsText}}
+            {{if .Value}}
+            <li>{{.Value}}</li>
+            {{else}}
+            <li>&nbsp;</li>
+            {{end}}
+        {{end}}
+
         {{if .IsURL}}
         <li><a href="{{.URL}}">{{.Value}}</a></li>
         {{end}}
 
-        {{if .IsText}}
-        <li>{{.Value}}</li>
+        {{if .IsImg}}
+        <li><img src="{{.URL}}" alt="{{.Value}}" /></li>
         {{end}}
 
         {{if .IsBlock}}

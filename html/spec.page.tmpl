@@ -9,7 +9,7 @@
 {{define "body"}}
 <header>
     <h1 class="text-2xl">Plain text list specification (v0)</h1>
-    <p class="text-sm font-italic">Last updated: 04/20/2022</p>
+    <p class="text-sm font-italic">Last updated: <time datetime="2022-04-24">2022-04-24</time></p>
 </header>
 <main>
     <p>
@@ -57,6 +57,16 @@
     </section>
 
     <section>
+        <h2 class="text-xl">Images</h2>
+        <p>
+            List items can be represented as images by prefixing the line with <code>=<</code>.
+        </p>
+        <pre>=< https://i.imgur.com/iXMNUN5.jpg</pre>
+        <p>Optionally you can supply the image alt text imediately following the link.</p>
+        <pre>=< https://i.imgur.com/iXMNUN5.jpg This is the alt text</pre>
+    </section>
+
+    <section>
         <h2 class="text-xl">Headers</h2>
         <p>
             List items can be represented as headers.  We support two headers currently.
@@ -77,16 +87,20 @@
         <h2 class="text-xl">Variables</h2>
         <p>
             Variables allow us to store metadata within our system.  Variables are list items with
-            key value pairs denoted by <code>=@</code> followed by the key and then a whitespace character
+            key value pairs denoted by <code>=:</code> followed by the key and then a whitespace character
             and then the value.
         </p>
-        <pre>=@publish_at 2022-04-20</pre>
+        <pre>=: publish_at 2022-04-20</pre>
         <p>These variables will not be rendered to the user.</p>
-        <p>List of known variables:</p>
+        <h3 class="text-lg">List of available variables:</h3>
         <ul>
             <li>title (custom title not dependent on filename)</li>
-            <li>description (description of list)</li>
+            <li>description (what is the purpose of this list?)</li>
             <li>publish_at (format must be <code>YYYY-MM-DD</code>)</li>
+            <li>
+                list_type (customize bullets; value gets sent directly to css property
+                <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type">list-style-type</a>)
+            </li>
         </ul>
     </section>
 </main>

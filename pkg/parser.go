@@ -20,17 +20,20 @@ type ListItem struct {
 	IsText      bool
 	IsHeaderOne bool
 	IsHeaderTwo bool
+	IsImg       bool
 }
 
 type MetaData struct {
 	PublishAt   *time.Time
 	Title       string
 	Description string
+	ListType    string // https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type
 }
 
 var urlToken = "=>"
 var blockToken = ">"
-var varToken = "=@"
+var varToken = "=:"
+var imgToken = "=<"
 var headerOneToken = "#"
 var headerTwoToken = "##"
 
@@ -68,7 +71,9 @@ func SplitByNewline(text string) []string {
 func ParseText(text string) *ParsedText {
 	textItems := SplitByNewline(text)
 	items := []*ListItem{}
-	meta := &MetaData{}
+	meta := &MetaData{
+		ListType: "disc",
+	}
 
 	for _, t := range textItems {
 		li := &ListItem{
@@ -87,6 +92,15 @@ func ParseText(text string) *ParsedText {
 		} else if strings.HasPrefix(li.Value, blockToken) {
 			li.IsBlock = true
 			li.Value = strings.Replace(li.Value, blockToken, "", 1)
+		} else if strings.HasPrefix(li.Value, imgToken) {
+			li.IsImg = true
+			split := TextToSplitToken(strings.Replace(li.Value, imgToken, "", 1))
+			li.URL = split.Key
+			if split.Value == "" {
+				li.Value = split.Key
+			} else {
+				li.Value = split.Value
+			}
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			if split.Key == "publish_at" {
@@ -103,6 +117,10 @@ func ParseText(text string) *ParsedText {
 
 			if split.Key == "description" {
 				meta.Description = split.Value
+			}
+
+			if split.Key == "list_type" {
+				meta.ListType = split.Value
 			}
 			continue
 		} else if strings.HasPrefix(li.Value, headerTwoToken) {
