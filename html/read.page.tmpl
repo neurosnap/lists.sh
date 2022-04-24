@@ -8,7 +8,7 @@
 
 {{define "body"}}
 <body id="collection">
-    <header>
+    <header class="text-center">
         <h1 class="text-2xl font-bold">read</h1>
         <p class="text-lg">discover interesting lists</p>
         <hr />
@@ -17,10 +17,12 @@
         {{range .Posts}}
         <article>
             <div class="flex items-center">
-                <div class="font-italic text-sm post-date">{{.PublishAt}}</div>
+                <time datetime="{{.PublishAt}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
                 <div class="flex-1">
-                    <div class="text-lg font-bold"><a href="{{.URL}}">{{.Title}}</a></div>
-                    <div class="text-sm">by <a href="/{{.Username}}">{{.Username}}</a></div>
+                    <h2 class="inline"><a href="{{.URL}}">{{.Title}}</a></h2>
+                    <address class="text-sm inline">
+                        (<a href="/{{.Username}}">{{.Username}}</a>)
+                    </address>
                 </div>
             </div>
         </article>

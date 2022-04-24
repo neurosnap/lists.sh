@@ -25,7 +25,8 @@
 html {
   background-color: var(--greyer);
   color: var(--white);
-  font-size: 16px;
+  font-size: 18px;
+  line-height: 1.4;
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -41,14 +42,14 @@ html {
     "Apple Color Emoji",
     "Segoe UI Emoji",
     "Segoe UI Symbol";
-	line-height: 1.15;
 	-webkit-text-size-adjust: 100%;
 	-moz-tab-size: 4;
 	tab-size: 4;
 }
 
 body {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 40rem;
 }
 
 b, strong {
@@ -57,7 +58,7 @@ b, strong {
 
 code, kbd, samp, pre {
 	font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
-	font-size: 1em;
+	font-size: 1rem;
   background-color: var(--black);
 }
 
@@ -69,10 +70,11 @@ pre {
   border-radius: 5px;
   padding: 1rem;
   overflow-x: auto;
+  margin: 0;
 }
 
 small {
-  font-size: 0.8em;
+  font-size: 0.8rem;
 }
 
 summary {
@@ -94,8 +96,7 @@ hr {
   margin: 0;
   height: 1px;
   background: var(--grey);
-  margin: 3rem auto;
-  max-width: 40rem;
+  margin: 2rem auto;
   text-align: center;
 }
 
@@ -112,74 +113,24 @@ a:visited {
   color: var(--purple);
 }
 
-#marketing header {
-  max-width: 40rem;
-  text-align: center;
-  margin: 2rem auto 3rem;
-  font-size: 1.3rem;
-}
-
-#marketing main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#marketing section {
-  max-width: 40rem;
+section {
   margin-bottom: 2rem;
 }
 
-#marketing section:last-child {
+section:last-child {
   margin-bottom: 0;
 }
 
-#marketing pre {
-  margin-bottom: 0;
-}
-
-#marketing .note {
-  margin-top: 0.2rem;
-}
-
-#collection header {
-  max-width: 40rem;
-  margin: 1rem auto 2rem;
-  text-align: center;
-}
-
-#collection main {
-  margin: 0 auto;
-  max-width: 40rem;
-}
-
-#collection article {
-  margin: 0.5rem 0;
-}
-
-#post header {
-  max-width: 40rem;
-  margin: 1rem auto 1rem;
-}
-
-#post header > p {
-  margin: 0;
-}
-
-#post article {
-  max-width: 40rem;
-  margin: 0 auto;
-  font-size: 1.2rem;
-}
-
-#doc header {
-  max-width: 40rem;
+header {
   margin: 1rem auto;
 }
 
-#doc main {
-  max-width: 40rem;
-  margin: 0 auto;
+p {
+  margin: 1rem 0;
+}
+
+article {
+  overflow-wrap: break-word;
 }
 
 blockquote {
@@ -194,7 +145,7 @@ ul, ol {
 }
 
 li {
-  margin: 0.8rem 0;
+  margin: 0.5rem 0;
 }
 
 footer {
@@ -208,18 +159,25 @@ footer {
 
 .text-2xl {
   font-size: 2.0rem;
+  line-height: 1.15;
 }
 
 .text-xl {
   font-size: 1.7rem;
+  line-height: 1.15;
 }
 
 .text-lg {
   font-size: 1.3rem;
+  line-height: 1.15;
 }
 
 .text-sm {
   font-size: 0.8rem;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .font-bold {
@@ -228,6 +186,10 @@ footer {
 
 .font-italic {
   font-style: italic;
+}
+
+.inline {
+  display: inline-block;
 }
 
 .container {
@@ -240,6 +202,10 @@ footer {
 
 .items-center {
   align-items: center;
+}
+
+.m-0 {
+  margin: 0;
 }
 
 .my {
@@ -270,20 +236,7 @@ footer {
     padding: 1rem 1.8rem;
   }
 
-  hr {
-    margin: 2rem auto;
-  }
-
-  #post header {
-    padding: 0;
+  header {
     margin: 0;
-  }
-
-  #marketing header {
-    margin: 2rem auto 2rem;
-  }
-
-  #doc header {
-    margin: 0.3rem auto;
   }
 }
