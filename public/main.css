@@ -49,7 +49,7 @@ html {
 
 body {
   margin: 0 auto;
-  max-width: 40rem;
+  max-width: 35rem;
 }
 
 b, strong {
@@ -190,10 +190,6 @@ footer {
 
 .inline {
   display: inline-block;
-}
-
-.container {
-  max-width: 40rem;
 }
 
 .flex {
