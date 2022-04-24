@@ -38,11 +38,20 @@ type Paginate[T any] struct {
 	Total int
 }
 
+type Analytics struct {
+	TotalUsers int
+    UsersLastMonth int
+	TotalPosts int
+    PostsLastMonth int
+}
+
 type DB interface {
 	AddUser() (string, error)
 	LinkUserKey(userID string, key string) error
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
+
+	SiteAnalytics() (*Analytics, error)
 
 	UserForName(name string) (*User, error)
 	UserForKey(key string) (*User, error)

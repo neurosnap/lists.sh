@@ -21,6 +21,11 @@ const (
 	sqlSelectUser        = `SELECT id, name, bio, created_at FROM app_users WHERE id = $1`
 	sqlSelectUserForName = `SELECT id, name, bio, created_at FROM app_users WHERE name = $1`
 
+	sqlSelectTotalUsers     = `SELECT count(id) FROM app_users`
+	sqlSelectUsersLastMonth = `SELECT count(id) FROM app_users WHERE created_at >= $1`
+	sqlSelectTotalPosts     = `SELECT count(id) FROM posts`
+	sqlSelectPostsLastMonth = `SELECT count(id) FROM posts WHERE created_at >= $1`
+
 	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
 	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
@@ -97,6 +102,39 @@ func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
 		return keys, rs.Err()
 	}
 	return keys, nil
+}
+
+func (me *PsqlDB) SiteAnalytics() (*db.Analytics, error) {
+	analytics := &db.Analytics{}
+	r := me.db.QueryRow(sqlSelectTotalUsers)
+	err := r.Scan(&analytics.TotalUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	r = me.db.QueryRow(sqlSelectTotalPosts)
+	err = r.Scan(&analytics.TotalPosts)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	year, month, _ := now.Date()
+	lastMonth := time.Date(year, month-1, 1, 0, 0, 0, 0, now.Location())
+
+	r = me.db.QueryRow(sqlSelectPostsLastMonth, lastMonth)
+	err = r.Scan(&analytics.PostsLastMonth)
+	if err != nil {
+		return nil, err
+	}
+
+	r = me.db.QueryRow(sqlSelectUsersLastMonth, lastMonth)
+	err = r.Scan(&analytics.UsersLastMonth)
+	if err != nil {
+		return nil, err
+	}
+
+	return analytics, nil
 }
 
 func (me *PsqlDB) UserForKey(key string) (*db.User, error) {

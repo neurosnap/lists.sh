@@ -195,6 +195,33 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func transparencyHandler(w http.ResponseWriter, r *http.Request) {
+	dbpool := routeHelper.GetDB(r)
+	analytics, err := dbpool.SiteAnalytics()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	ts, err := template.ParseFiles(
+		"./html/transparency.page.tmpl",
+		"./html/footer.partial.tmpl",
+		"./html/marketing-footer.partial.tmpl",
+		"./html/base.layout.tmpl",
+	)
+
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+	}
+
+	err = ts.Execute(w, analytics)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", 500)
+	}
+}
+
 func readHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
@@ -326,12 +353,12 @@ var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
 	routeHelper.NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
 	routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
-	routeHelper.NewRoute("GET", "/transparency", createPageHandler("./html/transparency.page.tmpl")),
 	routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
 	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
 	routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
+	routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
 	routeHelper.NewRoute("GET", "/read", readHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)/rss", rssHandler),
