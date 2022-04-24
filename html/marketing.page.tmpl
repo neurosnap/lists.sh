@@ -18,102 +18,100 @@
 {{end}}
 
 {{define "body"}}
-<body id="marketing">
-    <header class="text-center">
-        <h1 class="text-2xl font-bold">lists.sh</h1>
-        <p class="text-lg">A microblog for your lists</p>
-        <p class="text-lg"><a href="/read">discover</a> some interesting lists</p>
-        <hr />
-    </header>
+<header class="text-center">
+    <h1 class="text-2xl font-bold">lists.sh</h1>
+    <p class="text-lg">A microblog for your lists</p>
+    <p class="text-lg"><a href="/read">discover</a> some interesting lists</p>
+    <hr />
+</header>
 
-    <main>
-        <section>
-            <h2 class="text-lg font-bold">Examples</h2>
-            <p>
-                <a href="/erock">blog</a> |
-                <a href="/erock/knowledge-management-apps">list</a> |
-                <a href="https://github.com/neurosnap/lists-blog">blog source</a>
-            </p>
-        </section>
+<main>
+    <section>
+        <h2 class="text-lg font-bold">Examples</h2>
+        <p>
+            <a href="/erock">blog</a> |
+            <a href="/erock/knowledge-management-apps">list</a> |
+            <a href="https://github.com/neurosnap/lists-blog">blog source</a>
+        </p>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">Create an account with Public-Key Cryptography</h2>
-            <p>No email address required.</p>
-            <p>To get started, simply ssh into our content management system:</p>
-            <pre>ssh lists.sh</pre>
-            <div class="text-sm font-italic note">note: currently only Ed25519 signing algorithm is supported.</div>
-            <p>After that, just set a username. It's as simple as that!</p>
-        </section>
+    <section>
+        <h2 class="text-lg font-bold">Create an account with Public-Key Cryptography</h2>
+        <p>No email address required.</p>
+        <p>To get started, simply ssh into our content management system:</p>
+        <pre>ssh lists.sh</pre>
+        <div class="text-sm font-italic note">note: currently only Ed25519 signing algorithm is supported.</div>
+        <p>After that, just set a username. It's as simple as that!</p>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">You control the source content</h2>
-            <p>Create lists using your favorite editor and then send them to our server:</p>
-            <pre>scp ~/blog/*.txt lists.sh:</pre>
-            <div class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</div>
-            <p>We'll either create or update the lists for you.</p>
-        </section>
+    <section>
+        <h2 class="text-lg font-bold">You control the source content</h2>
+        <p>Create lists using your favorite editor and then send them to our server:</p>
+        <pre>scp ~/blog/*.txt lists.sh:</pre>
+        <div class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</div>
+        <p>We'll either create or update the lists for you.</p>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">Plain text format</h2>
-            <p>A simple specification that is flexible and with no frills.</p>
-            <p><a href="/spec">specification</a></p>
-        </section>
+    <section>
+        <h2 class="text-lg font-bold">Plain text format</h2>
+        <p>A simple specification that is flexible and with no frills.</p>
+        <p><a href="/spec">specification</a></p>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">Features</h2>
-            <ul>
-                <li>Just lists</li>
-                <li>Bring your own editor</li>
-                <li>You control the source content</li>
-                <li>Public-key based authentication</li>
-                <li>No ads, zero tracking</li>
-                <li>No platform lock-in</li>
-                <li>No javascript</li>
-                <li>Subscriptions via RSS</li>
-                <li>Not a platform for todos</li>
-                <li>Minimalist design</li>
-                <li>100% open source</li>
-            </ul>
-        </section>
+    <section>
+        <h2 class="text-lg font-bold">Features</h2>
+        <ul>
+            <li>Just lists</li>
+            <li>Bring your own editor</li>
+            <li>You control the source content</li>
+            <li>Public-key based authentication</li>
+            <li>No ads, zero tracking</li>
+            <li>No platform lock-in</li>
+            <li>No javascript</li>
+            <li>Subscriptions via RSS</li>
+            <li>Not a platform for todos</li>
+            <li>Minimalist design</li>
+            <li>100% open source</li>
+        </ul>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">Philosophy</h2>
-            <p>
-                I love writing lists.  I think restricting thought to a set of lists can really
-                help improve clarity in prose.  The goal of this blog is to make it dead simple
-                to use the tools you love to write and publish lists.  There is no installation,
-                signup is as easy as SSH'ing into our CMS, and publishing content is as easy as
-                copying files to our server.
-            </p>
-            <p>
-                Another goal of this microblog platform is to satisfy my own needs.  I like to
-                write and share lists with people because it's fun to categorize items into lists.
-            </p>
-            <p>
-                Other blogging platforms support writing lists, but they don't
-                <span class="font-bold">emphasize</span> them.  Writing lists is pretty popular
-                on Twitter, but discoverability is terrible.  If I want to reference a list that
-                I wrote a few years ago, finding it is a pain.  It also clutters the readability
-                with its design and emphasis on engagement.  Other regular blogging platforms
-                focus on prose.
-            </p>
-        </section>
+    <section>
+        <h2 class="text-lg font-bold">Philosophy</h2>
+        <p>
+            I love writing lists.  I think restricting thought to a set of lists can really
+            help improve clarity in prose.  The goal of this blog is to make it dead simple
+            to use the tools you love to write and publish lists.  There is no installation,
+            signup is as easy as SSH'ing into our CMS, and publishing content is as easy as
+            copying files to our server.
+        </p>
+        <p>
+            Another goal of this microblog platform is to satisfy my own needs.  I like to
+            write and share lists with people because it's fun to categorize items into lists.
+        </p>
+        <p>
+            Other blogging platforms support writing lists, but they don't
+            <span class="font-bold">emphasize</span> them.  Writing lists is pretty popular
+            on Twitter, but discoverability is terrible.  If I want to reference a list that
+            I wrote a few years ago, finding it is a pain.  It also clutters the readability
+            with its design and emphasis on engagement.  Other regular blogging platforms
+            focus on prose.
+        </p>
+    </section>
 
-        <section>
-            <h2 class="text-lg font-bold">Roadmap</h2>
-            <ul>
-                <li>Ability to delete account</li>
-                <li>Subscribe to a blog via email</li>
-                <li>Support <code>text/plain</code> as a content-type for web server</li>
-                <li>Ability to pin posts</li>
-                <li>Ability to set a bio description for a user</li>
-                <li>Add image embeds to specification</li>
-                <li>Add ability to upload images</li>
-                <li>Ability to have custom domains</li>
-            </ul>
-        </section>
-    </main>
+    <section>
+        <h2 class="text-lg font-bold">Roadmap</h2>
+        <ul>
+            <li>Ability to delete account</li>
+            <li>Subscribe to a blog via email</li>
+            <li>Support <code>text/plain</code> as a content-type for web server</li>
+            <li>Ability to pin posts</li>
+            <li>Ability to set a bio description for a user</li>
+            <li>Add image embeds to specification</li>
+            <li>Add ability to upload images</li>
+            <li>Ability to have custom domains</li>
+        </ul>
+    </section>
+</main>
 
-    {{template "marketing-footer" .}}
-</body>
+{{template "marketing-footer" .}}
 {{end}}

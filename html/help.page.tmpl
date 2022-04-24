@@ -7,71 +7,69 @@
 {{end}}
 
 {{define "body"}}
-<body id="doc">
-    <header>
-        <h1 class="text-2xl">Need help?</h1>
-        <p>Here are some common questions on using this platform that we would like to answer.</p>
-    </header>
-    <main>
-        <section>
-            <h2 class="text-xl">Generating a new SSH key</h2>
-            <p>
-                <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">Github reference</a>
-            </p>
-            <pre>ssh-keygen -t ed25519 -C "your_email@example.com"</pre>
-            <ol>
-                <li>When you're prompted to "Enter a file in which to save the key," press Enter. This accepts the default file location.</li>
-                <li>At the prompt, type a secure passphrase.</li>
-            </ol>
-        </section>
+<header>
+    <h1 class="text-2xl">Need help?</h1>
+    <p>Here are some common questions on using this platform that we would like to answer.</p>
+</header>
+<main>
+    <section>
+        <h2 class="text-xl">Generating a new SSH key</h2>
+        <p>
+            <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">Github reference</a>
+        </p>
+        <pre>ssh-keygen -t ed25519 -C "your_email@example.com"</pre>
+        <ol>
+            <li>When you're prompted to "Enter a file in which to save the key," press Enter. This accepts the default file location.</li>
+            <li>At the prompt, type a secure passphrase.</li>
+        </ol>
+    </section>
 
-        <section>
-            <h2 class="text-xl">What should my blog folder look like?</h2>
-            <p>
-                Currently <a href="/">lists.sh</a> only supports a flat folder structure.  Therefore,
-                <code>scp -r</code> is not permitted.  We also only allow <code>.txt</code> files to be
-                uploaded.
-            </p>
-            <p>
-                <a href="https://github.com/neurosnap/lists-blog">Here is the source to my blog on this platform</a>
-            </p>
-            <p>
-            Below is an example of what your blog folder should look like:
-            </p>
-                <pre>blog/
+    <section>
+        <h2 class="text-xl">What should my blog folder look like?</h2>
+        <p>
+            Currently <a href="/">lists.sh</a> only supports a flat folder structure.  Therefore,
+            <code>scp -r</code> is not permitted.  We also only allow <code>.txt</code> files to be
+            uploaded.
+        </p>
+        <p>
+            <a href="https://github.com/neurosnap/lists-blog">Here is the source to my blog on this platform</a>
+        </p>
+        <p>
+        Below is an example of what your blog folder should look like:
+        </p>
+            <pre>blog/
 first-post.txt
 second-post.txt
 third-post.txt</pre>
-            </p>
-            <p>
-                Underscores and hyphens are permitted and will be automatically removed from the title of the list.
-            </p>
-        </section>
+        </p>
+        <p>
+            Underscores and hyphens are permitted and will be automatically removed from the title of the list.
+        </p>
+    </section>
 
-        <section>
-            <h2 class="text-xl">How do I update a list?</h2>
-            <p>
-                Updating a list requires that you update the source document and then run the <code>scp</code>
-                command again.  If the filename remains the same, then the list will be updated.
-            </p>
-        </section>
+    <section>
+        <h2 class="text-xl">How do I update a list?</h2>
+        <p>
+            Updating a list requires that you update the source document and then run the <code>scp</code>
+            command again.  If the filename remains the same, then the list will be updated.
+        </p>
+    </section>
 
-        <section>
-            <h2 class="text-xl">How do I delete a list?</h2>
-            <p>
-                Because <code>scp</code> does not natively support deleting files, I didn't want to bake
-                that behavior into my ssh server.  Instead, in order to delete a list, you need to
-                <code>ssh lists.sh</code> and select "Manage posts."  Then you can highlight the post you
-                want to delete and then press "X."  It will ask for comfirmation before actually removing
-                the list.
-            </p>
-        </section>
+    <section>
+        <h2 class="text-xl">How do I delete a list?</h2>
+        <p>
+            Because <code>scp</code> does not natively support deleting files, I didn't want to bake
+            that behavior into my ssh server.  Instead, in order to delete a list, you need to
+            <code>ssh lists.sh</code> and select "Manage posts."  Then you can highlight the post you
+            want to delete and then press "X."  It will ask for comfirmation before actually removing
+            the list.
+        </p>
+    </section>
 
-        <section>
-            <h2 class="text-xl">What is my blog URL?</h2>
-            <pre>https://lists.sh/{username}</pre>
-        </section>
-    </main>
-    {{template "marketing-footer" .}}
-</body>
+    <section>
+        <h2 class="text-xl">What is my blog URL?</h2>
+        <pre>https://lists.sh/{username}</pre>
+    </section>
+</main>
+{{template "marketing-footer" .}}
 {{end}}

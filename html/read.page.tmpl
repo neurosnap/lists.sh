@@ -7,31 +7,29 @@
 {{end}}
 
 {{define "body"}}
-<body id="collection">
-    <header class="text-center">
-        <h1 class="text-2xl font-bold">read</h1>
-        <p class="text-lg">discover interesting lists</p>
-        <hr />
-    </header>
-    <main>
-        {{range .Posts}}
-        <article>
-            <div class="flex items-center">
-                <time datetime="{{.PublishAt}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
-                <div class="flex-1">
-                    <h2 class="inline"><a href="{{.URL}}">{{.Title}}</a></h2>
-                    <address class="text-sm inline">
-                        (<a href="/{{.Username}}">{{.Username}}</a>)
-                    </address>
-                </div>
+<header class="text-center">
+    <h1 class="text-2xl font-bold">read</h1>
+    <p class="text-lg">discover interesting lists</p>
+    <hr />
+</header>
+<main>
+    {{range .Posts}}
+    <article>
+        <div class="flex items-center">
+            <time datetime="{{.PublishAt}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
+            <div class="flex-1">
+                <h2 class="inline"><a href="{{.URL}}">{{.Title}}</a></h2>
+                <address class="text-sm inline">
+                    (<a href="/{{.Username}}">{{.Username}}</a>)
+                </address>
             </div>
-        </article>
-        {{end}}
-        <div>
-            {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
-            {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
         </div>
-    </main>
-    {{template "footer" .}}
-</body>
+    </article>
+    {{end}}
+    <div>
+        {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
+        {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
+    </div>
+</main>
+{{template "footer" .}}
 {{end}}

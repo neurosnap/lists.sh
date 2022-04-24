@@ -7,23 +7,21 @@
 {{end}}
 
 {{define "body"}}
-<body id="collection">
-    <header class="text-center">
-        <h1 class="text-2xl font-bold">{{.Username}}'s blog</h1>
-        {{if .Bio}}<p class="text-lg">{{.Bio}}</p>{{end}}
-        <a href="{{.Username}}/rss" class="text-lg">rss</a>
-        <hr />
-    </header>
-    <main class="posts">
-        {{range .Posts}}
-        <article>
-            <div class="flex items-center">
-                <time datetime="{{.PublishAt}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
-                <h2 class="font-bold flex-1"><a href="{{.URL}}">{{.Title}}</a></h2>
-            </div>
-        </article>
-        {{end}}
-    </main>
-    {{template "footer" .}}
-</body>
+<header class="text-center">
+    <h1 class="text-2xl font-bold">{{.Username}}'s blog</h1>
+    {{if .Bio}}<p class="text-lg">{{.Bio}}</p>{{end}}
+    <a href="{{.Username}}/rss" class="text-lg">rss</a>
+    <hr />
+</header>
+<main class="posts">
+    {{range .Posts}}
+    <article>
+        <div class="flex items-center">
+            <time datetime="{{.PublishAt}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
+            <h2 class="font-bold flex-1"><a href="{{.URL}}">{{.Title}}</a></h2>
+        </div>
+    </article>
+    {{end}}
+</main>
+{{template "footer" .}}
 {{end}}
