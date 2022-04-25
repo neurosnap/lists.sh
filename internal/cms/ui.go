@@ -5,7 +5,6 @@ package cms
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -87,14 +86,16 @@ type GotDBMsg db.DB
 // pass it to the new model. You can also return tea.ProgramOptions (such as
 // teaw.WithAltScreen) on a session by session basis
 func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+	logger := internal.CreateLogger()
+
 	_, _, active := s.Pty()
 	if !active {
-		log.Println("no active terminal, skipping")
+		logger.Error("no active terminal, skipping")
 		return nil, nil
 	}
 	key, err := internal.KeyText(s)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 	}
 
 	dbpool := postgres.NewDB()

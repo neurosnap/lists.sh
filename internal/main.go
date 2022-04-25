@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	pathpkg "path"
@@ -13,8 +14,18 @@ import (
 	"unicode/utf8"
 
 	"github.com/gliderlabs/ssh"
+	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
+
+func CreateLogger() *zap.SugaredLogger {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return logger.Sugar()
+}
 
 var fnameRe = regexp.MustCompile(`[-_]+`)
 

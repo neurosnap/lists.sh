@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -62,6 +61,7 @@ func proxyMiddleware() wish.Middleware {
 }
 
 func main() {
+	logger := internal.CreateLogger()
 	host := internal.GetEnv("LISTS_HOST", "0.0.0.0")
 	port := internal.GetEnv("LISTS_SSH_PORT", "2222")
 
@@ -73,23 +73,23 @@ func main() {
 		wish.WithMiddleware(proxyMiddleware()),
 	)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Fatal(err)
 	}
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Printf("Starting SSH server on %s:%s", host, port)
+	logger.Infof("Starting SSH server on %s:%s", host, port)
 	go func() {
 		if err = s.ListenAndServe(); err != nil {
-			log.Fatalln(err)
+			logger.Fatal(err)
 		}
 	}()
 
 	<-done
-	log.Println("Stopping SSH server")
+	logger.Info("Stopping SSH server")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() { cancel() }()
 	if err := s.Shutdown(ctx); err != nil {
-		log.Fatalln(err)
+		logger.Fatal(err)
 	}
 }

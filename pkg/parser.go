@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"log"
 	"strings"
 	"time"
 )
@@ -104,10 +103,7 @@ func ParseText(text string) *ParsedText {
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			if split.Key == "publish_at" {
-				date, err := time.Parse("2006-02-15", split.Value)
-				if err != nil {
-					log.Println(err)
-				}
+				date, _ := time.Parse("2006-02-15", split.Value)
 				meta.PublishAt = &date
 			}
 

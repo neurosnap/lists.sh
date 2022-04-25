@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"path/filepath"
 	"regexp"
 	"strconv"
 
 	"github.com/gliderlabs/ssh"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
@@ -30,6 +30,7 @@ func (e parseError) Error() string {
 }
 
 func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, user *db.User, dbpool db.DB) error {
+	logger := internal.CreateLogger()
 	// accepts the request
 	_, _ = s.Write(NULL)
 
@@ -94,7 +95,7 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, use
 			}, user, dbpool)
 
 			if err != nil {
-				log.Printf("failed to write file: %q: %v", name, err)
+				logger.Errorf("failed to write file: %q: %v", name, err)
 			}
 
 			// read the trailing nil char

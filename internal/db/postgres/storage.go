@@ -3,13 +3,13 @@ package postgres
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"math"
 	"os"
 	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
@@ -49,11 +49,12 @@ type PsqlDB struct {
 func NewDB() *PsqlDB {
 	databaseUrl := os.Getenv("DATABASE_URL")
 	var err error
-	log.Printf("Connecting to postgres: %s\n", databaseUrl)
+	logger := internal.CreateLogger()
+	logger.Infof("Connecting to postgres: %s", databaseUrl)
 
 	db, err := sql.Open("postgres", databaseUrl)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	d := &PsqlDB{db: db}
 	return d
@@ -327,6 +328,7 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 }
 
 func (me *PsqlDB) Close() error {
-	log.Println("Closing db")
+    logger := internal.CreateLogger()
+	logger.Info("Closing db")
 	return me.db.Close()
 }

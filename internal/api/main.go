@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -73,16 +72,17 @@ func renderTemplate(templates []string) (*template.Template, error) {
 func createPageHandler(fname string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ts, err := renderTemplate([]string{fname})
+	    logger := routeHelper.GetLogger(r)
 
 		if err != nil {
-			log.Println(err)
+			logger.Error(err)
 			http.Error(w, "Internal Server Error", 500)
 			return
 		}
 
 		err = ts.Execute(w, nil)
 		if err != nil {
-			log.Println(err)
+			logger.Error(err)
 			http.Error(w, "Internal Server Error", 500)
 		}
 	}
@@ -99,15 +99,17 @@ func getBlogTitle(user *db.User) string {
 func blogHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
 	user, err := dbpool.UserForName(username)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 	posts, err := dbpool.PostsForUser(user.ID)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -117,7 +119,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -143,7 +145,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = ts.Execute(w, data)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
@@ -156,15 +158,17 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	filename := routeHelper.GetField(r, 1)
 	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
 	user, err := dbpool.UserForName(username)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 	post, err := dbpool.FindPostWithFilename(filename, user.ID)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -194,16 +198,18 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = ts.Execute(w, data)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
 
 func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
 	analytics, err := dbpool.SiteAnalytics()
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -221,17 +227,19 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = ts.Execute(w, analytics)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
 
 func readHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pager, err := dbpool.FindAllPosts(page)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -272,7 +280,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = ts.Execute(w, data)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
@@ -280,22 +288,24 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
 	user, err := dbpool.UserForName(username)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 	posts, err := dbpool.PostsForUser(user.ID)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 
 	ts, err := template.ParseFiles("./html/rss.page.tmpl", "./html/list.partial.tmpl")
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -332,7 +342,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	rss, err := feed.ToAtom()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 		http.Error(w, "Could not generate atom rss feed", 500)
 	}
 
@@ -342,9 +352,11 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 func serveFile(file string, contentType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+	    logger := routeHelper.GetLogger(r)
+
 		contents, err := ioutil.ReadFile(fmt.Sprintf("./public/%s", file))
 		if err != nil {
-			log.Println(err)
+			logger.Error(err)
 			http.Error(w, "File not found", 404)
 		}
 		w.Header().Add("Content-Type", contentType)
@@ -373,12 +385,13 @@ var routes = []routeHelper.Route{
 func StartServer() {
 	db := postgres.NewDB()
 	defer db.Close()
+	logger := internal.CreateLogger()
 
-	handler := routeHelper.CreateServe(routes, db)
+	handler := routeHelper.CreateServe(routes, db, logger)
 	router := http.HandlerFunc(handler)
 
 	port := internal.GetEnv("LISTS_WEB_PORT", "3000")
 	portStr := fmt.Sprintf(":%s", port)
-	log.Printf("Starting server on port %s", port)
-	log.Fatal(http.ListenAndServe(portStr, router))
+	logger.Infof("Starting server on port %s", port)
+	logger.Fatal(http.ListenAndServe(portStr, router))
 }

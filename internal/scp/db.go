@@ -3,7 +3,6 @@ package scp
 import (
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/gliderlabs/ssh"
@@ -23,6 +22,7 @@ func (o *Opener) Open(name string) (io.Reader, error) {
 type DbHandler struct{}
 
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool db.DB) error {
+    logger := internal.CreateLogger()
 	userID := user.ID
 	filename := internal.SanitizeFileExt(entry.Name)
 	title := filename
@@ -48,7 +48,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
-		log.Printf("%s not found, adding record", title)
+		logger.Infof("%s not found, adding record", title)
 		post, err = dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", title, err)
@@ -58,7 +58,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = parsedText.MetaData.PublishAt
 		}
-		log.Printf("%s found, updating record", title)
+		logger.Infof("%s found, updating record", title)
 		post, err = dbpool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", title, err)

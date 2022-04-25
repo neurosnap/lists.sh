@@ -3,14 +3,15 @@ package posts
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	pager "github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/indent"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
+	"go.uber.org/zap"
 )
 
 const keysPerPage = 4
@@ -68,6 +69,7 @@ type Model struct {
 	Exit       bool
 	Quit       bool
 	spinner    spinner.Model
+	logger     *zap.SugaredLogger
 }
 
 // getSelectedIndex returns the index of the cursor in relation to the total
@@ -90,6 +92,7 @@ func (m *Model) UpdatePaging(msg tea.Msg) {
 
 // NewModel creates a new model with defaults.
 func NewModel(dbpool db.DB, user *db.User) Model {
+	logger := internal.CreateLogger()
 	st := common.DefaultStyles()
 
 	p := pager.NewModel()
@@ -109,6 +112,7 @@ func NewModel(dbpool db.DB, user *db.User) Model {
 		spinner: common.NewSpinner(),
 		Exit:    false,
 		Quit:    false,
+		logger:  logger,
 	}
 }
 
@@ -313,7 +317,7 @@ func (m Model) promptView(prompt string) string {
 
 func LoadPosts(m Model) tea.Cmd {
 	if m.user == nil {
-		log.Println("User not found!")
+		m.logger.Info("user not found!")
 		err := errors.New("user not found")
 		return func() tea.Msg {
 			return errMsg{err}
