@@ -52,6 +52,7 @@ func proxyMiddleware() wish.Middleware {
 			if cmd[0] == "scp" {
 				handler := &scp.DbHandler{}
 				dbh := postgres.NewDB()
+				defer dbh.Close()
 				fn := withMiddleware(scp.Middleware(handler, dbh))
 				fn(s)
 				return

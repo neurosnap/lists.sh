@@ -154,6 +154,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
+			m.dbpool.Close()
 			return m, tea.Quit
 		}
 
@@ -162,6 +163,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Quit
 			case "q", "esc":
 				m.status = statusQuitting
+				m.dbpool.Close()
 				return m, tea.Quit
 
 			// Prev menu item
@@ -270,6 +272,7 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 		cmd = posts.LoadPosts(m.posts)
 	case exitChoice:
 		m.status = statusQuitting
+		m.dbpool.Close()
 		cmd = tea.Quit
 	}
 
