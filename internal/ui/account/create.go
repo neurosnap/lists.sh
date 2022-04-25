@@ -235,7 +235,7 @@ func Update(msg tea.Msg, m CreateModel) (CreateModel, tea.Cmd) {
 // View renders current view from the model.
 func View(m CreateModel) string {
 	s := "lists.sh\n"
-	s += "A microblog for your lists\n\n"
+	s += "A microblog for lists\n\n"
 	s += "To get started, enter a username.\n"
 	s += "Then create a folder locally (e.g. ~/blog).\n"
 	s += "Then write your lists in plain text files (e.g. hello-world.txt).\n"

@@ -1,6 +1,6 @@
 # lists.sh
 
-A microblog for your lists.
+A microblog for lists.
 
 ## Setup
 

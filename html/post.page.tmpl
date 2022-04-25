@@ -4,6 +4,17 @@
 
 {{define "meta"}}
 <meta name="description" content="{{.Description}}" />
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="lists.sh">
+<meta property="og:url" content="{{.URL}}">
+<meta property="og:title" content="{{.Title}}">
+{{if .Description}}<meta property="og:description" content="{{.Description}}">{{end}}
+
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="{{.URL}}">
+<meta property="twitter:title" content="{{.Title}}">
+{{if .Description}}<meta property="twitter:description" content="{{.Description}}">{{end}}
 {{end}}
 
 {{define "body"}}

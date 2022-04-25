@@ -3,7 +3,18 @@
 {{define "title"}}{{.PageTitle}}{{end}}
 
 {{define "meta"}}
-<meta name="description" content="{{.Bio}}" />
+<meta name="description" content="{{.Username}}'s blog{{if .Bio}}: {{.Bio}}{{end}}" />
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="lists.sh">
+<meta property="og:url" content="{{.URL}}">
+<meta property="og:title" content="{{.Username}}'s blog">
+{{if .Bio}}<meta property="og:description" content="{{.Bio}}">{{end}}
+
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="{{.URL}}">
+<meta property="twitter:title" content="{{.Username}}'s blog">
+{{if .Bio}}<meta property="twitter:description" content="{{.Bio}}">{{end}}
 {{end}}
 
 {{define "body"}}

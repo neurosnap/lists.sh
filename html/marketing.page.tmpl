@@ -1,26 +1,26 @@
 {{template "base" .}}
 
-{{define "title"}}lists.sh -- a microblog for your lists{{end}}
+{{define "title"}}lists.sh -- a microblog for lists{{end}}
 
 {{define "meta"}}
-<meta name="description" content="a microblog for your lists" />
+<meta name="description" content="a microblog for lists" />
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="lists.sh">
 <meta property="og:url" content="https://lists.sh">
 <meta property="og:title" content="lists.sh">
-<meta property="og:description" content="a microblog for your lists">
+<meta property="og:description" content="a microblog for lists">
 
 <meta property="twitter:card" content="summary">
 <meta property="twitter:url" content="https://lists.sh">
 <meta property="twitter:title" content="lists.sh">
-<meta property="twitter:description" content="a microblog for your lists">
+<meta property="twitter:description" content="a microblog for lists">
 {{end}}
 
 {{define "body"}}
 <header class="text-center">
     <h1 class="text-2xl font-bold">lists.sh</h1>
-    <p class="text-lg">A microblog for your lists</p>
+    <p class="text-lg">A microblog for lists</p>
     <p class="text-lg"><a href="/read">discover</a> some interesting lists</p>
     <hr />
 </header>
@@ -36,20 +36,47 @@
     </section>
 
     <section>
-        <h2 class="text-lg font-bold">Create an account with Public-Key Cryptography</h2>
-        <p>No email address required.</p>
+        <h2 class="text-lg font-bold">Create your account with Public-Key Cryptography</h2>
+        <p>We don't want your email address.</p>
         <p>To get started, simply ssh into our content management system:</p>
         <pre>ssh lists.sh</pre>
         <div class="text-sm font-italic note">note: currently only Ed25519 signing algorithm is supported.</div>
-        <p>After that, just set a username. It's as simple as that!</p>
+        <p>After that, just set a username and you're ready to start writing!</p>
     </section>
 
     <section>
         <h2 class="text-lg font-bold">You control the source content</h2>
-        <p>Create lists using your favorite editor and then send them to our server:</p>
-        <pre>scp ~/blog/*.txt lists.sh:</pre>
+        <p>Create lists using your favorite editor in plan text files.</p>
+        <code>~/blog/days-in-week.txt</code>
+        <pre>Sunday
+Monday
+Tuesday
+Wednesday
+Thursday
+Friday
+Saturday</pre>
+    </section>
+
+    <section>
+        <h2 class="text-lg font-bold">Publish your posts with one command</h2>
+        <p>
+            When your post is ready to be published, copy the file to our server with a familiar
+            command:
+        </p>
+        <pre>scp ~/blog/*.txt lists.sh:/</pre>
         <div class="text-sm font-italic note">note: if using openssh v9+, also supply the `-O` flag.</div>
         <p>We'll either create or update the lists for you.</p>
+    </section>
+
+    <section>
+        <h2 class="text-lg font-bold">Terminal workflow without installation</h2>
+        <p>
+            Since we are leveraging tools you already have on your computer
+            (<code>ssh</code> and <code>scp</code>), there is nothing to install.
+        </p>
+        <p>
+            This provides the convenience of a web app, but from inside your terminal!
+        </p>
     </section>
 
     <section>
@@ -64,6 +91,7 @@
             <li>Just lists</li>
             <li>Bring your own editor</li>
             <li>You control the source content</li>
+            <li>Terminal workflow with no installation</li>
             <li>Public-key based authentication</li>
             <li>No ads, zero tracking</li>
             <li>No platform lock-in</li>
@@ -78,39 +106,40 @@
     <section>
         <h2 class="text-lg font-bold">Philosophy</h2>
         <p>
-            I love writing lists.  I think restricting thought to a set of lists can really
-            help improve clarity in prose.  The goal of this blog is to make it dead simple
-            to use the tools you love to write and publish lists.  There is no installation,
+            I love writing lists.  I think restricting writing to a set of lists can really
+            help improve clarity in thought.  The goal of this blogging platform is to make it
+            simple to use the tools you love to write and publish lists.  There is no installation,
             signup is as easy as SSH'ing into our CMS, and publishing content is as easy as
             copying files to our server.
         </p>
         <p>
             Another goal of this microblog platform is to satisfy my own needs.  I like to
-            write and share lists with people because it's fun to categorize items into lists.
+            write and share lists with people because I find it's one of the best way to deciminate
+            knowledge.  Whether it's a list of links or a list of paragraphs, writing in lists is
+            very satisfying and I welcome you to explore it on this site!
         </p>
         <p>
             Other blogging platforms support writing lists, but they don't
             <span class="font-bold">emphasize</span> them.  Writing lists is pretty popular
-            on Twitter, but discoverability is terrible.  If I want to reference a list that
-            I wrote a few years ago, finding it is a pain.  It also clutters the readability
-            with its design and emphasis on engagement.  Other regular blogging platforms
-            focus on prose.
+            on Twitter, but discoverability is terrible.  Other blogging platforms focus on prose,
+            but there really is nothing out there catered specifically for lists ... until now.
         </p>
     </section>
 
     <section>
         <h2 class="text-lg font-bold">Roadmap</h2>
-        <ul>
+        <ol>
             <li>Ability to delete account</li>
             <li>Subscribe to a blog via email</li>
             <li>Support <code>gemini</code> protocol for viewing blogs</li>
             <li>Support <code>text/plain</code> as a content-type for web server</li>
             <li>Ability to add links to nav</li>
             <li>Ability to pin posts</li>
-            <li>Ability to set a bio description for a user</li>
+            <li>Ability to set a bio description for a blog</li>
             <li>Ability to upload images</li>
             <li>Ability to have custom domains</li>
-        </ul>
+            <li>Ability to nest lists (not sure about this)</li>
+        </ol>
     </section>
 </main>
 

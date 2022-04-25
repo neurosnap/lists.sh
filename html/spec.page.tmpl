@@ -3,7 +3,7 @@
 {{define "title"}}specification -- lists.sh{{end}}
 
 {{define "meta"}}
-<meta name="description" content="a specification for your lists" />
+<meta name="description" content="a specification for lists" />
 {{end}}
 
 {{define "body"}}
@@ -58,7 +58,7 @@
         </p>
         <pre>=> https://lists.sh</pre>
         <p>Optionally you can supply the hyperlink text immediately following the link.</p>
-        <pre>=> https://lists.sh microblog for your lists</pre>
+        <pre>=> https://lists.sh microblog for lists</pre>
     </section>
 
     <section>
@@ -68,7 +68,7 @@
         </p>
         <pre>=< https://i.imgur.com/iXMNUN5.jpg</pre>
         <p>Optionally you can supply the image alt text imediately following the link.</p>
-        <pre>=< https://i.imgur.com/iXMNUN5.jpg This is the alt text</pre>
+        <pre>=< https://i.imgur.com/iXMNUN5.jpg I use arch, btw</pre>
     </section>
 
     <section>
@@ -92,18 +92,18 @@
         <h2 class="text-xl">Variables</h2>
         <p>
             Variables allow us to store metadata within our system.  Variables are list items with
-            key value pairs denoted by <code>=:</code> followed by the key and then a whitespace character
+            key value pairs denoted by <code>=:</code> followed by the key, a whitespace character,
             and then the value.
         </p>
         <pre>=: publish_at 2022-04-20</pre>
-        <p>These variables will not be rendered to the user.</p>
+        <p>These variables will not be rendered to the user inside the list.</p>
         <h3 class="text-lg">List of available variables:</h3>
         <ul>
-            <li>title (custom title not dependent on filename)</li>
-            <li>description (what is the purpose of this list?)</li>
-            <li>publish_at (format must be <code>YYYY-MM-DD</code>)</li>
+            <li><code>title</code> (custom title not dependent on filename)</li>
+            <li><code>description</code> (what is the purpose of this list?)</li>
+            <li><code>publish_at</code> (format must be <code>YYYY-MM-DD</code>)</li>
             <li>
-                list_type (customize bullets; value gets sent directly to css property
+                <code>list_type</code> (customize bullets; value gets sent directly to css property
                 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type">list-style-type</a>)
             </li>
         </ul>

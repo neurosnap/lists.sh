@@ -29,6 +29,7 @@ type PostItemData struct {
 
 type BlogPageData struct {
 	PageTitle string
+	URL       string
 	Username  string
 	Bio       string
 	Posts     []PostItemData
@@ -42,6 +43,7 @@ type ReadPageData struct {
 
 type PostPageData struct {
 	PageTitle    string
+	URL          string
 	Title        string
 	Description  string
 	Username     string
@@ -133,6 +135,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := BlogPageData{
 		PageTitle: getBlogTitle(user),
+		URL:       fmt.Sprintf("https://lists.sh/%s", username),
 		Bio:       user.Bio,
 		Username:  username,
 		Posts:     postCollection,
@@ -170,6 +173,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PostPageData{
 		PageTitle:    getPostTitle(post),
+		URL:          fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Filename),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),

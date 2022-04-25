@@ -68,6 +68,7 @@ code, kbd, samp, pre {
 
 code {
   padding: 0.1rem 0.4rem;
+  border-radius: 5px;
 }
 
 pre {
