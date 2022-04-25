@@ -359,6 +359,7 @@ var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
 	routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
 	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
+	routeHelper.NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
