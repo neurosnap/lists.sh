@@ -22,7 +22,7 @@ func (o *Opener) Open(name string) (io.Reader, error) {
 type DbHandler struct{}
 
 func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool db.DB) error {
-    logger := internal.CreateLogger()
+	logger := internal.CreateLogger()
 	userID := user.ID
 	filename := internal.SanitizeFileExt(entry.Name)
 	title := filename

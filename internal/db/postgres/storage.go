@@ -328,7 +328,7 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 }
 
 func (me *PsqlDB) Close() error {
-    logger := internal.CreateLogger()
+	logger := internal.CreateLogger()
 	logger.Info("Closing db")
 	return me.db.Close()
 }
