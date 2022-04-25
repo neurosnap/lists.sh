@@ -8,10 +8,42 @@
 
 {{define "body"}}
 <header>
-    <h1 class="text-2xl">Privacy (WIP)</h1>
+    <h1 class="text-2xl">Privacy</h1>
+    <p>Details on our privacy and security approach.</p>
 </header>
 <main>
-    <p>This is the privacy page.</p>
+    <section>
+        <h2 class="text-xl">Account Data</h2>
+        <p>
+            In order to have a functional account at lists.sh, we need to store
+            your public key.  That is the only piece of information we record for a user.
+        </p>
+        <p>
+            Because we use public-key cryptography, our security posture is a battle-tested
+            and proven technique for authentication.
+        </p>
+    </section>
+
+    <section>
+        <h2 class="text-xl">Third parties</h2>
+        <p>
+            We have a strong commitment to never share any user data with any third-parties.
+        </p>
+    </section>
+
+    <section>
+        <h2 class="text-xl">Service Providers</h2>
+        <ul>
+            <li>We host our server on <a href="https://digitalocean.con">digital ocean</a></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 class="text-xl">Cookies</h2>
+        <p>
+            We do not use any cookies, not even account authentication.
+        </p>
+    </section>
 </main>
 {{template "marketing-footer" .}}
 {{end}}

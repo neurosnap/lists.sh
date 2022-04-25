@@ -8,31 +8,39 @@
 
 {{define "body"}}
 <header>
-    <h1 class="text-2xl font-bold">Transparency</h1>
+    <h1 class="text-2xl">Transparency</h1>
     <hr />
 </header>
 <main>
     <section>
+        <h2 class="text-xl">Analytics</h2>
+        <p>
+            Here are some interesting stats on usage.
+        </p>
+
         <article>
-            <h2 class="text-lg font-bold">Total users</h2>
+            <h2 class="text-lg">Total users</h2>
             <div>{{.TotalUsers}}</div>
         </article>
+
         <article>
-            <h2 class="text-lg font-bold">Total posts</h2>
-            <div>{{.TotalPosts}}</div>
-        </article>
-        <article>
-            <h2 class="text-lg font-bold">New users in the last month</h2>
+            <h2 class="text-lg">New users in the last month</h2>
             <div>{{.UsersLastMonth}}</div>
         </article>
+
         <article>
-            <h2 class="text-lg font-bold">New posts in the last month</h2>
+            <h2 class="text-lg">Total posts</h2>
+            <div>{{.TotalPosts}}</div>
+        </article>
+
+        <article>
+            <h2 class="text-lg">New posts in the last month</h2>
             <div>{{.PostsLastMonth}}</div>
         </article>
     </section>
 
     <section>
-        <h2 class="text-lg font-bold">Service maintenance costs</h2>
+        <h2 class="text-xl">Service maintenance costs</h2>
         <ul>
             <li>Server $5.00/mo</li>
             <li>Domain name $3.25/mo</li>
