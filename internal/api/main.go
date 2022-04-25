@@ -169,8 +169,8 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	post, err := dbpool.FindPostWithFilename(filename, user.ID)
 	if err != nil {
-		logger.Infof("could not find post %s/%s", username, filename)
-		http.Error(w, "could not find post", http.StatusNotFound)
+		logger.Infof("post not found %s/%s", username, filename)
+		http.Error(w, "post not found", http.StatusNotFound)
 		return
 	}
 
