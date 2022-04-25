@@ -39,10 +39,10 @@ type Paginate[T any] struct {
 }
 
 type Analytics struct {
-	TotalUsers int
-    UsersLastMonth int
-	TotalPosts int
-    PostsLastMonth int
+	TotalUsers     int
+	UsersLastMonth int
+	TotalPosts     int
+	PostsLastMonth int
 }
 
 type DB interface {
