@@ -1,7 +1,9 @@
 package posts
 
 import (
+	"errors"
 	"fmt"
+	"log"
 
 	pager "github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -310,11 +312,15 @@ func (m Model) promptView(prompt string) string {
 }
 
 func LoadPosts(m Model) tea.Cmd {
+	if m.user == nil {
+		log.Println("User not found!")
+		err := errors.New("user not found")
+		return func() tea.Msg {
+			return errMsg{err}
+		}
+	}
 	if m.standalone {
 		return fetchPosts(m.dbpool, m.user.ID)
-	}
-	if m.user == nil {
-		fmt.Println("User not found!")
 	}
 	return tea.Batch(
 		fetchPosts(m.dbpool, m.user.ID),
