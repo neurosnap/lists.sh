@@ -16,8 +16,6 @@ services:
   db:
     image: postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     env_file:
       - .env.prod
     volumes:
@@ -25,8 +23,6 @@ services:
   web:
     image: neurosnap/lists-web
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     env_file:
       - .env.prod
     links:
