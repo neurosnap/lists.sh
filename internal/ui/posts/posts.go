@@ -151,8 +151,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Delete
 		case "x":
-			m.state = stateDeletingPost
-			m.UpdatePaging(msg)
+			if len(m.posts) > 0 {
+				m.state = stateDeletingPost
+				m.UpdatePaging(msg)
+			}
+
 			return m, nil
 
 		// Confirm Delete
@@ -257,6 +260,11 @@ func postsView(m Model) string {
 
 	destructiveState := m.state == stateDeletingPost
 
+	if len(m.posts) == 0 {
+		s += "You don't have any posts yet."
+		return s
+	}
+
 	// Render key info
 	for i, post := range slice {
 		if destructiveState && m.index == i {
@@ -288,7 +296,10 @@ func helpView(m Model) string {
 	if m.pager.TotalPages > 1 {
 		items = append(items, "h/l, ←/→: page")
 	}
-	items = append(items, []string{"x: delete", "esc: exit"}...)
+	if len(m.posts) > 0 {
+		items = append(items, "x: delete")
+	}
+	items = append(items, "esc: exit")
 	return common.HelpView(items...)
 }
 
@@ -313,11 +324,7 @@ func LoadPosts(m Model) tea.Cmd {
 
 func fetchPosts(dbpool db.DB, userID string) tea.Cmd {
 	return func() tea.Msg {
-		posts, err := dbpool.PostsForUser(userID)
-		fmt.Println(posts)
-		if err != nil {
-			return errMsg{err}
-		}
+		posts, _ := dbpool.PostsForUser(userID)
 		loader := PostLoader{
 			Posts: posts,
 		}

@@ -17,6 +17,7 @@ import (
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/db/postgres"
+	"github.com/neurosnap/lists.sh/internal/ui/account"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 	"github.com/neurosnap/lists.sh/internal/ui/info"
 	"github.com/neurosnap/lists.sh/internal/ui/posts"
@@ -29,6 +30,7 @@ type status int
 const (
 	statusInit status = iota
 	statusReady
+	statusNoAccount
 	statusLinking
 	statusBrowsingPosts
 	statusSettingUsername
@@ -96,10 +98,7 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	}
 
 	dbpool := postgres.NewDB()
-	user, err := FindOrRegisterUser(dbpool, key)
-	if err != nil {
-		log.Println(err)
-	}
+	user := FindUser(dbpool, key)
 
 	m := model{
 		publicKey:  key,
@@ -128,6 +127,7 @@ type model struct {
 	spinner       spinner.Model
 	username      username.Model
 	posts         posts.Model
+	createAccount account.CreateModel
 }
 
 func (m model) Init() tea.Cmd {
@@ -136,28 +136,9 @@ func (m model) Init() tea.Cmd {
 	)
 }
 
-func FindOrRegisterUser(dbpool db.DB, publicKey string) (*db.User, error) {
-	user, err := dbpool.UserForKey(publicKey)
-	if user != nil {
-		return user, nil
-	}
-
-	userID, err := dbpool.AddUser()
-	if err != nil {
-		return nil, err
-	}
-
-	err = dbpool.LinkUserKey(userID, publicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	user, err = dbpool.UserForKey(publicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+func FindUser(dbpool db.DB, publicKey string) *db.User {
+	user, _ := dbpool.UserForKey(publicKey)
+	return user
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -206,6 +187,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.info.User.Name = string(msg)
 		m.user = m.info.User
 		m.username = username.NewModel(m.dbpool, m.user) // reset the state
+	case account.CreateAccountMsg:
+		m.status = statusReady
+		m.info.User = msg
+		m.user = msg
+		m.createAccount = account.NewCreateModel(m.dbpool, m.publicKey)
 	}
 
 	switch m.status {
@@ -213,7 +199,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.username = username.NewModel(m.dbpool, m.user)
 		m.info = info.NewModel(m.user)
 		m.posts = posts.NewModel(m.dbpool, m.user)
-		m.status = statusReady
+		m.createAccount = account.NewCreateModel(m.dbpool, m.publicKey)
+		if m.user == nil {
+			m.status = statusNoAccount
+		} else {
+			m.status = statusReady
+		}
 	}
 
 	m, cmd = updateChilden(msg, m)
@@ -252,6 +243,15 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 			m.username = username.NewModel(m.dbpool, m.user) // reset the state
 			m.status = statusReady
 		} else if m.username.Quit {
+			m.status = statusQuitting
+			return m, tea.Quit
+		}
+	case statusNoAccount:
+		m.createAccount, cmd = account.Update(msg, m.createAccount)
+		if m.createAccount.Done {
+			m.createAccount = account.NewCreateModel(m.dbpool, m.publicKey) // reset the state
+			m.status = statusReady
+		} else if m.createAccount.Quit {
 			m.status = statusQuitting
 			return m, tea.Quit
 		}
@@ -320,6 +320,8 @@ func (m model) View() string {
 	w := m.terminalWidth - m.styles.App.GetHorizontalFrameSize()
 	s := m.styles.Logo.String() + "\n\n"
 	switch m.status {
+	case statusNoAccount:
+		s += account.View(m.createAccount)
 	case statusReady:
 		s += m.info.View()
 		s += "\n\n" + m.menuView()
