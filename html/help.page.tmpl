@@ -12,7 +12,7 @@
     <p>Here are some common questions on using this platform that we would like to answer.</p>
 </header>
 <main>
-    <section>
+    <section id="blog-ssh-key">
         <h2 class="text-xl">Generating a new SSH key</h2>
         <p>
             <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">Github reference</a>
@@ -24,7 +24,7 @@
         </ol>
     </section>
 
-    <section>
+    <section id="blog-structure">
         <h2 class="text-xl">What should my blog folder look like?</h2>
         <p>
             Currently <a href="/">lists.sh</a> only supports a flat folder structure.  Therefore,
@@ -47,7 +47,7 @@ third-post.txt</pre>
         </p>
     </section>
 
-    <section>
+    <section id="blog-update">
         <h2 class="text-xl">How do I update a list?</h2>
         <p>
             Updating a list requires that you update the source document and then run the <code>scp</code>
@@ -55,7 +55,7 @@ third-post.txt</pre>
         </p>
     </section>
 
-    <section>
+    <section id="blog-delete">
         <h2 class="text-xl">How do I delete a list?</h2>
         <p>
             Because <code>scp</code> does not natively support deleting files, I didn't want to bake
@@ -66,7 +66,7 @@ third-post.txt</pre>
         </p>
     </section>
 
-    <section>
+    <section id="blog-upload-single-file">
         <h2 class="text-xl">When I want to publish a new post, do I have to upload all posts everytime?</h2>
         <p>
             Nope!  Just <code>scp</code> the file you want to publish.  For example, if you created
@@ -75,7 +75,7 @@ third-post.txt</pre>
         <pre>scp ./taco-tuesday.txt lists.sh:</pre>
     </section>
 
-    <section>
+    <section id="blog-header">
         <h2 class="text-xl">How do I change my blog's name?</h2>
         <p>
             All you have to do is create a post titled <code>_header.txt</code> and add some
@@ -92,7 +92,7 @@ third-post.txt</pre>
         </ul>
     </section>
 
-    <section>
+    <section id="blog-readme">
         <h2 class="text-xl">How do I add an introduction to my blog?</h2>
         <p>
             All you have to do is create a post titled <code>_readme.txt</code> and add some
@@ -107,7 +107,7 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
         </p>
     </section>
 
-    <section>
+    <section id="blog-url">
         <h2 class="text-xl">What is my blog URL?</h2>
         <pre>https://lists.sh/{username}</pre>
     </section>
