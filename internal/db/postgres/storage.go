@@ -18,8 +18,8 @@ var PAGER_SIZE = 15
 const (
 	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
 	sqlSelectPublicKeys  = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
-	sqlSelectUser        = `SELECT id, name, bio, created_at FROM app_users WHERE id = $1`
-	sqlSelectUserForName = `SELECT id, name, bio, created_at FROM app_users WHERE name = $1`
+	sqlSelectUser        = `SELECT id, name, created_at FROM app_users WHERE id = $1`
+	sqlSelectUserForName = `SELECT id, name, created_at FROM app_users WHERE name = $1`
 
 	sqlSelectTotalUsers     = `SELECT count(id) FROM app_users`
 	sqlSelectUsersLastMonth = `SELECT count(id) FROM app_users WHERE created_at >= $1`
@@ -29,7 +29,7 @@ const (
 	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
 	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
-	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
+	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
 	sqlSelectPostCount        = `SELECT count(id) FROM posts`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
@@ -158,7 +158,7 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 	user := &db.User{}
 	var un sql.NullString
 	r := me.db.QueryRow(sqlSelectUser, userID)
-	err := r.Scan(&user.ID, &un, &user.Bio, &user.CreatedAt)
+	err := r.Scan(&user.ID, &un, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (me *PsqlDB) ValidateName(name string) bool {
 func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 	user := &db.User{}
 	r := me.db.QueryRow(sqlSelectUserForName, name)
-	err := r.Scan(&user.ID, &user.Name, &user.Bio, &user.CreatedAt)
+	err := r.Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

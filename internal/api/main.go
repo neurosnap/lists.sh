@@ -348,10 +348,29 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	headerTxt := &HeaderTxt{
+		Title: fmt.Sprintf("%s's blog", username),
+	}
+
+	for _, post := range posts {
+		if post.Filename == "_header" {
+			parsedText := pkg.ParseText(post.Text)
+			if parsedText.MetaData.Title != "" {
+				headerTxt.Title = parsedText.MetaData.Title
+			}
+
+			if parsedText.MetaData.Description != "" {
+				headerTxt.Bio = parsedText.MetaData.Description
+			}
+
+            break
+		}
+	}
+
 	feed := &feeds.Feed{
-		Title:       fmt.Sprintf("%s's blog", username),
+		Title:       headerTxt.Title,
 		Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/rss", username)},
-		Description: user.Bio,
+		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
 	}

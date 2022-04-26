@@ -17,7 +17,6 @@ type PublicKey struct {
 type User struct {
 	ID        string     `json:"id"`
 	Name      string     `json:"name"`
-	Bio       string     `json:"bio"`
 	PublicKey *PublicKey `json:"public_key,omitempty"`
 	CreatedAt *time.Time `json:"created_at"`
 }
