@@ -433,6 +433,7 @@ var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
+	routeHelper.NewRoute("GET", "/apple-touch-icon.png", serveFile("apple-touch-icon.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
 	routeHelper.NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
 	routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
