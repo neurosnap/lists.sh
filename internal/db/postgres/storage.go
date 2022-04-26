@@ -13,7 +13,7 @@ import (
 	"github.com/neurosnap/lists.sh/internal/db"
 )
 
-var PAGER_SIZE = 10
+var PAGER_SIZE = 15
 
 const (
 	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
@@ -29,7 +29,7 @@ const (
 	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
 	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
-	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT 10 OFFSET $1`
+	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
 	sqlSelectPostCount        = `SELECT count(id) FROM posts`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
@@ -232,9 +232,9 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	return post, nil
 }
 
-func (me *PsqlDB) FindAllPosts(offset int) (*db.Paginate[*db.Post], error) {
+func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
-	rs, err := me.db.Query(sqlSelectAllPosts, offset*PAGER_SIZE)
+	rs, err := me.db.Query(sqlSelectAllPosts, page.Limit, page.Limit*page.Offset)
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(

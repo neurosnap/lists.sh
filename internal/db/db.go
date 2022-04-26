@@ -45,6 +45,11 @@ type Analytics struct {
 	PostsLastMonth int
 }
 
+type Pager struct {
+    Limit int
+    Offset int
+}
+
 type DB interface {
 	AddUser() (string, error)
 	LinkUserKey(userID string, key string) error
@@ -62,7 +67,7 @@ type DB interface {
 	FindPost(postID string) (*Post, error)
 	PostsForUser(userID string) ([]*Post, error)
 	FindPostWithFilename(filename string, userID string) (*Post, error)
-	FindAllPosts(page int) (*Paginate[*Post], error)
+	FindAllPosts(pager *Pager) (*Paginate[*Post], error)
 	InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*Post, error)
 	UpdatePost(postID string, title string, text string, description string, publishAt *time.Time) (*Post, error)
 	RemovePosts(postIDs []string) error

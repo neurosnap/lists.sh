@@ -238,7 +238,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	logger := routeHelper.GetLogger(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllPosts(page)
+	pager, err := dbpool.FindAllPosts(&db.Pager{Limit: 20, Offset: page})
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -286,7 +286,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func rssHandler(w http.ResponseWriter, r *http.Request) {
+func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	username := routeHelper.GetField(r, 0)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
@@ -351,6 +351,64 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, rss)
 }
 
+func rssHandler(w http.ResponseWriter, r *http.Request) {
+	dbpool := routeHelper.GetDB(r)
+	logger := routeHelper.GetLogger(r)
+
+	pager, err := dbpool.FindAllPosts(&db.Pager{Limit: 50, Offset: 0})
+	if err != nil {
+		logger.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	ts, err := template.ParseFiles("./html/rss.page.tmpl", "./html/list.partial.tmpl")
+	if err != nil {
+		logger.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	feed := &feeds.Feed{
+		Title:       "lists.sh discovery feed",
+		Link:        &feeds.Link{Href: "https://lists.sh/rss"},
+		Description: "lists.sh latest posts",
+		Author:      &feeds.Author{Name: "lists.sh"},
+		Created:     time.Now(),
+	}
+
+	var feedItems []*feeds.Item
+	for _, post := range pager.Data {
+		parsed := pkg.ParseText(post.Text)
+		var tpl bytes.Buffer
+		data := &PostPageData{
+			ListType: parsed.MetaData.ListType,
+			Items:    parsed.Items,
+		}
+		if err := ts.Execute(&tpl, data); err != nil {
+			continue
+		}
+		feedItems = append(feedItems, &feeds.Item{
+			Id:          post.ID,
+			Title:       post.Title,
+			Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Title)},
+			Description: post.Description,
+			Content:     tpl.String(),
+			Created:     *post.PublishAt,
+		})
+	}
+	feed.Items = feedItems
+
+	rss, err := feed.ToAtom()
+	if err != nil {
+		logger.Fatal(err)
+		http.Error(w, "Could not generate atom rss feed", http.StatusInternalServerError)
+	}
+
+	w.Header().Add("Content-Type", "application/atom+xml")
+	fmt.Fprintf(w, rss)
+}
+
 func serveFile(file string, contentType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := routeHelper.GetLogger(r)
@@ -376,10 +434,15 @@ var routes = []routeHelper.Route{
 	routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
 	routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
+	routeHelper.NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
 	routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
 	routeHelper.NewRoute("GET", "/read", readHandler),
+	routeHelper.NewRoute("GET", "/rss", rssHandler),
+	routeHelper.NewRoute("GET", "/rss.xml", rssHandler),
+	routeHelper.NewRoute("GET", "/atom.xml", rssHandler),
+	routeHelper.NewRoute("GET", "/feed.xml", rssHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
-	routeHelper.NewRoute("GET", "/([^/]+)/rss", rssHandler),
+	routeHelper.NewRoute("GET", "/([^/]+)/rss", rssBlogHandler),
 	routeHelper.NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
 }
 
