@@ -30,7 +30,8 @@ type BlogPageData struct {
 	PageTitle string
 	URL       string
 	Username  string
-	Bio       string
+	Readme    *ReadmeTxt
+	Header    *HeaderTxt
 	Posts     []PostItemData
 }
 
@@ -88,12 +89,17 @@ func createPageHandler(fname string) http.HandlerFunc {
 	}
 }
 
-func getBlogTitle(user *db.User) string {
-	if user.Bio == "" {
-		return user.Name
-	}
+type HeaderTxt struct {
+	Title    string
+	Bio      string
+	Nav      []*pkg.ListItem
+	HasItems bool
+}
 
-	return fmt.Sprintf("%s: %s", user.Name, user.Bio)
+type ReadmeTxt struct {
+	HasItems bool
+	ListType string
+	Items    []*pkg.ListItem
 }
 
 func blogHandler(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +122,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := renderTemplate([]string{
 		"./html/blog.page.tmpl",
+		"./html/list.partial.tmpl",
 	})
 
 	if err != nil {
@@ -124,21 +131,51 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	headerTxt := &HeaderTxt{
+		Title: fmt.Sprintf("%s's blog", username),
+		Bio:   "",
+	}
+	readmeTxt := &ReadmeTxt{}
+
 	postCollection := make([]PostItemData, 0, len(posts))
 	for _, post := range posts {
-		p := PostItemData{
-			URL:          fmt.Sprintf("/%s/%s", post.Username, post.Filename),
-			Title:        internal.FilenameToTitle(post.Filename, post.Title),
-			PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-			PublishAtISO: post.PublishAt.Format(time.RFC3339),
+		if post.Filename == "_header" {
+			parsedText := pkg.ParseText(post.Text)
+			if parsedText.MetaData.Title != "" {
+				headerTxt.Title = parsedText.MetaData.Title
+			}
+
+			if parsedText.MetaData.Description != "" {
+				headerTxt.Bio = parsedText.MetaData.Description
+			}
+
+			headerTxt.Nav = parsedText.Items
+			if len(headerTxt.Nav) > 0 {
+				headerTxt.HasItems = true
+			}
+		} else if post.Filename == "_readme" {
+			parsedText := pkg.ParseText(post.Text)
+			readmeTxt.Items = parsedText.Items
+			readmeTxt.ListType = parsedText.MetaData.ListType
+			if len(readmeTxt.Items) > 0 {
+				readmeTxt.HasItems = true
+			}
+		} else {
+			p := PostItemData{
+				URL:          fmt.Sprintf("/%s/%s", post.Username, post.Filename),
+				Title:        internal.FilenameToTitle(post.Filename, post.Title),
+				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
+				PublishAtISO: post.PublishAt.Format(time.RFC3339),
+			}
+			postCollection = append(postCollection, p)
 		}
-		postCollection = append(postCollection, p)
 	}
 
 	data := BlogPageData{
-		PageTitle: getBlogTitle(user),
+		PageTitle: headerTxt.Title,
 		URL:       fmt.Sprintf("https://lists.sh/%s", username),
-		Bio:       user.Bio,
+		Readme:    readmeTxt,
+		Header:    headerTxt,
 		Username:  username,
 		Posts:     postCollection,
 	}

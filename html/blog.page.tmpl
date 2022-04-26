@@ -3,36 +3,54 @@
 {{define "title"}}{{.PageTitle}}{{end}}
 
 {{define "meta"}}
-<meta name="description" content="{{.Username}}'s blog{{if .Bio}}: {{.Bio}}{{end}}" />
+<meta name="description" content="{{if .Header.Bio}}{{.Header.Bio}}{{else}}{{.Header.Title}}{{end}}" />
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="lists.sh">
 <meta property="og:url" content="{{.URL}}">
-<meta property="og:title" content="{{.Username}}'s blog">
-{{if .Bio}}<meta property="og:description" content="{{.Bio}}">{{end}}
+<meta property="og:title" content="{{.Header.Title}}">
+{{if .Header.Bio}}<meta property="og:description" content="{{.Header.Bio}}">{{end}}
 
 <meta property="twitter:card" content="summary">
 <meta property="twitter:url" content="{{.URL}}">
-<meta property="twitter:title" content="{{.Username}}'s blog">
-{{if .Bio}}<meta property="twitter:description" content="{{.Bio}}">{{end}}
+<meta property="twitter:title" content="{{.Header.Title}}">
+{{if .Header.Bio}}<meta property="twitter:description" content="{{.Header.Bio}}">{{end}}
 {{end}}
 
 {{define "body"}}
 <header class="text-center">
-    <h1 class="text-2xl font-bold">{{.Username}}'s blog</h1>
-    {{if .Bio}}<p class="text-lg">{{.Bio}}</p>{{end}}
-    <a href="{{.Username}}/rss" class="text-lg">rss</a>
+    <h1 class="text-2xl font-bold">{{.Header.Title}}</h1>
+    {{if .Header.Bio}}<p class="text-lg">{{.Header.Bio}}</p>{{end}}
+    <nav>
+        {{range .Header.Nav}}
+            {{if .IsURL}}
+            <a href="{{.URL}}" class="text-lg">{{.Value}}</a> |
+            {{end}}
+        {{end}}
+        <a href="{{.Username}}/rss" class="text-lg">rss</a>
+    </nav>
     <hr />
 </header>
-<main class="posts">
-    {{range .Posts}}
-    <article>
-        <div class="flex items-center">
-            <time datetime="{{.PublishAtISO}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
-            <h2 class="font-bold flex-1"><a href="{{.URL}}">{{.Title}}</a></h2>
-        </div>
-    </article>
+<main>
+    {{if .Readme.HasItems}}
+    <section>
+        <article>
+            {{template "list" .Readme}}
+        </article>
+        <hr />
+    </section>
     {{end}}
+
+    <section class="posts">
+        {{range .Posts}}
+        <article>
+            <div class="flex items-center">
+                <time datetime="{{.PublishAtISO}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
+                <h2 class="font-bold flex-1"><a href="{{.URL}}">{{.Title}}</a></h2>
+            </div>
+        </article>
+        {{end}}
+    </section>
 </main>
 {{template "footer" .}}
 {{end}}
