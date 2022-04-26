@@ -11,3 +11,4 @@ caddy_data/*
 caddy_config/*
 !caddy_config/.gitkeep
 .env.prod
+*.bak
