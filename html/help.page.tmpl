@@ -76,6 +76,38 @@ third-post.txt</pre>
     </section>
 
     <section>
+        <h2 class="text-xl">How do I change my blog's name?</h2>
+        <p>
+            All you have to do is create a post titled <code>_header.txt</code> and add some
+            information to the list.
+        </p>
+        <pre>=: title My new blog!
+=: description My blog description!
+=> https://xyz.com website
+=> https://twitter.com/xyz twitter</pre>
+        <ul>
+            <li><code>title</code> will change your blog name</li>
+            <li><code>description</code> will add a blurb right under your blog name (and add meta descriptions)</li>
+            <li>The links will show up next to the <code>rss</code> link to your blog
+        </ul>
+    </section>
+
+    <section>
+        <h2 class="text-xl">How do I add an introduction to my blog?</h2>
+        <p>
+            All you have to do is create a post titled <code>_readme.txt</code> and add some
+            information to the list.
+        </p>
+        <pre>=: list_type none
+# Hi my name is Bob!
+I like to sing. Dance. And I like to have fun fun fun!</pre>
+        <p>
+            Whatever is inside the <code>_readme</code> file will get rendered (as a list) right above your
+            blog posts. Neat!
+        </p>
+    </section>
+
+    <section>
         <h2 class="text-xl">What is my blog URL?</h2>
         <pre>https://lists.sh/{username}</pre>
     </section>
