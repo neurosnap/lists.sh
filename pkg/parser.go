@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"html/template"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ type ParsedText struct {
 
 type ListItem struct {
 	Value       string
-	URL         string
+	URL         template.URL
 	Variable    string
 	IsURL       bool
 	IsBlock     bool
@@ -58,8 +59,8 @@ func TextToSplitToken(text string) *SplitToken {
 	}
 
 	if token.Key == "" {
-		token.Key = text
-		token.Value = text
+		token.Key = strings.Trim(text, " ")
+		token.Value = strings.Trim(text, " ")
 	}
 
 	return token
@@ -111,7 +112,7 @@ func ParseText(text string) *ParsedText {
 		if strings.HasPrefix(li.Value, urlToken) {
 			li.IsURL = true
 			split := TextToSplitToken(strings.Replace(li.Value, urlToken, "", 1))
-			li.URL = split.Key
+			li.URL = template.URL(split.Key)
 			if split.Value == "" {
 				li.Value = split.Key
 			} else {
@@ -123,7 +124,7 @@ func ParseText(text string) *ParsedText {
 		} else if strings.HasPrefix(li.Value, imgToken) {
 			li.IsImg = true
 			split := TextToSplitToken(strings.Replace(li.Value, imgToken, "", 1))
-			li.URL = split.Key
+			li.URL = template.URL(split.Key)
 			if split.Value == "" {
 				li.Value = split.Key
 			} else {
