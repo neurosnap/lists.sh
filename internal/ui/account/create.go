@@ -288,9 +288,9 @@ func registerUser(m CreateModel) (*db.User, error) {
 // Attempt to update the username on the server.
 func createAccount(m CreateModel) tea.Cmd {
 	return func() tea.Msg {
-        if m.newName == "" {
+		if m.newName == "" {
 			return NameInvalidMsg{}
-        }
+		}
 
 		user, err := registerUser(m)
 		if err != nil {

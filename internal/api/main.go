@@ -363,7 +363,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 				headerTxt.Bio = parsedText.MetaData.Description
 			}
 
-            break
+			break
 		}
 	}
 

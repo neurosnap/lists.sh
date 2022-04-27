@@ -45,13 +45,14 @@ type Analytics struct {
 }
 
 type Pager struct {
-    Limit int
-    Offset int
+	Limit  int
+	Offset int
 }
 
-type ErrMultiplePublicKeys struct {}
+type ErrMultiplePublicKeys struct{}
+
 func (m *ErrMultiplePublicKeys) Error() string {
-    return "there are multiple users with this public key, you must provide the username when using SSH: `ssh <user>@lists.sh`\n"
+	return "there are multiple users with this public key, you must provide the username when using SSH: `ssh <user>@lists.sh`\n"
 }
 
 type DB interface {
