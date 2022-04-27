@@ -16,10 +16,11 @@ import (
 var PAGER_SIZE = 15
 
 const (
-	sqlSelectPublicKey   = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
-	sqlSelectPublicKeys  = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
-	sqlSelectUser        = `SELECT id, name, created_at FROM app_users WHERE id = $1`
-	sqlSelectUserForName = `SELECT id, name, created_at FROM app_users WHERE name = $1`
+	sqlSelectPublicKey         = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE public_key = $1`
+	sqlSelectPublicKeys        = `SELECT id, user_id, public_key, created_at FROM public_keys WHERE user_id = $1`
+	sqlSelectUser              = `SELECT id, name, created_at FROM app_users WHERE id = $1`
+	sqlSelectUserForName       = `SELECT id, name, created_at FROM app_users WHERE name = $1`
+	sqlSelectUserForNameAndKey = `SELECT app_users.id, app_users.name, app_users.created_at, public_keys.id as pk_id, public_keys.public_key, public_keys.created_at as pk_created_at FROM app_users LEFT OUTER JOIN public_keys ON public_keys.user_id = app_users.id WHERE app_users.name = $1 AND public_keys.public_key = $2`
 
 	sqlSelectTotalUsers     = `SELECT count(id) FROM app_users`
 	sqlSelectUsersLastMonth = `SELECT count(id) FROM app_users WHERE created_at >= $1`
@@ -75,13 +76,39 @@ func (me *PsqlDB) LinkUserKey(userID string, key string) error {
 }
 
 func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
-	pk := &db.PublicKey{}
-	r := me.db.QueryRow(sqlSelectPublicKey, key)
-	err := r.Scan(&pk.ID, &pk.UserID, &pk.Key, &pk.CreatedAt)
-	if err != nil {
-		return pk, err
+	var keys []*db.PublicKey
+	rs, err := me.db.Query(sqlSelectPublicKey, key)
+	for rs.Next() {
+		pk := &db.PublicKey{}
+		err := rs.Scan(&pk.ID, &pk.UserID, &pk.Key, &pk.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, pk)
 	}
-	return pk, nil
+
+	if err != nil {
+		return nil, err
+	}
+
+	if rs.Err() != nil {
+		return nil, rs.Err()
+	}
+
+    if len(keys) == 0 {
+        return nil, errors.New("no public keys found for key provided")
+    }
+
+    // When we run PublicKeyForKey and there are multiple public keys returned from the database
+    // that should mean that we don't have the correct username for this public key.
+    // When that happens we need to reject the authentication and ask the user to provide the correct
+    // username when using ssh.  So instead of `ssh lists.sh` it should be `ssh user@lists.sh`
+    if len(keys) > 1 {
+        return nil, &db.ErrMultiplePublicKeys{}
+    }
+
+	return keys[0], nil
 }
 
 func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
@@ -180,6 +207,20 @@ func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	return user, nil
+}
+
+func (me *PsqlDB) UserForNameAndKey(name string, key string) (*db.User, error) {
+	user := &db.User{}
+    pk := &db.PublicKey{}
+
+	r := me.db.QueryRow(sqlSelectUserForNameAndKey, strings.ToLower(name), key)
+	err := r.Scan(&user.ID, &user.Name, &user.CreatedAt, &pk.ID, &pk.Key, &pk.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	user.PublicKey = pk
 	return user, nil
 }
 

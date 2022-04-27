@@ -4,6 +4,7 @@ package cms
 // and continually print up to date terminal information.
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -101,7 +102,11 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	sshUser := s.User()
 
 	dbpool := postgres.NewDB()
-	user := FindUser(dbpool, key, sshUser)
+	user, err := FindUser(dbpool, key, sshUser)
+    if err != nil {
+        _, _ = fmt.Fprintln(s.Stderr(), err)
+        return nil, nil
+    }
 
 	m := model{
 		publicKey:  key,
@@ -139,17 +144,29 @@ func (m model) Init() tea.Cmd {
 	)
 }
 
-func FindUser(dbpool db.DB, publicKey string, sshUser string) *db.User {
+func FindUser(dbpool db.DB, publicKey string, sshUser string) (*db.User, error) {
 	logger := internal.CreateLogger()
 	var user *db.User
-	if sshUser != "" {
-		logger.Infof("Finding user based on ssh user (%s)", sshUser)
-		user, _ = dbpool.UserForName(sshUser)
-	} else {
-		logger.Infof("Finding user based on public key (%s)", publicKey)
-		user, _ = dbpool.UserForKey(publicKey)
+
+	logger.Infof("Finding user based on ssh user (%s)", sshUser)
+	user, _ = dbpool.UserForNameAndKey(sshUser, publicKey)
+
+	var err error
+	if user == nil {
+		logger.Infof("(%s) not found, finding user based on public key (%s)", sshUser, publicKey)
+		user, err = dbpool.UserForKey(publicKey)
 	}
-	return user
+
+	if err != nil {
+		logger.Error(err)
+        // we only want to throw an error for specific cases
+		if errors.Is(err, &db.ErrMultiplePublicKeys{}) {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	return user, nil
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

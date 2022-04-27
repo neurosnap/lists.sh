@@ -49,6 +49,11 @@ type Pager struct {
     Offset int
 }
 
+type ErrMultiplePublicKeys struct {}
+func (m *ErrMultiplePublicKeys) Error() string {
+    return "there are multiple users with this public key, you must provide the username when using SSH: `ssh <user>@lists.sh`\n"
+}
+
 type DB interface {
 	AddUser() (string, error)
 	LinkUserKey(userID string, key string) error
@@ -58,6 +63,7 @@ type DB interface {
 	SiteAnalytics() (*Analytics, error)
 
 	UserForName(name string) (*User, error)
+	UserForNameAndKey(name string, key string) (*User, error)
 	UserForKey(key string) (*User, error)
 	User(userID string) (*User, error)
 	ValidateName(name string) bool
