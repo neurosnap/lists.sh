@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
+	"golang.org/x/exp/slices"
 )
 
 var PAGER_SIZE = 15
@@ -196,7 +197,15 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 }
 
 func (me *PsqlDB) ValidateName(name string) bool {
-	user, _ := me.UserForName(strings.ToLower(name))
+	lower := strings.ToLower(name)
+	if slices.Contains(db.DenyList, lower) {
+		return false
+	}
+	v := db.NameValidator.MatchString(lower)
+	if !v {
+		return false
+	}
+	user, _ := me.UserForName(lower)
 	return user == nil
 }
 

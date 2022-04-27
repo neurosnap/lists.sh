@@ -1,6 +1,7 @@
 package username
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -207,7 +208,9 @@ func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
 	case NameInvalidMsg:
 		m.state = ready
 		head := m.styles.Error.Render("Invalid name. ")
-		body := m.styles.Subtle.Render("Names can only contain plain letters and numbers and must be less than 50 characters. And no emojis, kiddo.")
+		deny := strings.Join(db.DenyList, ", ")
+		helpMsg := fmt.Sprintf("Names can only contain plain letters and numbers and must be less than 50 characters. No emjois. No names from deny list: %s", deny)
+		body := m.styles.Subtle.Render(helpMsg)
 		m.errMsg = m.styles.Wrap.Render(head + body)
 
 		return m, nil

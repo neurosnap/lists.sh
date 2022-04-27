@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"regexp"
 	"time"
 )
 
@@ -54,6 +55,9 @@ type ErrMultiplePublicKeys struct{}
 func (m *ErrMultiplePublicKeys) Error() string {
 	return "there are multiple users with this public key, you must provide the username when using SSH: `ssh <user>@lists.sh`\n"
 }
+
+var NameValidator = regexp.MustCompile("^[a-zA-Z0-9]{1,50}$")
+var DenyList = []string{"admin", "abuse", "cgi", "ops", "help", "spec", "root"}
 
 type DB interface {
 	AddUser() (string, error)
