@@ -114,6 +114,7 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		user:       user,
 		status:     statusInit,
 		menuChoice: unsetChoice,
+		styles:     common.DefaultStyles(),
 		spinner:    common.NewSpinner(),
 	}
 
