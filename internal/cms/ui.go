@@ -98,8 +98,10 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		logger.Error(err)
 	}
 
+	sshUser := s.User()
+
 	dbpool := postgres.NewDB()
-	user := FindUser(dbpool, key)
+	user := FindUser(dbpool, key, sshUser)
 
 	m := model{
 		publicKey:  key,
@@ -137,8 +139,16 @@ func (m model) Init() tea.Cmd {
 	)
 }
 
-func FindUser(dbpool db.DB, publicKey string) *db.User {
-	user, _ := dbpool.UserForKey(publicKey)
+func FindUser(dbpool db.DB, publicKey string, sshUser string) *db.User {
+	logger := internal.CreateLogger()
+	var user *db.User
+	if sshUser != "" {
+		logger.Infof("Finding user based on ssh user (%s)", sshUser)
+		user, _ = dbpool.UserForName(sshUser)
+	} else {
+		logger.Infof("Finding user based on public key (%s)", publicKey)
+		user, _ = dbpool.UserForKey(publicKey)
+	}
 	return user
 }
 

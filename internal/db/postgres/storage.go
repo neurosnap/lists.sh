@@ -169,13 +169,13 @@ func (me *PsqlDB) User(userID string) (*db.User, error) {
 }
 
 func (me *PsqlDB) ValidateName(name string) bool {
-	user, _ := me.UserForName(name)
+	user, _ := me.UserForName(strings.ToLower(name))
 	return user == nil
 }
 
 func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 	user := &db.User{}
-	r := me.db.QueryRow(sqlSelectUserForName, name)
+	r := me.db.QueryRow(sqlSelectUserForName, strings.ToLower(name))
 	err := r.Scan(&user.ID, &user.Name, &user.CreatedAt)
 	if err != nil {
 		return nil, err
@@ -184,11 +184,12 @@ func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 }
 
 func (me *PsqlDB) SetUserName(userID string, name string) error {
-	if !me.ValidateName(name) {
+	lowerName := strings.ToLower(name)
+	if !me.ValidateName(lowerName) {
 		return errors.New("name is already taken")
 	}
 
-	_, err := me.db.Exec(sqlUpdateUserName, name, userID)
+	_, err := me.db.Exec(sqlUpdateUserName, lowerName, userID)
 	return err
 }
 
