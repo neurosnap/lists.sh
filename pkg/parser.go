@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"errors"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -67,6 +69,33 @@ func SplitByNewline(text string) []string {
 	return strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
 }
 
+func PublishAtDate(date string) (*time.Time, error) {
+	e := errors.New("Date must be in this format: YYYY-MM-DD")
+	sp := strings.Split(date, "-")
+	if len(sp) < 3 {
+		return nil, e
+	}
+
+	year, err := strconv.Atoi(sp[0])
+	if err != nil {
+		return nil, e
+	}
+
+	m, err := strconv.Atoi(sp[1])
+	if err != nil {
+		return nil, e
+	}
+
+	month := time.Month(m)
+	day, err := strconv.Atoi(sp[2])
+	if err != nil {
+		return nil, e
+	}
+
+	d := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	return &d, nil
+}
+
 func ParseText(text string) *ParsedText {
 	textItems := SplitByNewline(text)
 	items := []*ListItem{}
@@ -103,8 +132,10 @@ func ParseText(text string) *ParsedText {
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			if split.Key == "publish_at" {
-				date, _ := time.Parse("2006-02-15", split.Value)
-				meta.PublishAt = &date
+				publishAt, err := PublishAtDate(split.Value)
+				if err == nil {
+					meta.PublishAt = publishAt
+				}
 			}
 
 			if split.Key == "title" {
