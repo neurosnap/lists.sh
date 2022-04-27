@@ -103,10 +103,10 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	dbpool := postgres.NewDB()
 	user, err := FindUser(dbpool, key, sshUser)
-    if err != nil {
-        _, _ = fmt.Fprintln(s.Stderr(), err)
-        return nil, nil
-    }
+	if err != nil {
+		_, _ = fmt.Fprintln(s.Stderr(), err)
+		return nil, nil
+	}
 
 	m := model{
 		publicKey:  key,
@@ -159,7 +159,7 @@ func FindUser(dbpool db.DB, publicKey string, sshUser string) (*db.User, error) 
 
 	if err != nil {
 		logger.Error(err)
-        // we only want to throw an error for specific cases
+		// we only want to throw an error for specific cases
 		if errors.Is(err, &db.ErrMultiplePublicKeys{}) {
 			return nil, err
 		}
@@ -179,8 +179,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.terminalWidth = msg.Width
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
+		switch msg.Type {
+		case tea.KeyCtrlC:
 			m.dbpool.Close()
 			return m, tea.Quit
 		}

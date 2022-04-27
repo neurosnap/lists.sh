@@ -96,17 +96,17 @@ func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
 		return nil, rs.Err()
 	}
 
-    if len(keys) == 0 {
-        return nil, errors.New("no public keys found for key provided")
-    }
+	if len(keys) == 0 {
+		return nil, errors.New("no public keys found for key provided")
+	}
 
-    // When we run PublicKeyForKey and there are multiple public keys returned from the database
-    // that should mean that we don't have the correct username for this public key.
-    // When that happens we need to reject the authentication and ask the user to provide the correct
-    // username when using ssh.  So instead of `ssh lists.sh` it should be `ssh user@lists.sh`
-    if len(keys) > 1 {
-        return nil, &db.ErrMultiplePublicKeys{}
-    }
+	// When we run PublicKeyForKey and there are multiple public keys returned from the database
+	// that should mean that we don't have the correct username for this public key.
+	// When that happens we need to reject the authentication and ask the user to provide the correct
+	// username when using ssh.  So instead of `ssh lists.sh` it should be `ssh user@lists.sh`
+	if len(keys) > 1 {
+		return nil, &db.ErrMultiplePublicKeys{}
+	}
 
 	return keys[0], nil
 }
@@ -212,7 +212,7 @@ func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 
 func (me *PsqlDB) UserForNameAndKey(name string, key string) (*db.User, error) {
 	user := &db.User{}
-    pk := &db.PublicKey{}
+	pk := &db.PublicKey{}
 
 	r := me.db.QueryRow(sqlSelectUserForNameAndKey, strings.ToLower(name), key)
 	err := r.Scan(&user.ID, &user.Name, &user.CreatedAt, &pk.ID, &pk.Key, &pk.CreatedAt)
