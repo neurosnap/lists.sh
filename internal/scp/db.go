@@ -34,7 +34,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	}
 
 	if !internal.IsTextFile(text, entry.Filepath) {
-		return fmt.Errorf("file must be a text file")
+        return fmt.Errorf("WARNING: (%s) invalid file, format must be '.txt' and the contents must be plain text, skipping", entry.Name)
 	}
 
 	parsedText := pkg.ParseText(text)

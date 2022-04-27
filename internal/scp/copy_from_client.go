@@ -34,6 +34,8 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, use
 	// accepts the request
 	_, _ = s.Write(NULL)
 
+	writeErrors := []error{}
+
 	var (
 		path  = info.Path
 		r     = bufio.NewReader(s)
@@ -95,7 +97,8 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, use
 			}, user, dbpool)
 
 			if err != nil {
-				logger.Errorf("failed to write file: %q: %v", name, err)
+				writeErrors = append(writeErrors, err)
+				logger.Infof("failed to write file: %s %q: %v", user.Name, name, err)
 			}
 
 			// read the trailing nil char
@@ -129,6 +132,10 @@ func copyFromClient(s ssh.Session, info Info, handler CopyFromClientHandler, use
 		}
 
 		return fmt.Errorf("unhandled input: %q", string(line))
+	}
+
+	for _, e := range writeErrors {
+		_, _ = fmt.Fprintln(s.Stderr(), e)
 	}
 
 	_, _ = s.Write(NULL)
