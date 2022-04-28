@@ -29,7 +29,7 @@
         <a href="https://github.com/neurosnap/lists-blog/blob/main/spec-example.txt">here</a>.
     </p>
 
-    <section>
+    <section id="file-extensions">
         <h2 class="text-xl">File extension</h2>
         <p>
             <a href="/">lists.sh</a> only supports the <code>.txt</code> file extension and will
@@ -37,7 +37,7 @@
         </p>
     </section>
 
-    <section>
+    <section id="list-item">
         <h2 class="text-xl">List item</h2>
         <p>
             Each list item is on its own line.  A list item does not require any special formatting.
@@ -50,7 +50,7 @@
         </p>
     </section>
 
-    <section>
+    <section id="hyperlinks">
         <h2 class="text-xl">Hyperlinks</h2>
         <p>
             Hyperlinks are denoted by the prefix <code>=></code>.  The following text should then be
@@ -61,7 +61,7 @@
         <pre>=> https://lists.sh microblog for lists</pre>
     </section>
 
-    <section>
+    <section id="images">
         <h2 class="text-xl">Images</h2>
         <p>
             List items can be represented as images by prefixing the line with <code>=<</code>.
@@ -71,7 +71,7 @@
         <pre>=< https://i.imgur.com/iXMNUN5.jpg I use arch, btw</pre>
     </section>
 
-    <section>
+    <section id="headers">
         <h2 class="text-xl">Headers</h2>
         <p>
             List items can be represented as headers.  We support two headers currently.
@@ -80,7 +80,7 @@
 ## Header Two</pre>
     </section>
 
-    <section>
+    <section id="blockquotes">
         <h2 class="text-xl">Blockquotes</h2>
         <p>
             List items can be represented as blockquotes.
@@ -88,7 +88,7 @@
         <pre>> This is a blockquote.</pre>
     </section>
 
-    <section>
+    <section id="preformatted">
         <h2 class="text-xl">Preformatted</h2>
         <p>
             List items can be represented as preformatted text where newline characters are not
@@ -112,7 +112,7 @@ echo "this is a preformatted list item!
 echo "This will not render properly"```</pre>
     </section>
 
-    <section>
+    <section id="variables">
         <h2 class="text-xl">Variables</h2>
         <p>
             Variables allow us to store metadata within our system.  Variables are list items with
