@@ -28,6 +28,10 @@
         {{if .IsHeaderTwo}}
         <li><h3 class="text-lg font-bold">{{.Value}}</h3></li>
         {{end}}
+
+        {{if .IsPre}}
+        <li><pre>{{.Value}}</pre></li>
+        {{end}}
     {{end}}
 </ul>
 {{end}}

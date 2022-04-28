@@ -162,8 +162,8 @@ li {
   margin: 0.5rem 0;
 }
 
-li > * {
-    vertical-align: text-top;
+li > pre {
+  padding: 0;
 }
 
 footer {

@@ -1,9 +1,8 @@
 package pkg
 
 import (
-	"errors"
+	"fmt"
 	"html/template"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -23,6 +22,7 @@ type ListItem struct {
 	IsHeaderOne bool
 	IsHeaderTwo bool
 	IsImg       bool
+	IsPre       bool
 }
 
 type MetaData struct {
@@ -38,6 +38,7 @@ var varToken = "=:"
 var imgToken = "=<"
 var headerOneToken = "#"
 var headerTwoToken = "##"
+var preToken = "```"
 
 type SplitToken struct {
 	Key   string
@@ -71,30 +72,23 @@ func SplitByNewline(text string) []string {
 }
 
 func PublishAtDate(date string) (*time.Time, error) {
-	e := errors.New("Date must be in this format: YYYY-MM-DD")
-	sp := strings.Split(date, "-")
-	if len(sp) < 3 {
-		return nil, e
-	}
+	t, err := time.Parse("2006-01-02", date)
+	return &t, err
+}
 
-	year, err := strconv.Atoi(sp[0])
-	if err != nil {
-		return nil, e
+func TokenToMetaField(meta *MetaData, token *SplitToken) {
+	if token.Key == "publish_at" {
+		publishAt, err := PublishAtDate(token.Value)
+		if err == nil {
+			meta.PublishAt = publishAt
+		}
+	} else if token.Key == "title" {
+		meta.Title = token.Value
+	} else if token.Key == "description" {
+		meta.Description = token.Value
+	} else if token.Key == "list_type" {
+		meta.ListType = token.Value
 	}
-
-	m, err := strconv.Atoi(sp[1])
-	if err != nil {
-		return nil, e
-	}
-
-	month := time.Month(m)
-	day, err := strconv.Atoi(sp[2])
-	if err != nil {
-		return nil, e
-	}
-
-	d := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-	return &d, nil
 }
 
 func ParseText(text string) *ParsedText {
@@ -103,13 +97,35 @@ func ParseText(text string) *ParsedText {
 	meta := &MetaData{
 		ListType: "disc",
 	}
+	pre := false
+	skip := false
+	var prevItem *ListItem
 
 	for _, t := range textItems {
+		skip = false
+
+		if len(items) > 0 {
+			prevItem = items[len(items)-1]
+		}
+
 		li := &ListItem{
 			Value: strings.Trim(t, " "),
 		}
 
-		if strings.HasPrefix(li.Value, urlToken) {
+		if strings.HasPrefix(li.Value, preToken) {
+			pre = !pre
+			if pre {
+				nextValue := strings.Replace(li.Value, preToken, "", 1)
+				li.IsPre = true
+				li.Value = nextValue
+			} else {
+				skip = true
+			}
+		} else if pre {
+			nextValue := strings.Replace(li.Value, preToken, "", 1)
+			prevItem.Value = fmt.Sprintf("%s\n%s", prevItem.Value, nextValue)
+			skip = true
+		} else if strings.HasPrefix(li.Value, urlToken) {
 			li.IsURL = true
 			split := TextToSplitToken(strings.Replace(li.Value, urlToken, "", 1))
 			li.URL = template.URL(split.Key)
@@ -132,24 +148,7 @@ func ParseText(text string) *ParsedText {
 			}
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
-			if split.Key == "publish_at" {
-				publishAt, err := PublishAtDate(split.Value)
-				if err == nil {
-					meta.PublishAt = publishAt
-				}
-			}
-
-			if split.Key == "title" {
-				meta.Title = split.Value
-			}
-
-			if split.Key == "description" {
-				meta.Description = split.Value
-			}
-
-			if split.Key == "list_type" {
-				meta.ListType = split.Value
-			}
+			TokenToMetaField(meta, split)
 			continue
 		} else if strings.HasPrefix(li.Value, headerTwoToken) {
 			li.IsHeaderTwo = true
@@ -162,13 +161,14 @@ func ParseText(text string) *ParsedText {
 		}
 
 		if len(items) > 0 {
-			prevItem := items[len(items)-1]
 			if li.Value == "" && prevItem.Value == "" {
-				continue
+				skip = true
 			}
 		}
 
-		items = append(items, li)
+		if !skip {
+			items = append(items, li)
+		}
 	}
 
 	if len(items) > 0 {
