@@ -16,7 +16,7 @@
         The goal of this specification is to understand how we render plain text lists.
         The overall design of this format is to be easy to parse and render.  List
         items are separated by newline characters <code>\n</code>. Each block type can be
-        determined by reading the first two characters of a line.
+        determined by reading the first (3) characters of a line.
     </p>
 
     <p>
@@ -86,6 +86,30 @@
             List items can be represented as blockquotes.
         </p>
         <pre>> This is a blockquote.</pre>
+    </section>
+
+    <section>
+        <h2 class="text-xl">Preformatted</h2>
+        <p>
+            List items can be represented as preformatted text where newline characters are not
+            considered part of new list items.  They can be represented by prefixing the line with
+            <code>```</code>.
+        </p>
+        <pre>```
+#!/usr/bin/env bash
+
+set -x
+
+echo "this is a preformatted list item!
+```</pre>
+        <p>
+            You must also close the preformatted text with another <code>```</code> on its own line. The
+            next example with NOT work.
+        </p>
+        <pre>```
+#!/usr/bin/env bash
+
+echo "This will not render properly"```</pre>
     </section>
 
     <section>
