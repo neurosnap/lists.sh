@@ -275,7 +275,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	logger := routeHelper.GetLogger(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 3, Page: page})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 20, Page: page})
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
