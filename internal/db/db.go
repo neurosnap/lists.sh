@@ -43,6 +43,7 @@ type Analytics struct {
 	UsersLastMonth int
 	TotalPosts     int
 	PostsLastMonth int
+	UsersWithPost  int
 }
 
 type Pager struct {

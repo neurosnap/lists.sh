@@ -27,6 +27,7 @@ const (
 	sqlSelectUsersLastMonth = `SELECT count(id) FROM app_users WHERE created_at >= $1`
 	sqlSelectTotalPosts     = `SELECT count(id) FROM posts`
 	sqlSelectPostsLastMonth = `SELECT count(id) FROM posts WHERE created_at >= $1`
+	sqlSelectUsersWithPost  = `SELECT count(app_users.id) FROM app_users WHERE EXISTS (SELECT 1 FROM posts WHERE user_id = app_users.id);`
 
 	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
@@ -159,6 +160,12 @@ func (me *PsqlDB) SiteAnalytics() (*db.Analytics, error) {
 
 	r = me.db.QueryRow(sqlSelectUsersLastMonth, lastMonth)
 	err = r.Scan(&analytics.UsersLastMonth)
+	if err != nil {
+		return nil, err
+	}
+
+	r = me.db.QueryRow(sqlSelectUsersWithPost)
+	err = r.Scan(&analytics.UsersWithPost)
 	if err != nil {
 		return nil, err
 	}
