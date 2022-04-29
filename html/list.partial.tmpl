@@ -5,7 +5,7 @@
             {{if .Value}}
             <li>{{.Value}}</li>
             {{else}}
-            <li>&nbsp;</li>
+            </ul><ul style="list-style-type: {{$.ListType}}">
             {{end}}
         {{end}}
 
@@ -22,11 +22,11 @@
         {{end}}
 
         {{if .IsHeaderOne}}
-        <li><h2 class="text-xl font-bold">{{.Value}}</h2></li>
+        </ul><h2 class="text-xl font-bold">{{.Value}}</h2><ul style="list-style-type: {{$.ListType}}">
         {{end}}
 
         {{if .IsHeaderTwo}}
-        <li><h3 class="text-lg font-bold">{{.Value}}</h3></li>
+        </ul><h3 class="text-lg font-bold">{{.Value}}</h3><ul style="list-style-type: {{$.ListType}}">
         {{end}}
 
         {{if .IsPre}}
