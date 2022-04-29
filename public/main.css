@@ -171,6 +171,18 @@ footer {
   margin-bottom: 4rem;
 }
 
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin-left: 0;
+}
+
+dd:not(:last-child) {
+  margin-bottom: .5rem;
+}
+
 .post-date {
   width: 100px;
 }

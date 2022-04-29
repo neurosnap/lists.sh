@@ -8,26 +8,66 @@
 
 {{define "body"}}
 <header>
-    <h1 class="text-2xl">Plain text list specification (v0)</h1>
-    <p class="text-sm font-italic">Last updated: <time datetime="2022-04-28">2022-04-28</time></p>
+    <h1 class="text-2xl">Plain text list</h1>
+    <h2 class="text-xl">Speculative specification</h2>
+    <dl>
+        <dt>Version</dt>
+        <dd>2022.04.28.dev</dd>
+
+        <dt>Status</dt>
+        <dd>Draft</dd>
+
+        <dt>Author</dt>
+        <dd>Eric Bower</dd>
+    </dl>
 </header>
 <main>
-    <p>
-        The goal of this specification is to understand how we render plain text lists.
-        The overall design of this format is to be easy to parse and render.  List
-        items are separated by newline characters <code>\n</code>. Each block type can be
-        determined by reading the first (3) characters of a line.
-    </p>
+    <section id="overview">
+        <p>
+            The goal of this specification is to understand how we render plain text lists.
+            The overall design of this format is to be easy to parse and render.
+        </p>
 
-    <p>
-        The source code for our parser can be found
-        <a href="https://github.com/neurosnap/lists.sh/blob/main/pkg/parser.go">here</a>.
-    </p>
+        <p>
+            The format is line-oriented, and a satisfactory rendering can be achieved with a single
+            pass of a document, processing each line independently. As per gopher, links can only be
+            displayed one per line, encouraging neat, list-like structure.
+        </p>
 
-    <p>
-        The source code for an example list demonstrating all the features can be found
-        <a href="https://github.com/neurosnap/lists-blog/blob/main/spec-example.txt">here</a>.
-    </p>
+        <p>
+            Feedback on any part of this is extremely welcome, please email
+            <a href="mailto:support@lists.sh">support@lists.sh</a>.
+        </p>
+
+        <p>
+            The source code for our parser can be found
+            <a href="https://github.com/neurosnap/lists.sh/blob/main/pkg/parser.go">here</a>.
+        </p>
+
+        <p>
+            The source code for an example list demonstrating all the features can be found
+            <a href="https://github.com/neurosnap/lists-blog/blob/main/spec-example.txt">here</a>.
+        </p>
+    </section>
+
+    <section id="parameters">
+        <p>
+            As a subtype of the top-level media type "text", "text/plain" inherits the "charset"
+            parameter defined in <a href="https://datatracker.ietf.org/doc/html/rfc2046#section-4.1">RFC 2046</a>.
+            The default value of "charset" is "UTF-8" for "text" content.  Each block type can be
+            determined by reading the first (3) characters of a line.
+        </p>
+    </section>
+
+    <section id="line-orientation">
+        <p>
+            As mentioned, the text format is line-oriented. Each line of a document has a single
+            "line type". It is possible to unambiguously determine a line's type purely by
+            inspecting its first (3) characters. A line's type determines the manner in which it
+            should be presented to the user. Any details of presentation or rendering associated
+            with a particular line type are strictly limited in scope to that individual line.
+        </p>
+    </section>
 
     <section id="file-extensions">
         <h2 class="text-xl">File extension</h2>
@@ -40,6 +80,7 @@
     <section id="list-item">
         <h2 class="text-xl">List item</h2>
         <p>
+            List items are separated by newline characters <code>\n</code>.
             Each list item is on its own line.  A list item does not require any special formatting.
             A list item can contain as much text as it wants.  We encourage soft wrapping for readability
             in your editor of choice.  Hard wrapping is not permitted as it will create a new list item.
