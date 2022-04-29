@@ -33,7 +33,7 @@ const (
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
 	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
 	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
-	sqlSelectPostCount        = `SELECT count(id) FROM posts`
+	sqlSelectPostCount        = `SELECT count(id) FROM posts WHERE filename <> '_readme' AND filename <> '_header'`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
 	sqlInsertPost      = `INSERT INTO posts (user_id, filename, title, text, description, publish_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
@@ -292,7 +292,7 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 
 func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
-	rs, err := me.db.Query(sqlSelectAllPosts, page.Limit, page.Limit*page.Offset)
+	rs, err := me.db.Query(sqlSelectAllPosts, page.Num, page.Num*page.Page)
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(
@@ -326,7 +326,7 @@ func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 
 	pager := &db.Paginate[*db.Post]{
 		Data:  posts,
-		Total: int(math.Ceil(float64(count) / float64(PAGER_SIZE))),
+		Total: int(math.Ceil(float64(count) / float64(page.Num))),
 	}
 	return pager, nil
 }

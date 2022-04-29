@@ -13,6 +13,10 @@
     <hr />
 </header>
 <main>
+    <div class="my">
+        {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{else}}<span class="text-grey">prev</span>{{end}}
+        {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{else}}<span class="text-grey">next</span>{{end}}
+    </div>
     {{range .Posts}}
     <article>
         <div class="flex items-center">
@@ -26,10 +30,6 @@
         </div>
     </article>
     {{end}}
-    <div>
-        {{if .PrevPage}}<a href="{{.PrevPage}}">prev</a>{{end}}
-        {{if .NextPage}}<a href="{{.NextPage}}">next</a>{{end}}
-    </div>
 </main>
 {{template "footer" .}}
 {{end}}

@@ -275,7 +275,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	logger := routeHelper.GetLogger(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllPosts(&db.Pager{Limit: 20, Offset: page})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 3, Page: page})
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -411,7 +411,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
-	pager, err := dbpool.FindAllPosts(&db.Pager{Limit: 50, Offset: 0})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 50, Page: 0})
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

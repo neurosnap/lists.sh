@@ -26,21 +26,9 @@ html {
   background-color: var(--greyer);
   color: var(--white);
   line-height: 1.5;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Fira Sans",
-    "Droid Sans",
-    "Helvetica Neue",
-    Arial, sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol";
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+    "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
 	-webkit-text-size-adjust: 100%;
 	-moz-tab-size: 4;
 	tab-size: 4;
@@ -185,6 +173,10 @@ dd:not(:last-child) {
 
 .post-date {
   width: 100px;
+}
+
+.text-grey {
+  color: var(--grey);
 }
 
 .text-2xl {

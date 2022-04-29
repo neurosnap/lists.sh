@@ -47,8 +47,8 @@ type Analytics struct {
 }
 
 type Pager struct {
-	Limit  int
-	Offset int
+	Num  int
+	Page int
 }
 
 type ErrMultiplePublicKeys struct{}
