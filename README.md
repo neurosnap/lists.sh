@@ -15,6 +15,8 @@ export LISTS_SSH_PORT=2222
 export LISTS_WEB_PORT=3000
 ```
 
+I just use `direnv` which will load my `.env` file.
+
 ## development
 
 ### db
