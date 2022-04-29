@@ -6,10 +6,6 @@ A microblog for lists.
 
 - golang `v1.18`
 
-```bash
-make build
-```
-
 You'll also need some environment variables
 
 ```
