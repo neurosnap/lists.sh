@@ -2,7 +2,7 @@
 
 A microblog for lists.
 
-## Setup
+## setup
 
 - golang `v1.18`
 
@@ -10,7 +10,48 @@ A microblog for lists.
 make build
 ```
 
-## Run
+You'll also need some environment variables
+
+```
+export POSTGRES_PASSWORD="secret"
+export DATABASE_URL="postgresql://postgres:secret@db/lists?sslmode=disable"
+export LISTS_SSH_PORT=2222
+export LISTS_WEB_PORT=3000
+```
+
+## development
+
+### db
+
+I use `docker-compose` to standup a postgresql server.  If you already have a
+server running you can skip this step.
+
+Copy example `.env`
+
+```bash
+cp .env.example .env
+```
+
+Then run docker compose.
+
+```bash
+docker-compose up -d
+```
+
+Then create the database and migrate
+
+```bash
+make create
+make migrate
+```
+
+### build the apps
+
+```bash
+make build
+```
+
+### run the apps
 
 There are two apps: an ssh and web server.
 
@@ -26,7 +67,7 @@ Default port for ssh server is `2222`.
 
 Default port for web server is `3000`.
 
-## Deployment
+## deployment
 
 I use `docker-compose` for deployment.  First you need `.env.prod`. 
 
