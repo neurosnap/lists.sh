@@ -43,25 +43,38 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	}
 	description := parsedText.MetaData.Description
 
-	if post == nil {
+	// if the file is empty we remove it from our database
+	if len(text) == 0 {
+		// skip empty files from being added to db
+		if post == nil {
+		    logger.Infof("(%s) is empty, skipping record", filename)
+			return nil
+		}
+
+		err := dbpool.RemovePosts([]string{post.ID})
+		logger.Infof("(%s) is empty, removing record", filename)
+		if err != nil {
+			return fmt.Errorf("error for %s: %v", filename, err)
+		}
+	} else if post == nil {
 		publishAt := time.Now()
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
-		logger.Infof("%s not found, adding record", title)
+		logger.Infof("(%s) not found, adding record", filename)
 		post, err = dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
 		if err != nil {
-			return fmt.Errorf("error for %s: %v", title, err)
+			return fmt.Errorf("error for %s: %v", filename, err)
 		}
 	} else {
 		publishAt := post.PublishAt
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = parsedText.MetaData.PublishAt
 		}
-		logger.Infof("%s found, updating record", title)
+		logger.Infof("(%s) found, updating record", filename)
 		post, err = dbpool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {
-			return fmt.Errorf("error for %s: %v", title, err)
+			return fmt.Errorf("error for %s: %v", filename, err)
 		}
 	}
 
