@@ -256,7 +256,7 @@ dd:not(:last-child) {
 
 @media only screen and (max-width: 600px) {
   body {
-    padding: 1rem 1.8rem;
+    padding: 1rem;
   }
 
   header {
