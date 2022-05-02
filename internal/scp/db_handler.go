@@ -47,7 +47,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 	if len(text) == 0 {
 		// skip empty files from being added to db
 		if post == nil {
-		    logger.Infof("(%s) is empty, skipping record", filename)
+			logger.Infof("(%s) is empty, skipping record", filename)
 			return nil
 		}
 
