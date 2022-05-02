@@ -91,6 +91,13 @@ func TokenToMetaField(meta *MetaData, token *SplitToken) {
 	}
 }
 
+func KeyAsValue(token *SplitToken) string {
+	if token.Value == "" {
+		return token.Key
+	}
+	return token.Value
+}
+
 func ParseText(text string) *ParsedText {
 	textItems := SplitByNewline(text)
 	items := []*ListItem{}
@@ -129,11 +136,7 @@ func ParseText(text string) *ParsedText {
 			li.IsURL = true
 			split := TextToSplitToken(strings.Replace(li.Value, urlToken, "", 1))
 			li.URL = template.URL(split.Key)
-			if split.Value == "" {
-				li.Value = split.Key
-			} else {
-				li.Value = split.Value
-			}
+            li.Value = KeyAsValue(split)
 		} else if strings.HasPrefix(li.Value, blockToken) {
 			li.IsBlock = true
 			li.Value = strings.Replace(li.Value, blockToken, "", 1)
@@ -141,11 +144,7 @@ func ParseText(text string) *ParsedText {
 			li.IsImg = true
 			split := TextToSplitToken(strings.Replace(li.Value, imgToken, "", 1))
 			li.URL = template.URL(split.Key)
-			if split.Value == "" {
-				li.Value = split.Key
-			} else {
-				li.Value = split.Value
-			}
+            li.Value = KeyAsValue(split)
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			TokenToMetaField(meta, split)
@@ -160,21 +159,12 @@ func ParseText(text string) *ParsedText {
 			li.IsText = true
 		}
 
-		if len(items) > 0 {
-			if li.Value == "" && prevItem.Value == "" {
-				skip = true
-			}
+		if li.IsText && li.Value == "" {
+			skip = true
 		}
 
 		if !skip {
 			items = append(items, li)
-		}
-	}
-
-	if len(items) > 0 {
-		last := items[len(items)-1]
-		if last.Value == "" {
-			items = items[:len(items)-1]
 		}
 	}
 
