@@ -53,6 +53,14 @@ type PostPageData struct {
 	PublishAt    string
 }
 
+func postURL(post *db.Post) string {
+	return fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Filename)
+}
+
+func blogURL(username string) string {
+	return fmt.Sprintf("https://lists.sh/%s", username)
+}
+
 func renderTemplate(templates []string) (*template.Template, error) {
 	files := make([]string, len(templates))
 	copy(files, templates)
@@ -173,7 +181,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := BlogPageData{
 		PageTitle: headerTxt.Title,
-		URL:       fmt.Sprintf("https://lists.sh/%s", username),
+		URL:       blogURL(username),
 		Readme:    readmeTxt,
 		Header:    headerTxt,
 		Username:  username,
@@ -215,7 +223,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PostPageData{
 		PageTitle:    getPostTitle(post),
-		URL:          fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Filename),
+		URL:          postURL(post),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),
@@ -369,7 +377,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       headerTxt.Title,
-		Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/rss", username)},
+		Link:        &feeds.Link{Href: fmt.Sprintf("%s/rss", blogURL(username))},
 		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
@@ -389,7 +397,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/%s", username, post.Title)},
+			Link:        &feeds.Link{Href: postURL(post)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
@@ -447,7 +455,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Title)},
+			Link:        &feeds.Link{Href: postURL(post)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
