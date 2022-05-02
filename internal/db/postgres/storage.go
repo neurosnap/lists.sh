@@ -31,8 +31,8 @@ const (
 
 	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
 	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
-	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 ORDER BY publish_at DESC`
-	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
+	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 AND publish_at::date <= CURRENT_DATE ORDER BY publish_at DESC`
+	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' AND publish_at::date <= CURRENT_DATE ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
 	sqlSelectPostCount        = `SELECT count(id) FROM posts WHERE filename <> '_readme' AND filename <> '_header'`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
@@ -80,6 +80,10 @@ func (me *PsqlDB) LinkUserKey(userID string, key string) error {
 func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
 	var keys []*db.PublicKey
 	rs, err := me.db.Query(sqlSelectPublicKey, key)
+	if err != nil {
+		return nil, err
+	}
+
 	for rs.Next() {
 		pk := &db.PublicKey{}
 		err := rs.Scan(&pk.ID, &pk.UserID, &pk.Key, &pk.CreatedAt)
@@ -88,10 +92,6 @@ func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
 		}
 
 		keys = append(keys, pk)
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	if rs.Err() != nil {
@@ -116,6 +116,9 @@ func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
 func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
 	var keys []*db.PublicKey
 	rs, err := me.db.Query(sqlSelectPublicKeys, user.ID)
+	if err != nil {
+		return keys, err
+	}
 	for rs.Next() {
 		pk := &db.PublicKey{}
 		err := rs.Scan(&pk.ID, &pk.UserID, &pk.Key, &pk.CreatedAt)
@@ -124,9 +127,6 @@ func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
 		}
 
 		keys = append(keys, pk)
-	}
-	if err != nil {
-		return keys, err
 	}
 	if rs.Err() != nil {
 		return keys, rs.Err()
@@ -293,6 +293,9 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
 	rs, err := me.db.Query(sqlSelectAllPosts, page.Num, page.Num*page.Page)
+	if err != nil {
+		return nil, err
+	}
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(
@@ -310,9 +313,6 @@ func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 		}
 
 		posts = append(posts, post)
-	}
-	if err != nil {
-		return nil, err
 	}
 	if rs.Err() != nil {
 		return nil, rs.Err()
@@ -358,6 +358,9 @@ func (me *PsqlDB) RemovePosts(postIDs []string) error {
 func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 	var posts []*db.Post
 	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
+	if err != nil {
+		return posts, err
+	}
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(
@@ -375,9 +378,6 @@ func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
 		}
 
 		posts = append(posts, post)
-	}
-	if err != nil {
-		return posts, err
 	}
 	if rs.Err() != nil {
 		return posts, rs.Err()
