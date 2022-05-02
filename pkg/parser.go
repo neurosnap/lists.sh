@@ -136,7 +136,7 @@ func ParseText(text string) *ParsedText {
 			li.IsURL = true
 			split := TextToSplitToken(strings.Replace(li.Value, urlToken, "", 1))
 			li.URL = template.URL(split.Key)
-            li.Value = KeyAsValue(split)
+			li.Value = KeyAsValue(split)
 		} else if strings.HasPrefix(li.Value, blockToken) {
 			li.IsBlock = true
 			li.Value = strings.Replace(li.Value, blockToken, "", 1)
@@ -144,7 +144,7 @@ func ParseText(text string) *ParsedText {
 			li.IsImg = true
 			split := TextToSplitToken(strings.Replace(li.Value, imgToken, "", 1))
 			li.URL = template.URL(split.Key)
-            li.Value = KeyAsValue(split)
+			li.Value = KeyAsValue(split)
 		} else if strings.HasPrefix(li.Value, varToken) {
 			split := TextToSplitToken(strings.Replace(li.Value, varToken, "", 1))
 			TokenToMetaField(meta, split)
