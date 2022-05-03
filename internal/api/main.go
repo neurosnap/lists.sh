@@ -377,7 +377,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       headerTxt.Title,
-		Link:        &feeds.Link{Href: fmt.Sprintf("%s/rss", blogURL(username))},
+		Link:        &feeds.Link{Href: blogURL(username)},
 		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
@@ -435,7 +435,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       "lists.sh discovery feed",
-		Link:        &feeds.Link{Href: "https://lists.sh/rss"},
+		Link:        &feeds.Link{Href: "https://lists.sh/read"},
 		Description: "lists.sh latest posts",
 		Author:      &feeds.Author{Name: "lists.sh"},
 		Created:     time.Now(),
