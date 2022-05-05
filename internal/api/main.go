@@ -47,6 +47,7 @@ type PostPageData struct {
 	Title        string
 	Description  string
 	Username     string
+	BlogName     string
 	ListType     string
 	Items        []*pkg.ListItem
 	PublishAtISO string
@@ -196,7 +197,15 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostTitle(post *db.Post) string {
+	if post.Description == "" {
+		return post.Title
+	}
+
 	return fmt.Sprintf("%s: %s", post.Title, post.Description)
+}
+
+func getBlogName(username string) string {
+	return fmt.Sprintf("%s's blog", username)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
@@ -210,6 +219,15 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Infof("blog not found: %s", username)
 		http.Error(w, "blog not found", http.StatusNotFound)
 		return
+	}
+
+	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
+	blogName := getBlogName(username)
+	if header != nil {
+		headerParsed := pkg.ParseText(header.Text)
+		if headerParsed.MetaData.Title != "" {
+			blogName = headerParsed.MetaData.Title
+		}
 	}
 
 	post, err := dbpool.FindPostWithFilename(filename, user.ID)
@@ -230,6 +248,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		PublishAt:    post.PublishAt.Format("Mon January 2, 2006"),
 		PublishAtISO: post.PublishAt.Format(time.RFC3339),
 		Username:     username,
+		BlogName:     blogName,
 		Items:        parsedText.Items,
 	}
 
@@ -357,7 +376,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: fmt.Sprintf("%s's blog", username),
+		Title: getBlogName(username),
 	}
 
 	for _, post := range posts {
