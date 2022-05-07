@@ -17,8 +17,20 @@ import (
 	"github.com/neurosnap/lists.sh/pkg"
 )
 
+func PostURL(post *db.Post) string {
+	return fmt.Sprintf("//%s.%s/%s", post.Username, internal.Domain, post.Filename)
+}
+
+func ReadURL() string {
+	return fmt.Sprintf("https://%s/read", internal.Domain)
+}
+
+type PageData struct {
+	Site internal.SitePageData
+}
+
 type PostItemData struct {
-	URL          string
+	URL          template.URL
 	Username     string
 	Title        string
 	Description  string
@@ -27,8 +39,10 @@ type PostItemData struct {
 }
 
 type BlogPageData struct {
+	Site      internal.SitePageData
 	PageTitle string
-	URL       string
+	URL       template.URL
+	RSSURL    template.URL
 	Username  string
 	Readme    *ReadmeTxt
 	Header    *HeaderTxt
@@ -36,14 +50,17 @@ type BlogPageData struct {
 }
 
 type ReadPageData struct {
+	Site     internal.SitePageData
 	NextPage string
 	PrevPage string
 	Posts    []PostItemData
 }
 
 type PostPageData struct {
+	Site         internal.SitePageData
 	PageTitle    string
-	URL          string
+	URL          template.URL
+	BlogURL      template.URL
 	Title        string
 	Description  string
 	Username     string
@@ -54,12 +71,9 @@ type PostPageData struct {
 	PublishAt    string
 }
 
-func postURL(post *db.Post) string {
-	return fmt.Sprintf("https://lists.sh/%s/%s", post.Username, post.Filename)
-}
-
-func blogURL(username string) string {
-	return fmt.Sprintf("https://lists.sh/%s", username)
+type TransparencyPageData struct {
+	Site      internal.SitePageData
+	Analytics *db.Analytics
 }
 
 func renderTemplate(templates []string) (*template.Template, error) {
@@ -90,7 +104,10 @@ func createPageHandler(fname string) http.HandlerFunc {
 			return
 		}
 
-		err = ts.Execute(w, nil)
+		data := PageData{
+			Site: internal.SiteData,
+		}
+		err = ts.Execute(w, data)
 		if err != nil {
 			logger.Error(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -111,8 +128,16 @@ type ReadmeTxt struct {
 	Items    []*pkg.ListItem
 }
 
+func getUsernameFromRequest(r *http.Request) string {
+	subdomain := routeHelper.GetSubdomain(r)
+	if subdomain == "" {
+		return routeHelper.GetField(r, 0)
+	}
+	return subdomain
+}
+
 func blogHandler(w http.ResponseWriter, r *http.Request) {
-	username := routeHelper.GetField(r, 0)
+	username := getUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -141,7 +166,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: fmt.Sprintf("%s's blog", username),
+		Title: getBlogName(username),
 		Bio:   "",
 	}
 	readmeTxt := &ReadmeTxt{}
@@ -171,7 +196,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			p := PostItemData{
-				URL:          fmt.Sprintf("/%s/%s", post.Username, post.Filename),
+				URL:          template.URL(PostURL(post)),
 				Title:        internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
 				PublishAtISO: post.PublishAt.Format(time.RFC3339),
@@ -181,8 +206,10 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := BlogPageData{
+		Site:      internal.SiteData,
 		PageTitle: headerTxt.Title,
-		URL:       blogURL(username),
+		URL:       template.URL(internal.BlogURL(username)),
+		RSSURL:    template.URL(internal.RssBlogURL(username)),
 		Readme:    readmeTxt,
 		Header:    headerTxt,
 		Username:  username,
@@ -209,8 +236,15 @@ func getBlogName(username string) string {
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
-	username := routeHelper.GetField(r, 0)
-	filename := routeHelper.GetField(r, 1)
+	username := getUsernameFromRequest(r)
+	subdomain := routeHelper.GetSubdomain(r)
+	var filename string
+	if subdomain == "" {
+		filename = routeHelper.GetField(r, 1)
+	} else {
+		filename = routeHelper.GetField(r, 0)
+	}
+
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -240,8 +274,10 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	parsedText := pkg.ParseText(post.Text)
 
 	data := PostPageData{
+		Site:         internal.SiteData,
 		PageTitle:    getPostTitle(post),
-		URL:          postURL(post),
+		URL:          template.URL(PostURL(post)),
+		BlogURL:      template.URL(internal.BlogURL(username)),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),
@@ -290,7 +326,11 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = ts.Execute(w, analytics)
+	data := TransparencyPageData{
+		Site:      internal.SiteData,
+		Analytics: analytics,
+	}
+	err = ts.Execute(w, data)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -328,12 +368,13 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ReadPageData{
+		Site:     internal.SiteData,
 		NextPage: nextPage,
 		PrevPage: prevPage,
 	}
 	for _, post := range pager.Data {
 		item := PostItemData{
-			URL:          fmt.Sprintf("/%s/%s", post.Username, post.Filename),
+			URL:          template.URL(PostURL(post)),
 			Title:        internal.FilenameToTitle(post.Filename, post.Title),
 			Description:  post.Description,
 			Username:     post.Username,
@@ -351,7 +392,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
-	username := routeHelper.GetField(r, 0)
+	username := getUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -396,7 +437,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       headerTxt.Title,
-		Link:        &feeds.Link{Href: blogURL(username)},
+		Link:        &feeds.Link{Href: internal.BlogURL(username)},
 		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
@@ -416,7 +457,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: postURL(post)},
+			Link:        &feeds.Link{Href: PostURL(post)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
@@ -453,10 +494,10 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	feed := &feeds.Feed{
-		Title:       "lists.sh discovery feed",
-		Link:        &feeds.Link{Href: "https://lists.sh/read"},
-		Description: "lists.sh latest posts",
-		Author:      &feeds.Author{Name: "lists.sh"},
+		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
+		Link:        &feeds.Link{Href: ReadURL()},
+		Description: fmt.Sprintf("%s latest posts", internal.Domain),
+		Author:      &feeds.Author{Name: internal.Domain},
 		Created:     time.Now(),
 	}
 
@@ -474,7 +515,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: postURL(post)},
+			Link:        &feeds.Link{Href: PostURL(post)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
@@ -506,28 +547,66 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 	}
 }
 
-var routes = []routeHelper.Route{
-	routeHelper.NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
-	routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
-	routeHelper.NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
-	routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
-	routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
-	routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
-	routeHelper.NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
-	routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
-	routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
-	routeHelper.NewRoute("GET", "/apple-touch-icon.png", serveFile("apple-touch-icon.png", "image/png")),
-	routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
-	routeHelper.NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
-	routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
-	routeHelper.NewRoute("GET", "/read", readHandler),
-	routeHelper.NewRoute("GET", "/rss", rssHandler),
-	routeHelper.NewRoute("GET", "/rss.xml", rssHandler),
-	routeHelper.NewRoute("GET", "/atom.xml", rssHandler),
-	routeHelper.NewRoute("GET", "/feed.xml", rssHandler),
-	routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
-	routeHelper.NewRoute("GET", "/([^/]+)/rss", rssBlogHandler),
-	routeHelper.NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
+func createStaticRoutes() []routeHelper.Route {
+	return []routeHelper.Route{
+		routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
+		routeHelper.NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
+		routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
+		routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
+		routeHelper.NewRoute("GET", "/apple-touch-icon.png", serveFile("apple-touch-icon.png", "image/png")),
+		routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
+		routeHelper.NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
+	}
+}
+
+func createMainRoutes(staticRoutes []routeHelper.Route) []routeHelper.Route {
+	routes := []routeHelper.Route{
+		routeHelper.NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
+		routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
+		routeHelper.NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
+		routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
+		routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
+		routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
+		routeHelper.NewRoute("GET", "/read", readHandler),
+	}
+
+	routes = append(
+		routes,
+		staticRoutes...,
+	)
+
+	routes = append(
+		routes,
+		routeHelper.NewRoute("GET", "/rss", rssHandler),
+		routeHelper.NewRoute("GET", "/rss.xml", rssHandler),
+		routeHelper.NewRoute("GET", "/atom.xml", rssHandler),
+		routeHelper.NewRoute("GET", "/feed.xml", rssHandler),
+
+		routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
+		routeHelper.NewRoute("GET", "/([^/]+)/rss", rssBlogHandler),
+		routeHelper.NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
+	)
+
+	return routes
+}
+
+func createSubdomainRoutes(staticRoutes []routeHelper.Route) []routeHelper.Route {
+	routes := []routeHelper.Route{
+		routeHelper.NewRoute("GET", "/", blogHandler),
+		routeHelper.NewRoute("GET", "/rss", rssBlogHandler),
+	}
+
+	routes = append(
+		routes,
+		staticRoutes...,
+	)
+
+	routes = append(
+		routes,
+		routeHelper.NewRoute("GET", "/([^/]+)", postHandler),
+	)
+
+	return routes
 }
 
 func StartServer() {
@@ -535,7 +614,11 @@ func StartServer() {
 	defer db.Close()
 	logger := internal.CreateLogger()
 
-	handler := routeHelper.CreateServe(routes, db, logger)
+	staticRoutes := createStaticRoutes()
+	mainRoutes := createMainRoutes(staticRoutes)
+	subdomainRoutes := createSubdomainRoutes(staticRoutes)
+
+	handler := routeHelper.CreateServe(mainRoutes, subdomainRoutes, db, logger)
 	router := http.HandlerFunc(handler)
 
 	port := internal.GetEnv("LISTS_WEB_PORT", "3000")

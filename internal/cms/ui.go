@@ -331,7 +331,7 @@ func (m model) quitView() string {
 	if m.err != nil {
 		return fmt.Sprintf("Uh oh, there’s been an error: %s\n", m.err)
 	}
-	return "Thanks for using lists.sh!\n"
+	return "Thanks for using lists!\n"
 }
 
 func footerView(m model) string {

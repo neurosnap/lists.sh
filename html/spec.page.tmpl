@@ -1,6 +1,6 @@
 {{template "base" .}}
 
-{{define "title"}}specification -- lists.sh{{end}}
+{{define "title"}}specification -- {{.Site.Domain}}{{end}}
 
 {{define "meta"}}
 <meta name="description" content="a specification for lists" />
@@ -36,7 +36,7 @@
 
         <p>
             Feedback on any part of this is extremely welcome, please email
-            <a href="mailto:support@lists.sh">support@lists.sh</a>.
+            <a href="mailto:{{.Site.Email}}">{{.Site.Email}}</a>.
         </p>
 
         <p>
@@ -71,7 +71,7 @@
     <section id="file-extensions">
         <h2 class="text-xl">File extension</h2>
         <p>
-            <a href="/">lists.sh</a> only supports the <code>.txt</code> file extension and will
+            {{.Site.Domain}} only supports the <code>.txt</code> file extension and will
             ignore all other file extensions.
         </p>
     </section>
@@ -95,9 +95,9 @@
             Hyperlinks are denoted by the prefix <code>=></code>.  The following text should then be
             the hyperlink.
         </p>
-        <pre>=> https://lists.sh</pre>
+        <pre>=> https://{{.Site.Domain}}</pre>
         <p>Optionally you can supply the hyperlink text immediately following the link.</p>
-        <pre>=> https://lists.sh microblog for lists</pre>
+        <pre>=> https://{{.Site.Domain}} microblog for lists</pre>
     </section>
 
     <section id="images">

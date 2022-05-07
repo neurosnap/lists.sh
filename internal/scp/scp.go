@@ -38,7 +38,7 @@ func Middleware(wh CopyFromClientHandler, dbpool db.DB) wish.Middleware {
 			}
 
 			if info.Recursive {
-				err := fmt.Errorf("recursive not supported. try `scp ./blog/*.txt lists.sh` instead")
+				err := fmt.Errorf("recursive not supported. try `scp ./blog/*.txt %s` instead", internal.Domain)
 				errHandler(s, err)
 				return
 			}

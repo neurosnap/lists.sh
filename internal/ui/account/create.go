@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	input "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 )
@@ -242,7 +243,7 @@ func View(m CreateModel) string {
 	s += "Then create a folder locally (e.g. ~/blog).\n"
 	s += "Then write your lists in plain text files (e.g. hello-world.txt).\n"
 	s += "Finally, send your list files to us:\n\n"
-	s += "scp ~/blog/*.txt lists.sh:/\n\n"
+	s += fmt.Sprintf("scp ~/blog/*.txt %s:/\n\n", internal.Domain)
 	s += "Enter a username\n\n"
 	s += m.input.View() + "\n\n"
 

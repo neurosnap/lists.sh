@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"log"
 	"math"
 	"os"
@@ -17,6 +18,32 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
+
+type SitePageData struct {
+	Domain  template.URL
+	HomeURL template.URL
+	Email   string
+}
+
+var Domain = GetEnv("LISTS_DOMAIN", "lists.sh")
+var Email = GetEnv("LISTS_EMAIL", "support@lists.sh")
+var SiteData = SitePageData{
+	Domain:  template.URL(Domain),
+	HomeURL: template.URL(HomeURL()),
+	Email:   Email,
+}
+
+func BlogURL(username string) string {
+	return fmt.Sprintf("//%s.%s", username, Domain)
+}
+
+func RssBlogURL(username string) string {
+	return fmt.Sprintf("//%s.%s/rss", username, Domain)
+}
+
+func HomeURL() string {
+	return fmt.Sprintf("//%s", Domain)
+}
 
 func CreateLogger() *zap.SugaredLogger {
 	logger, err := zap.NewProduction()

@@ -1,6 +1,9 @@
 package common
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/neurosnap/lists.sh/internal"
+)
 
 // Color definitions.
 var (
@@ -81,7 +84,7 @@ func DefaultStyles() Styles {
 		Foreground(cream).
 		Background(lipgloss.Color("#5A56E0")).
 		Padding(0, 1).
-		SetString("lists.sh")
+		SetString(internal.Domain)
 	s.App = lipgloss.NewStyle().Margin(1, 0, 1, 2)
 
 	return s

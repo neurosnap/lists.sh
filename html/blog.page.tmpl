@@ -6,21 +6,21 @@
 <meta name="description" content="{{if .Header.Bio}}{{.Header.Bio}}{{else}}{{.Header.Title}}{{end}}" />
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="lists.sh">
+<meta property="og:site_name" content="{{.Site.Domain}}">
 <meta property="og:url" content="{{.URL}}">
 <meta property="og:title" content="{{.Header.Title}}">
 {{if .Header.Bio}}<meta property="og:description" content="{{.Header.Bio}}">{{end}}
 <meta property="og:image:width" content="300" />
 <meta property="og:image:height" content="300" />
-<meta itemprop="image" content="https://lists.sh/card.png" />
-<meta property="og:image" content="https://lists.sh/card.png" />
+<meta itemprop="image" content="https://{{.Site.Domain}}/card.png" />
+<meta property="og:image" content="https://{{.Site.Domain}}/card.png" />
 
 <meta property="twitter:card" content="summary">
 <meta property="twitter:url" content="{{.URL}}">
 <meta property="twitter:title" content="{{.Header.Title}}">
 {{if .Header.Bio}}<meta property="twitter:description" content="{{.Header.Bio}}">{{end}}
-<meta name="twitter:image" content="https://lists.sh/card.png" />
-<meta name="twitter:image:src" content="https://lists.sh/card.png" />
+<meta name="twitter:image" content="https://{{.Site.Domain}}/card.png" />
+<meta name="twitter:image:src" content="https://{{.Site.Domain}}/card.png" />
 {{end}}
 
 {{define "body"}}
@@ -33,7 +33,7 @@
             <a href="{{.URL}}" class="text-lg">{{.Value}}</a> |
             {{end}}
         {{end}}
-        <a href="{{.Username}}/rss" class="text-lg">rss</a>
+        <a href="{{.RSSURL}}" class="text-lg">rss</a>
     </nav>
     <hr />
 </header>
