@@ -46,6 +46,11 @@ restore:
 	# psql postgres -U postgres < /backup.sql
 .PHONY: restore
 
+bp-caddy:
+	docker build -t neurosnap/lists-caddy -f Dockerfile.caddy .
+	docker push neurosnap/lists-caddy
+.PHONY: bp-caddy
+
 bp-ssh:
 	docker build -t neurosnap/lists-ssh --target ssh .
 	docker push neurosnap/lists-ssh
@@ -56,7 +61,7 @@ bp-web:
 	docker push neurosnap/lists-web
 .PHONY: bp-web
 
-bp: bp-ssh bp-web
+bp: bp-ssh bp-web bp-caddy
 .PHONY: bp
 
 deploy:
