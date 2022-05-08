@@ -232,7 +232,7 @@ func (m Model) View() string {
 	case stateLoading:
 		s = m.spinner.View() + " Loading...\n\n"
 	case stateQuitting:
-		s = "Thanks for using lists.sh!\n"
+		s = "Thanks for using lists!\n"
 	default:
 		s = "Here are the posts linked to your account.\n\n"
 

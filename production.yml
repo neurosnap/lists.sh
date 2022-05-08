@@ -2,8 +2,10 @@ version: "3.7"
 
 services:
   caddy:
-    image: caddy:alpine
+    image: neurosnap/lists-caddy
     restart: unless-stopped
+    env_file:
+      - .env.prod
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data

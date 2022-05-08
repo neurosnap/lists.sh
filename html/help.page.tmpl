@@ -1,6 +1,6 @@
 {{template "base" .}}
 
-{{define "title"}}help -- lists.sh{{end}}
+{{define "title"}}help -- {{.Site.Domain}}{{end}}
 
 {{define "meta"}}
 <meta name="description" content="questions and answers" />
@@ -27,7 +27,7 @@
     <section id="blog-structure">
         <h2 class="text-xl">What should my blog folder look like?</h2>
         <p>
-            Currently <a href="/">lists.sh</a> only supports a flat folder structure.  Therefore,
+            Currently {{.Site.Domain}} only supports a flat folder structure.  Therefore,
             <code>scp -r</code> is not permitted.  We also only allow <code>.txt</code> files to be
             uploaded.
         </p>
@@ -70,10 +70,10 @@ third-post.txt</pre>
 
         <pre>
 cp /dev/null delete.txt
-scp ./delete.txt lists.sh:/</pre>
+scp ./delete.txt {{.Site.Domain}}:/</pre>
 
         <p>
-            Alternatively, you can go to <code>ssh lists.sh</code> and select "Manage posts."
+            Alternatively, you can go to <code>ssh {{.Site.Domain}}</code> and select "Manage posts."
             Then you can highlight the post you want to delete and then press "X."  It will ask for
             confirmation before actually removing the list.
         </p>
@@ -85,7 +85,7 @@ scp ./delete.txt lists.sh:/</pre>
             Nope!  Just <code>scp</code> the file you want to publish.  For example, if you created
             a new post called <code>taco-tuesday.txt</code> then you would publish it like this:
         </p>
-        <pre>scp ./taco-tuesday.txt lists.sh:</pre>
+        <pre>scp ./taco-tuesday.txt {{.Site.Domain}}:</pre>
     </section>
 
     <section id="blog-header">
@@ -122,7 +122,7 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
 
     <section id="blog-url">
         <h2 class="text-xl">What is my blog URL?</h2>
-        <pre>https://lists.sh/{username}</pre>
+        <pre>https://{username}.{{.Site.Domain}}</pre>
     </section>
 </main>
 {{template "marketing-footer" .}}

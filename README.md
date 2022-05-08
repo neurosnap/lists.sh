@@ -13,6 +13,8 @@ export POSTGRES_PASSWORD="secret"
 export DATABASE_URL="postgresql://postgres:secret@db/lists?sslmode=disable"
 export LISTS_SSH_PORT=2222
 export LISTS_WEB_PORT=3000
+export LISTS_DOMAIN="lists.sh"
+export LISTS_EMAIL="support@lists.sh"
 ```
 
 I just use `direnv` which will load my `.env` file.
@@ -64,6 +66,21 @@ Default port for ssh server is `2222`.
 ```
 
 Default port for web server is `3000`.
+
+### subdomains
+
+Since we use subdomains for blogs, you'll need to update your `/etc/hosts` file
+to accommodate.
+
+```bash
+# /etc/hosts
+127.0.0.1 lists.test
+127.0.0.1 erock.lists.test
+```
+
+Wildcards are not support in `/etc/hosts` so you'll have to add a subdomain for
+each blog in development. For this example you'll also want to change the domain 
+env var to `LISTS_DOMAIN=lists.test`.
 
 ## deployment
 

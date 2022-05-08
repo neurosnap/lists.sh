@@ -1,9 +1,9 @@
 {{template "base" .}}
 
-{{define "title"}}privacy -- lists.sh{{end}}
+{{define "title"}}privacy -- {{.Site.Domain}}{{end}}
 
 {{define "meta"}}
-<meta name="description" content="lists.sh privacy policy" />
+<meta name="description" content="{{.Site.Domain}} privacy policy" />
 {{end}}
 
 {{define "body"}}
@@ -15,7 +15,7 @@
     <section>
         <h2 class="text-xl">Account Data</h2>
         <p>
-            In order to have a functional account at lists.sh, we need to store
+            In order to have a functional account at {{.Site.Domain}}, we need to store
             your public key.  That is the only piece of information we record for a user.
         </p>
         <p>

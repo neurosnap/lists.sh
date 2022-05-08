@@ -1,4 +1,8 @@
-lists.sh {
-	tls webmaster@lists.sh
+*.lists.sh, lists.sh {
 	reverse_proxy web:3000
+	tls webmaster@lists.sh
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+	}
+	encode zstd gzip
 }

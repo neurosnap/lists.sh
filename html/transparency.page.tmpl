@@ -1,9 +1,9 @@
 {{template "base" .}}
 
-{{define "title"}}transparency -- lists.sh{{end}}
+{{define "title"}}transparency -- {{.Site.Domain}}{{end}}
 
 {{define "meta"}}
-<meta name="description" content="full transparency of analytics and cost at lists.sh" />
+<meta name="description" content="full transparency of analytics and cost at {{.Site.Domain}}" />
 {{end}}
 
 {{define "body"}}
@@ -20,27 +20,27 @@
 
         <article>
             <h2 class="text-lg">Total users</h2>
-            <div>{{.TotalUsers}}</div>
+            <div>{{.Analytics.TotalUsers}}</div>
         </article>
 
         <article>
             <h2 class="text-lg">New users in the last month</h2>
-            <div>{{.UsersLastMonth}}</div>
+            <div>{{.Analytics.UsersLastMonth}}</div>
         </article>
 
         <article>
             <h2 class="text-lg">Total posts</h2>
-            <div>{{.TotalPosts}}</div>
+            <div>{{.Analytics.TotalPosts}}</div>
         </article>
 
         <article>
             <h2 class="text-lg">New posts in the last month</h2>
-            <div>{{.PostsLastMonth}}</div>
+            <div>{{.Analytics.PostsLastMonth}}</div>
         </article>
 
         <article>
             <h2 class="text-lg">Users with at least one post</h2>
-            <div>{{.UsersWithPost}}</div>
+            <div>{{.Analytics.UsersWithPost}}</div>
         </article>
     </section>
 
