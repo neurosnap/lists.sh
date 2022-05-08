@@ -295,15 +295,15 @@ func createAccount(m CreateModel) tea.Cmd {
 			return NameInvalidMsg{}
 		}
 
-		user, err := registerUser(m)
-		if err != nil {
-			return errMsg{err}
-		}
-
 		// Validate before resetting the session to potentially save some
 		// network traffic and keep things feeling speedy.
 		if !m.dbpool.ValidateName(m.newName) {
 			return NameInvalidMsg{}
+		}
+
+		user, err := registerUser(m)
+		if err != nil {
+			return errMsg{err}
 		}
 
 		err = m.dbpool.SetUserName(user.ID, m.newName)
