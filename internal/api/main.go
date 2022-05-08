@@ -283,7 +283,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),
-		PublishAt:    post.PublishAt.Format("Mon January 2, 2006"),
+		PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
 		PublishAtISO: post.PublishAt.Format(time.RFC3339),
 		Username:     username,
 		BlogName:     blogName,

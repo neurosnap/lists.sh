@@ -1,6 +1,8 @@
 package info
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
@@ -73,7 +75,7 @@ func (m Model) bioView() string {
 	}
 	return common.KeyValueView(
 		"Username", username,
-		"Blog URL", internal.BlogURL(username),
+		"Blog URL", fmt.Sprintf("https:%s", internal.BlogURL(username)),
 		"Public key", m.User.PublicKey.Key,
 		"Joined", m.User.CreatedAt.Format("02 Jan 2006"),
 	)

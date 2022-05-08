@@ -3,6 +3,7 @@ package posts
 import (
 	"fmt"
 
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 )
@@ -15,6 +16,8 @@ type styledKey struct {
 	dateLabel string
 	dateVal   string
 	title     string
+	urlLabel  string
+	url       string
 }
 
 func (m Model) newStyledKey(styles common.Styles, post *db.Post) styledKey {
@@ -23,27 +26,31 @@ func (m Model) newStyledKey(styles common.Styles, post *db.Post) styledKey {
 	return styledKey{
 		styles:    styles,
 		gutter:    " ",
-		postLabel: "Post:",
+		postLabel: "post:",
 		date:      publishAt.String(),
-		dateLabel: "Added:",
-		dateVal:   styles.LabelDim.Render(publishAt.String()),
+		dateLabel: "added:",
+		dateVal:   styles.LabelDim.Render(publishAt.Format("02 Jan, 2006")),
 		title:     post.Title,
+		urlLabel:  "url:",
+		url:       fmt.Sprintf("https://%s.%s/%s", post.Username, internal.Domain, post.Filename),
 	}
 }
 
 // Selected state
 func (k *styledKey) selected() {
 	k.gutter = common.VerticalLine(common.StateSelected)
-	k.postLabel = k.styles.Label.Render("Post:")
-	k.dateLabel = k.styles.Label.Render("Added:")
+	k.postLabel = k.styles.Label.Render("post:")
+	k.dateLabel = k.styles.Label.Render("added:")
+	k.urlLabel = k.styles.Label.Render("url:")
 }
 
 // Deleting state
 func (k *styledKey) deleting() {
 	k.gutter = common.VerticalLine(common.StateDeleting)
-	k.postLabel = k.styles.Delete.Render("Post:")
-	k.dateLabel = k.styles.Delete.Render("Added:")
-	k.dateVal = k.styles.DeleteDim.Render(k.date)
+	k.postLabel = k.styles.Delete.Render("post:")
+	k.dateLabel = k.styles.Delete.Render("added:")
+	k.urlLabel = k.styles.Delete.Render("url:")
+	k.title = k.styles.DeleteDim.Render(k.title)
 }
 
 func (k styledKey) render(state postState) string {
@@ -54,8 +61,9 @@ func (k styledKey) render(state postState) string {
 		k.deleting()
 	}
 	return fmt.Sprintf(
-		"%s %s %s\n%s %s %s\n\n",
+		"%s %s %s\n%s %s %s\n%s %s %s\n\n",
 		k.gutter, k.postLabel, k.title,
 		k.gutter, k.dateLabel, k.dateVal,
+		k.gutter, k.urlLabel, k.url,
 	)
 }
