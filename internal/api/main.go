@@ -31,6 +31,7 @@ type PageData struct {
 
 type PostItemData struct {
 	URL          template.URL
+	BlogURL      template.URL
 	Username     string
 	Title        string
 	Description  string
@@ -197,6 +198,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			p := PostItemData{
 				URL:          template.URL(PostURL(post)),
+				BlogURL:      template.URL(internal.BlogURL(post.Username)),
 				Title:        internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
 				PublishAtISO: post.PublishAt.Format(time.RFC3339),
@@ -375,6 +377,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	for _, post := range pager.Data {
 		item := PostItemData{
 			URL:          template.URL(PostURL(post)),
+			BlogURL:      template.URL(internal.BlogURL(post.Username)),
 			Title:        internal.FilenameToTitle(post.Filename, post.Title),
 			Description:  post.Description,
 			Username:     post.Username,
