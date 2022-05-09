@@ -28,7 +28,7 @@ func (m Model) newStyledKey(styles common.Styles, post *db.Post) styledKey {
 		gutter:    " ",
 		postLabel: "post:",
 		date:      publishAt.String(),
-		dateLabel: "added:",
+		dateLabel: "publish_at:",
 		dateVal:   styles.LabelDim.Render(publishAt.Format("02 Jan, 2006")),
 		title:     post.Title,
 		urlLabel:  "url:",
@@ -40,7 +40,7 @@ func (m Model) newStyledKey(styles common.Styles, post *db.Post) styledKey {
 func (k *styledKey) selected() {
 	k.gutter = common.VerticalLine(common.StateSelected)
 	k.postLabel = k.styles.Label.Render("post:")
-	k.dateLabel = k.styles.Label.Render("added:")
+	k.dateLabel = k.styles.Label.Render("publish_at:")
 	k.urlLabel = k.styles.Label.Render("url:")
 }
 
@@ -48,7 +48,7 @@ func (k *styledKey) selected() {
 func (k *styledKey) deleting() {
 	k.gutter = common.VerticalLine(common.StateDeleting)
 	k.postLabel = k.styles.Delete.Render("post:")
-	k.dateLabel = k.styles.Delete.Render("added:")
+	k.dateLabel = k.styles.Delete.Render("publish_at:")
 	k.urlLabel = k.styles.Delete.Render("url:")
 	k.title = k.styles.DeleteDim.Render(k.title)
 }
