@@ -90,12 +90,12 @@ func (m *Model) indexBackward() {
 }
 
 // NewModel returns a new username model in its initial state.
-func NewModel(dbpool db.DB, user *db.User) Model {
+func NewModel(dbpool db.DB, user *db.User, sshUser string) Model {
 	st := common.DefaultStyles()
 
 	im := input.NewModel()
 	im.CursorStyle = st.Cursor
-	im.Placeholder = "divagurl2000"
+	im.Placeholder = sshUser
 	im.Prompt = st.FocusedPrompt.String()
 	im.CharLimit = 50
 	im.Focus()
@@ -116,9 +116,9 @@ func NewModel(dbpool db.DB, user *db.User) Model {
 }
 
 // Init is the Bubble Tea initialization function.
-func Init(dbpool db.DB, user *db.User) func() (Model, tea.Cmd) {
+func Init(dbpool db.DB, user *db.User, sshUser string) func() (Model, tea.Cmd) {
 	return func() (Model, tea.Cmd) {
-		m := NewModel(dbpool, user)
+		m := NewModel(dbpool, user, sshUser)
 		return m, InitialCmd()
 	}
 }
