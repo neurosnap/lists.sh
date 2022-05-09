@@ -249,7 +249,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m, cmd = updateChilden(msg, m)
+	m, cmd = updateChildren(msg, m)
 	if cmd != nil {
 		cmds = append(cmds, cmd)
 	}
@@ -257,7 +257,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
+func updateChildren(msg tea.Msg, m model) (model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch m.status {

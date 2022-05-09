@@ -10,6 +10,7 @@ import (
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
+	"github.com/neurosnap/lists.sh/internal/ui/createkey"
 )
 
 const keysPerPage = 4
@@ -22,6 +23,7 @@ const (
 	stateDeletingKey
 	stateDeletingActiveKey
 	stateDeletingAccount
+	stateCreateKey
 	stateQuitting
 )
 
@@ -40,12 +42,15 @@ func NewProgram(dbpool db.DB, user *db.User) *tea.Program {
 	return tea.NewProgram(m)
 }
 
+type errMsg struct {
+	err error
+}
+
+func (e errMsg) Error() string { return e.err.Error() }
+
 type (
 	keysLoadedMsg  []*db.PublicKey
 	unlinkedKeyMsg int
-	errMsg         struct {
-		err error
-	}
 )
 
 // Model is the Tea state model for this user interface.
@@ -63,6 +68,7 @@ type Model struct {
 	Exit           bool
 	Quit           bool
 	spinner        spinner.Model
+	createKey      createkey.Model
 }
 
 // getSelectedIndex returns the index of the cursor in relation to the total
@@ -117,65 +123,77 @@ func (m Model) Init() tea.Cmd {
 
 // Update is the tea update function which handles incoming messages.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmds []tea.Cmd
+		cmd  tea.Cmd
+	)
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q", "esc":
-			if m.standalone {
-				m.state = stateQuitting
-				return m, tea.Quit
-			}
+		switch msg.Type {
+		case tea.KeyCtrlC:
 			m.Exit = true
 			return m, nil
+		}
 
-		// Select individual items
-		case "up", "k":
-			// Move up
-			m.index--
-			if m.index < 0 && m.pager.Page > 0 {
-				m.index = m.pager.PerPage - 1
-				m.pager.PrevPage()
-			}
-			m.index = max(0, m.index)
-		case "down", "j":
-			// Move down
-			itemsOnPage := m.pager.ItemsOnPage(len(m.keys))
-			m.index++
-			if m.index > itemsOnPage-1 && m.pager.Page < m.pager.TotalPages-1 {
-				m.index = 0
-				m.pager.NextPage()
-			}
-			m.index = min(itemsOnPage-1, m.index)
-
-		// Delete
-		case "x":
-			m.state = stateDeletingKey
-			m.UpdatePaging(msg)
-			return m, nil
-
-		// Confirm Delete
-		case "y":
-			switch m.state {
-			case stateDeletingKey:
-				if len(m.keys) == 1 {
-					// The user is about to delete her account. Double confirm.
-					m.state = stateDeletingAccount
-					return m, nil
+		if m.state == stateNormal {
+			switch msg.String() {
+			case "q", "esc":
+				m.Exit = true
+				return m, nil
+			// Select individual items
+			case "up", "k":
+				// Move up
+				m.index--
+				if m.index < 0 && m.pager.Page > 0 {
+					m.index = m.pager.PerPage - 1
+					m.pager.PrevPage()
 				}
-				if m.getSelectedIndex() == m.activeKeyIndex {
-					// The user is going to delete her active key. Double confirm.
-					m.state = stateDeletingActiveKey
-					return m, nil
+				m.index = max(0, m.index)
+			case "down", "j":
+				// Move down
+				itemsOnPage := m.pager.ItemsOnPage(len(m.keys))
+				m.index++
+				if m.index > itemsOnPage-1 && m.pager.Page < m.pager.TotalPages-1 {
+					m.index = 0
+					m.pager.NextPage()
 				}
-				m.state = stateNormal
-				return m, unlinkKey(m)
-			case stateDeletingActiveKey:
-				// Active key will be deleted. Remove the key and exit.
-				fallthrough
-			case stateDeletingAccount:
-				// Account will be deleted. Remove the key and exit.
-				m.state = stateQuitting
-				return m, deleteAccount(m)
+				m.index = min(itemsOnPage-1, m.index)
+
+			case "n":
+				m.state = stateCreateKey
+				return m, nil
+
+			// Delete
+			case "x":
+				m.state = stateDeletingKey
+				m.UpdatePaging(msg)
+				return m, nil
+
+			// Confirm Delete
+			case "y":
+				switch m.state {
+				case stateDeletingKey:
+					if len(m.keys) == 1 {
+						// The user is about to delete her account. Double confirm.
+						m.state = stateDeletingAccount
+						return m, nil
+					}
+					if m.getSelectedIndex() == m.activeKeyIndex {
+						// The user is going to delete her active key. Double confirm.
+						m.state = stateDeletingActiveKey
+						return m, nil
+					}
+					m.state = stateNormal
+					return m, unlinkKey(m)
+				case stateDeletingActiveKey:
+					// Active key will be deleted. Remove the key and exit.
+					fallthrough
+				case stateDeletingAccount:
+					// Account will be deleted. Remove the key and exit.
+					m.state = stateQuitting
+					return m, deleteAccount(m)
+				}
 			}
 		}
 
@@ -206,6 +224,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
+	case createkey.KeySetMsg:
+		m.state = stateNormal
+		return m, fetchKeys(m.dbpool, m.user)
+
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		if m.state < stateNormal {
@@ -218,12 +240,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If an item is being confirmed for delete, any key (other than the key
 	// used for confirmation above) cancels the deletion
-	k, ok := msg.(tea.KeyMsg)
+	/* k, ok := msg.(tea.KeyMsg)
 	if ok && k.String() != "x" {
 		m.state = stateNormal
+	} */
+
+	m, cmd = updateChildren(msg, m)
+	if cmd != nil {
+		cmds = append(cmds, cmd)
 	}
 
-	return m, nil
+	return m, tea.Batch(cmds...)
+}
+
+func updateChildren(msg tea.Msg, m Model) (Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch m.state {
+	case stateCreateKey:
+		createKeyModel, newCmd := m.createKey.Update(msg)
+		m.createKey = createKeyModel
+		cmd = newCmd
+		if m.createKey.Done {
+			m.createKey = createkey.NewModel(m.dbpool, m.user) // reset the state
+			m.state = stateNormal
+		} else if m.createKey.Quit {
+			m.state = stateQuitting
+			return m, tea.Quit
+		}
+
+	}
+
+	return m, cmd
 }
 
 // View renders the current UI into a string.
@@ -239,6 +287,8 @@ func (m Model) View() string {
 		s = m.spinner.View() + " Loading...\n\n"
 	case stateQuitting:
 		s = fmt.Sprintf("Thanks for using %s!\n", internal.Domain)
+	case stateCreateKey:
+		s = m.createKey.View()
 	default:
 		s = fmt.Sprintf("Here are the keys linked to your %s account.\n\n", internal.Domain)
 
@@ -311,7 +361,7 @@ func helpView(m Model) string {
 	if m.pager.TotalPages > 1 {
 		items = append(items, "h/l, ←/→: page")
 	}
-	items = append(items, []string{"x: delete", "esc: exit"}...)
+	items = append(items, []string{"x: delete", "n: create", "esc: exit"}...)
 	return common.HelpView(items...)
 }
 
