@@ -11,10 +11,10 @@ import (
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 )
 
-type createState int
+type state int
 
 const (
-	ready createState = iota
+	ready state = iota
 	submitting
 )
 
@@ -43,7 +43,7 @@ type Model struct {
 	dbpool  db.DB
 	user    *db.User
 	styles  common.Styles
-	state   createState
+	state   state
 	newKey  string
 	index   index
 	errMsg  string
@@ -110,20 +110,12 @@ func NewModel(dbpool db.DB, user *db.User) Model {
 }
 
 // Init is the Bubble Tea initialization function.
-func Init(dbpool db.DB, user *db.User) func() (Model, tea.Cmd) {
-	return func() (Model, tea.Cmd) {
-		m := NewModel(dbpool, user)
-		return m, InitialCmd()
-	}
-}
-
-// InitialCmd returns the initial command.
-func InitialCmd() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return input.Blink
 }
 
 // Update is the Bubble Tea update loop.
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -183,6 +175,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			// in focus
 			if m.index == textInput {
 				var cmd tea.Cmd
+				fmt.Println(msg)
 				m.input, cmd = m.input.Update(msg)
 
 				return m, cmd

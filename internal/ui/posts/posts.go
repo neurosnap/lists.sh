@@ -2,12 +2,10 @@ package posts
 
 import (
 	"errors"
-	"fmt"
 
 	pager "github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/muesli/reflow/indent"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
@@ -36,13 +34,6 @@ const (
 	postDeleting
 )
 
-// NewProgram creates a new Tea program.
-func NewProgram(dbpool db.DB, user *db.User) *tea.Program {
-	m := NewModel(dbpool, user)
-	m.standalone = true
-	return tea.NewProgram(m)
-}
-
 type PostLoader struct {
 	Posts []*db.Post
 }
@@ -57,19 +48,18 @@ type (
 
 // Model is the Tea state model for this user interface.
 type Model struct {
-	dbpool     db.DB
-	user       *db.User
-	posts      []*db.Post
-	styles     common.Styles
-	pager      pager.Model
-	state      state
-	err        error
-	standalone bool
-	index      int // index of selected key in relation to the current page
-	Exit       bool
-	Quit       bool
-	spinner    spinner.Model
-	logger     *zap.SugaredLogger
+	dbpool  db.DB
+	user    *db.User
+	posts   []*db.Post
+	styles  common.Styles
+	pager   pager.Model
+	state   state
+	err     error
+	index   int // index of selected key in relation to the current page
+	Exit    bool
+	Quit    bool
+	spinner spinner.Model
+	logger  *zap.SugaredLogger
 }
 
 // getSelectedIndex returns the index of the cursor in relation to the total
@@ -129,10 +119,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			if m.standalone {
-				m.state = stateQuitting
-				return m, tea.Quit
-			}
 			m.Exit = true
 			return m, nil
 
@@ -250,9 +236,6 @@ func (m Model) View() string {
 		}
 	}
 
-	if m.standalone {
-		return indent.String(fmt.Sprintf("\n%s\n", s), 2)
-	}
 	return s
 }
 
@@ -323,9 +306,7 @@ func LoadPosts(m Model) tea.Cmd {
 			return errMsg{err}
 		}
 	}
-	if m.standalone {
-		return fetchPosts(m.dbpool, m.user.ID)
-	}
+
 	return tea.Batch(
 		fetchPosts(m.dbpool, m.user.ID),
 		spinner.Tick,

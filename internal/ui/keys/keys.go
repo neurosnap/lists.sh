@@ -6,7 +6,6 @@ import (
 	pager "github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/muesli/reflow/indent"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
@@ -35,13 +34,6 @@ const (
 	keyDeleting
 )
 
-// NewProgram creates a new Tea program.
-func NewProgram(dbpool db.DB, user *db.User) *tea.Program {
-	m := NewModel(dbpool, user)
-	m.standalone = true
-	return tea.NewProgram(m)
-}
-
 type errMsg struct {
 	err error
 }
@@ -61,7 +53,6 @@ type Model struct {
 	pager          pager.Model
 	state          state
 	err            error
-	standalone     bool
 	activeKeyIndex int             // index of the key in the below slice which is currently in use
 	keys           []*db.PublicKey // keys linked to user's account
 	index          int             // index of selected key in relation to the current page
@@ -236,6 +227,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
+	switch m.state {
+	case stateNormal:
+		m.createKey = createkey.NewModel(m.dbpool, m.user)
+	}
+
 	m.UpdatePaging(msg)
 
 	// If an item is being confirmed for delete, any key (other than the key
@@ -258,7 +254,11 @@ func updateChildren(msg tea.Msg, m Model) (Model, tea.Cmd) {
 
 	switch m.state {
 	case stateCreateKey:
-		createKeyModel, newCmd := m.createKey.Update(msg)
+		newModel, newCmd := m.createKey.Update(msg)
+		createKeyModel, ok := newModel.(createkey.Model)
+		if !ok {
+			panic("could not perform assertion on posts model")
+		}
 		m.createKey = createKeyModel
 		cmd = newCmd
 		if m.createKey.Done {
@@ -311,9 +311,6 @@ func (m Model) View() string {
 		}
 	}
 
-	if m.standalone {
-		return indent.String(fmt.Sprintf("\n%s\n", s), 2)
-	}
 	return s
 }
 
@@ -373,9 +370,6 @@ func (m Model) promptView(prompt string) string {
 
 // LoadKeys returns the command necessary for loading the keys.
 func LoadKeys(m Model) tea.Cmd {
-	if m.standalone {
-		return fetchKeys(m.dbpool, m.user)
-	}
 	return tea.Batch(
 		fetchKeys(m.dbpool, m.user),
 		spinner.Tick,
