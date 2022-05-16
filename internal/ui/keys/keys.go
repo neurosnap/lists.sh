@@ -193,6 +193,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = stateNormal
 		m.index = 0
 		m.keys = msg
+		for i, key := range m.keys {
+			if key.Key == m.user.PublicKey.Key {
+				m.activeKeyIndex = i
+			}
+		}
 
 	case unlinkedKeyMsg:
 		if m.state == stateQuitting {
@@ -209,6 +214,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Update cursor
 		m.index = min(m.index, m.pager.ItemsOnPage(len(m.keys)-1))
+		for i, key := range m.keys {
+			if key.Key == m.user.PublicKey.Key {
+				m.activeKeyIndex = i
+			}
+		}
 
 		return m, nil
 
