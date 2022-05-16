@@ -127,14 +127,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		if m.state == stateNormal {
+		if m.state != stateCreateKey {
 			switch msg.String() {
 			case "q", "esc":
 				m.Exit = true
 				return m, nil
-			// Select individual items
 			case "up", "k":
-				// Move up
 				m.index--
 				if m.index < 0 && m.pager.Page > 0 {
 					m.index = m.pager.PerPage - 1
@@ -142,7 +140,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.index = max(0, m.index)
 			case "down", "j":
-				// Move down
 				itemsOnPage := m.pager.ItemsOnPage(len(m.keys))
 				m.index++
 				if m.index > itemsOnPage-1 && m.pager.Page < m.pager.TotalPages-1 {
@@ -230,16 +227,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 	case stateNormal:
 		m.createKey = createkey.NewModel(m.dbpool, m.user)
+	case stateDeletingKey:
+		// If an item is being confirmed for delete, any key (other than the key
+		// used for confirmation above) cancels the deletion
+		k, ok := msg.(tea.KeyMsg)
+		if ok && k.String() != "y" {
+			m.state = stateNormal
+		}
 	}
 
 	m.UpdatePaging(msg)
-
-	// If an item is being confirmed for delete, any key (other than the key
-	// used for confirmation above) cancels the deletion
-	/* k, ok := msg.(tea.KeyMsg)
-	if ok && k.String() != "x" {
-		m.state = stateNormal
-	} */
 
 	m, cmd = updateChildren(msg, m)
 	if cmd != nil {

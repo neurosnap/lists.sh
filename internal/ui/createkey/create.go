@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
+	"golang.org/x/crypto/ssh"
 )
 
 type state int
@@ -175,7 +176,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// in focus
 			if m.index == textInput {
 				var cmd tea.Cmd
-				fmt.Println(msg)
 				m.input, cmd = m.input.Update(msg)
 
 				return m, cmd
@@ -187,7 +187,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case KeyInvalidMsg:
 		m.state = ready
 		head := m.styles.Error.Render("Invalid public key. ")
-		helpMsg := fmt.Sprintf("Public keys must but in the correct format of: ALGORITHM HASH")
+		helpMsg := fmt.Sprintf("Public keys must but in the correct format")
 		body := m.styles.Subtle.Render(helpMsg)
 		m.errMsg = m.styles.Wrap.Render(head + body)
 
@@ -241,8 +241,21 @@ func spinnerView(m Model) string {
 	return m.spinner.View() + " Submitting..."
 }
 
+func IsPublicKeyValid(key string) bool {
+	if len(key) == 0 {
+		return false
+	}
+
+	_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+	return err == nil
+}
+
 func addPublicKey(m Model) tea.Cmd {
 	return func() tea.Msg {
+		if !IsPublicKeyValid(m.newKey) {
+			return KeyInvalidMsg{}
+		}
+
 		err := m.dbpool.LinkUserKey(m.user.ID, m.newKey)
 		if err != nil {
 			return errMsg{err}
