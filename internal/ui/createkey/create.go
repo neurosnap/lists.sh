@@ -1,4 +1,4 @@
-package username
+package createkey
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
+	"golang.org/x/crypto/ssh"
 )
 
 type state int
@@ -18,7 +19,6 @@ const (
 	submitting
 )
 
-// index specifies the UI element that's in focus.
 type index int
 
 const (
@@ -27,30 +27,25 @@ const (
 	cancelButton
 )
 
-// NameSetMsg is sent when a new name has been set successfully. It contains
-// the new name.
-type NameSetMsg string
+type KeySetMsg string
 
-// NameTakenMsg is sent when the requested username has already been taken.
-type NameTakenMsg struct{}
+type KeyInvalidMsg struct{}
 
-// NameInvalidMsg is sent when the requested username has failed validation.
-type NameInvalidMsg struct{}
-
-type errMsg struct{ err error }
+type errMsg struct {
+	err error
+}
 
 func (e errMsg) Error() string { return e.err.Error() }
 
-// Model holds the state of the username UI.
 type Model struct {
-	Done bool // true when it's time to exit this view
-	Quit bool // true when the user wants to quit the whole program
+	Done bool
+	Quit bool
 
 	dbpool  db.DB
 	user    *db.User
 	styles  common.Styles
 	state   state
-	newName string
+	newKey  string
 	index   index
 	errMsg  string
 	input   input.Model
@@ -90,14 +85,14 @@ func (m *Model) indexBackward() {
 }
 
 // NewModel returns a new username model in its initial state.
-func NewModel(dbpool db.DB, user *db.User, sshUser string) Model {
+func NewModel(dbpool db.DB, user *db.User) Model {
 	st := common.DefaultStyles()
 
 	im := input.NewModel()
 	im.CursorStyle = st.Cursor
-	im.Placeholder = sshUser
+	im.Placeholder = "ssh-ed25519 AAAA..."
 	im.Prompt = st.FocusedPrompt.String()
-	im.CharLimit = 50
+	im.CharLimit = 500
 	im.Focus()
 
 	return Model{
@@ -107,7 +102,7 @@ func NewModel(dbpool db.DB, user *db.User, sshUser string) Model {
 		user:    user,
 		styles:  st,
 		state:   ready,
-		newName: "",
+		newKey:  "",
 		index:   textInput,
 		errMsg:  "",
 		input:   im,
@@ -116,20 +111,12 @@ func NewModel(dbpool db.DB, user *db.User, sshUser string) Model {
 }
 
 // Init is the Bubble Tea initialization function.
-func Init(dbpool db.DB, user *db.User, sshUser string) func() (Model, tea.Cmd) {
-	return func() (Model, tea.Cmd) {
-		m := NewModel(dbpool, user, sshUser)
-		return m, InitialCmd()
-	}
-}
-
-// InitialCmd returns the initial command.
-func InitialCmd() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return input.Blink
 }
 
 // Update is the Bubble Tea update loop.
-func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -173,10 +160,10 @@ func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
 				case okButton: // Submit the form
 					m.state = submitting
 					m.errMsg = ""
-					m.newName = strings.TrimSpace(m.input.Value())
+					m.newKey = strings.TrimSpace(m.input.Value())
 
 					return m, tea.Batch(
-						setName(m), // fire off the command, too
+						addPublicKey(m), // fire off the command, too
 						spinner.Tick,
 					)
 				case cancelButton: // Exit this mini-app
@@ -197,19 +184,10 @@ func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
 			return m, nil
 		}
 
-	case NameTakenMsg:
+	case KeyInvalidMsg:
 		m.state = ready
-		m.errMsg = m.styles.Subtle.Render("Sorry, ") +
-			m.styles.Error.Render(m.newName) +
-			m.styles.Subtle.Render(" is taken.")
-
-		return m, nil
-
-	case NameInvalidMsg:
-		m.state = ready
-		head := m.styles.Error.Render("Invalid name. ")
-		deny := strings.Join(db.DenyList, ", ")
-		helpMsg := fmt.Sprintf("Names can only contain plain letters and numbers and must be less than 50 characters. No emjois. No names from deny list: %s", deny)
+		head := m.styles.Error.Render("Invalid public key. ")
+		helpMsg := fmt.Sprintf("Public keys must but in the correct format")
 		body := m.styles.Subtle.Render(helpMsg)
 		m.errMsg = m.styles.Wrap.Render(head + body)
 
@@ -238,8 +216,8 @@ func Update(msg tea.Msg, m Model) (Model, tea.Cmd) {
 }
 
 // View renders current view from the model.
-func View(m Model) string {
-	s := "Enter a new username\n\n"
+func (m Model) View() string {
+	s := "Enter a new public key\n\n"
 	s += m.input.View() + "\n\n"
 
 	if m.state == submitting {
@@ -255,30 +233,34 @@ func View(m Model) string {
 	return s
 }
 
-func nameSetView(m Model) string {
-	return "OK! Your new username is " + m.newName
+func keySetView(m Model) string {
+	return "OK! Your new public key is " + m.newKey
 }
 
 func spinnerView(m Model) string {
 	return m.spinner.View() + " Submitting..."
 }
 
-// Attempt to update the username on the server.
-func setName(m Model) tea.Cmd {
+func IsPublicKeyValid(key string) bool {
+	if len(key) == 0 {
+		return false
+	}
+
+	_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+	return err == nil
+}
+
+func addPublicKey(m Model) tea.Cmd {
 	return func() tea.Msg {
-		// Validate before resetting the session to potentially save some
-		// network traffic and keep things feeling speedy.
-		if !m.dbpool.ValidateName(m.newName) {
-			return NameInvalidMsg{}
+		if !IsPublicKeyValid(m.newKey) {
+			return KeyInvalidMsg{}
 		}
 
-		err := m.dbpool.SetUserName(m.user.ID, m.newName)
-		if err == db.ErrNameTaken {
-			return NameTakenMsg{}
-		} else if err != nil {
+		err := m.dbpool.LinkUserKey(m.user.ID, m.newKey)
+		if err != nil {
 			return errMsg{err}
 		}
 
-		return NameSetMsg(m.newName)
+		return KeySetMsg(m.newKey)
 	}
 }

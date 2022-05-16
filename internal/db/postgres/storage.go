@@ -43,6 +43,8 @@ const (
 	sqlUpdateUserName = `UPDATE app_users SET name = $1 WHERE id = $2`
 
 	sqlRemovePosts = `DELETE FROM posts WHERE id IN ($1)`
+	sqlRemoveKeys  = `DELETE FROM public_keys WHERE id IN ($1)`
+	sqlRemoveUsers = `DELETE FROM app_users WHERE id IN ($1)`
 )
 
 type PsqlDB struct {
@@ -70,6 +72,11 @@ func (me *PsqlDB) AddUser() (string, error) {
 		return "", err
 	}
 	return id, nil
+}
+
+func (me *PsqlDB) RemoveUsers(userIDs []string) error {
+	_, err := me.db.Exec(sqlRemoveUsers, strings.Join(userIDs, ","))
+	return err
 }
 
 func (me *PsqlDB) LinkUserKey(userID string, key string) error {
@@ -132,6 +139,11 @@ func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
 		return keys, rs.Err()
 	}
 	return keys, nil
+}
+
+func (me *PsqlDB) RemoveKeys(keyIDs []string) error {
+	_, err := me.db.Exec(sqlRemoveKeys, strings.Join(keyIDs, ","))
+	return err
 }
 
 func (me *PsqlDB) SiteAnalytics() (*db.Analytics, error) {

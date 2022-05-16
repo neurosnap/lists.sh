@@ -17,7 +17,6 @@ var (
 	faintRed     = lipgloss.AdaptiveColor{Light: "#FF6F91", Dark: "#C74665"}
 )
 
-// Styles describes style definitions for various portions of the Charm TUI.
 type Styles struct {
 	Cursor,
 	Wrap,
@@ -44,7 +43,6 @@ type Styles struct {
 	App lipgloss.Style
 }
 
-// DefaultStyles returns default styles for the Charm TUI.
 func DefaultStyles() Styles {
 	s := Styles{}
 

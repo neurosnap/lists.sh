@@ -20,6 +20,7 @@ import (
 	"github.com/neurosnap/lists.sh/internal/ui/account"
 	"github.com/neurosnap/lists.sh/internal/ui/common"
 	"github.com/neurosnap/lists.sh/internal/ui/info"
+	"github.com/neurosnap/lists.sh/internal/ui/keys"
 	"github.com/neurosnap/lists.sh/internal/ui/posts"
 	"github.com/neurosnap/lists.sh/internal/ui/username"
 )
@@ -33,6 +34,7 @@ const (
 	statusNoAccount
 	statusLinking
 	statusBrowsingPosts
+	statusBrowsingKeys
 	statusSettingUsername
 	statusQuitting
 	statusError
@@ -44,6 +46,7 @@ func (s status) String() string {
 		"ready",
 		"setting username",
 		"browsing posts",
+		"browsing keys",
 		"quitting",
 		"error",
 	}[s]
@@ -56,6 +59,7 @@ type menuChoice int
 const (
 	setUserChoice menuChoice = iota
 	postsChoice
+	keysChoice
 	exitChoice
 	unsetChoice // set when no choice has been made
 )
@@ -63,6 +67,7 @@ const (
 // menu text corresponding to menu choices. these are presented to the user.
 var menuChoices = map[menuChoice]string{
 	setUserChoice: "Set username",
+	keysChoice:    "Manage keys",
 	postsChoice:   "Manage posts",
 	exitChoice:    "Exit",
 }
@@ -112,6 +117,7 @@ func Handler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		publicKey:  key,
 		dbpool:     dbpool,
 		user:       user,
+		sshUser:    sshUser,
 		status:     statusInit,
 		menuChoice: unsetChoice,
 		styles:     common.DefaultStyles(),
@@ -127,6 +133,7 @@ type model struct {
 	dbpool        db.DB
 	user          *db.User
 	err           error
+	sshUser       string
 	status        status
 	menuIndex     int
 	menuChoice    menuChoice
@@ -136,13 +143,12 @@ type model struct {
 	spinner       spinner.Model
 	username      username.Model
 	posts         posts.Model
+	keys          keys.Model
 	createAccount account.CreateModel
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(
-		spinner.Tick,
-	)
+	return spinner.Tick
 }
 
 func FindUser(dbpool db.DB, publicKey string, sshUser string) (*db.User, error) {
@@ -217,19 +223,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.status = statusReady
 		m.info.User.Name = string(msg)
 		m.user = m.info.User
-		m.username = username.NewModel(m.dbpool, m.user) // reset the state
+		m.username = username.NewModel(m.dbpool, m.user, m.sshUser) // reset the state
 	case account.CreateAccountMsg:
 		m.status = statusReady
 		m.info.User = msg
 		m.user = msg
+		m.username = username.NewModel(m.dbpool, m.user, m.sshUser)
+		m.info = info.NewModel(m.user)
+		m.posts = posts.NewModel(m.dbpool, m.user)
+		m.keys = keys.NewModel(m.dbpool, m.user)
 		m.createAccount = account.NewCreateModel(m.dbpool, m.publicKey)
 	}
 
 	switch m.status {
 	case statusInit:
-		m.username = username.NewModel(m.dbpool, m.user)
+		m.username = username.NewModel(m.dbpool, m.user, m.sshUser)
 		m.info = info.NewModel(m.user)
 		m.posts = posts.NewModel(m.dbpool, m.user)
+		m.keys = keys.NewModel(m.dbpool, m.user)
 		m.createAccount = account.NewCreateModel(m.dbpool, m.publicKey)
 		if m.user == nil {
 			m.status = statusNoAccount
@@ -238,7 +249,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m, cmd = updateChilden(msg, m)
+	m, cmd = updateChildren(msg, m)
 	if cmd != nil {
 		cmds = append(cmds, cmd)
 	}
@@ -246,11 +257,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
+func updateChildren(msg tea.Msg, m model) (model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch m.status {
-	// User info
 	case statusBrowsingPosts:
 		newModel, newCmd := m.posts.Update(msg)
 		postsModel, ok := newModel.(posts.Model)
@@ -267,11 +277,26 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 			m.status = statusQuitting
 			return m, tea.Quit
 		}
-	// Username tool
+	case statusBrowsingKeys:
+		newModel, newCmd := m.keys.Update(msg)
+		keysModel, ok := newModel.(keys.Model)
+		if !ok {
+			panic("could not perform assertion on posts model")
+		}
+		m.keys = keysModel
+		cmd = newCmd
+
+		if m.keys.Exit {
+			m.keys = keys.NewModel(m.dbpool, m.user)
+			m.status = statusReady
+		} else if m.keys.Quit {
+			m.status = statusQuitting
+			return m, tea.Quit
+		}
 	case statusSettingUsername:
 		m.username, cmd = username.Update(msg, m.username)
 		if m.username.Done {
-			m.username = username.NewModel(m.dbpool, m.user) // reset the state
+			m.username = username.NewModel(m.dbpool, m.user, m.sshUser) // reset the state
 			m.status = statusReady
 		} else if m.username.Quit {
 			m.status = statusQuitting
@@ -298,6 +323,10 @@ func updateChilden(msg tea.Msg, m model) (model, tea.Cmd) {
 		m.status = statusBrowsingPosts
 		m.menuChoice = unsetChoice
 		cmd = posts.LoadPosts(m.posts)
+	case keysChoice:
+		m.status = statusBrowsingKeys
+		m.menuChoice = unsetChoice
+		cmd = keys.LoadKeys(m.keys)
 	case exitChoice:
 		m.status = statusQuitting
 		m.dbpool.Close()
@@ -362,6 +391,8 @@ func (m model) View() string {
 		s += username.View(m.username)
 	case statusBrowsingPosts:
 		s += m.posts.View()
+	case statusBrowsingKeys:
+		s += m.keys.View()
 	}
 	return m.styles.App.Render(wrap.String(wordwrap.String(s, w), w))
 }

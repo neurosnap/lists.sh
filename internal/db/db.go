@@ -62,9 +62,11 @@ var DenyList = []string{"admin", "abuse", "cgi", "ops", "help", "spec", "root"}
 
 type DB interface {
 	AddUser() (string, error)
+	RemoveUsers(userIDs []string) error
 	LinkUserKey(userID string, key string) error
 	PublicKeyForKey(key string) (*PublicKey, error)
 	ListKeysForUser(user *User) ([]*PublicKey, error)
+	RemoveKeys(keyIDs []string) error
 
 	SiteAnalytics() (*Analytics, error)
 
