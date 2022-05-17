@@ -124,6 +124,24 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
         <h2 class="text-xl">What is my blog URL?</h2>
         <pre>https://{username}.{{.Site.Domain}}</pre>
     </section>
+
+    <section id="continuous-deployment">
+        <h2 class="text-xl">How can I automatically publish my post?</h2>
+        <p>
+            There is a github action that we built to make it easy to publish your blog automatically.
+        </p>
+        <ul>
+            <li>
+                <a href="https://github.com/marketplace/actions/lists-publish-action">github marketplace</a>
+            </li>
+            <li>
+                <a href="https://github.com/neurosnap/lists-official-blog/blob/main/.github/workflows/publish.yml">example workflow</a>
+            </li>
+        </ul>
+        <p>
+            A user also created a systemd task to automatically publish new posts.  <a href="https://github.com/neurosnap/lists.sh/discussions/24">Check out this github discussion for more details.</a>
+        </p>
+    </section>
 </main>
 {{template "marketing-footer" .}}
 {{end}}
