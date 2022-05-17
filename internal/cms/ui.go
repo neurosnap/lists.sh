@@ -160,7 +160,7 @@ func FindUser(dbpool db.DB, publicKey string, sshUser string) (*db.User, error) 
 
 	var err error
 	if user == nil {
-		logger.Infof("(%s) not found, finding user based on public key (%s)", sshUser, publicKey)
+		logger.Infof("(%s) not found with provided key, finding user based on public key (%s)", sshUser, publicKey)
 		user, err = dbpool.UserForKey(publicKey)
 	}
 

@@ -250,13 +250,29 @@ func IsPublicKeyValid(key string) bool {
 	return err == nil
 }
 
+func sanitizeKey(key string) string {
+	// comments are removed when using our ssh app so
+	// we need to be sure to remove them from the public key
+	parts := strings.Split(key, " ")
+	keep := []string{}
+	for i, part := range parts {
+		if i == 2 {
+			break
+		}
+		keep = append(keep, strings.Trim(part, " "))
+	}
+
+	return strings.Join(keep, " ")
+}
+
 func addPublicKey(m Model) tea.Cmd {
 	return func() tea.Msg {
 		if !IsPublicKeyValid(m.newKey) {
 			return KeyInvalidMsg{}
 		}
 
-		err := m.dbpool.LinkUserKey(m.user.ID, m.newKey)
+		key := sanitizeKey(m.newKey)
+		err := m.dbpool.LinkUserKey(m.user.ID, key)
 		if err != nil {
 			return errMsg{err}
 		}
