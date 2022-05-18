@@ -66,7 +66,7 @@ type PostPageData struct {
 	Description  string
 	Username     string
 	BlogName     string
-	ListType     string
+	MetaData     *pkg.MetaData
 	Items        []*pkg.ListItem
 	PublishAtISO string
 	PublishAt    string
@@ -281,13 +281,13 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		URL:          template.URL(PostURL(post)),
 		BlogURL:      template.URL(internal.BlogURL(username)),
 		Description:  post.Description,
-		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),
 		PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
 		PublishAtISO: post.PublishAt.Format(time.RFC3339),
 		Username:     username,
 		BlogName:     blogName,
 		Items:        parsedText.Items,
+		MetaData:     parsedText.MetaData,
 	}
 
 	ts, err := renderTemplate([]string{
@@ -451,7 +451,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
 		data := &PostPageData{
-			ListType: parsed.MetaData.ListType,
+			MetaData: parsed.MetaData,
 			Items:    parsed.Items,
 		}
 		if err := ts.Execute(&tpl, data); err != nil {
@@ -509,7 +509,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
 		data := &PostPageData{
-			ListType: parsed.MetaData.ListType,
+			MetaData: parsed.MetaData,
 			Items:    parsed.Items,
 		}
 		if err := ts.Execute(&tpl, data); err != nil {

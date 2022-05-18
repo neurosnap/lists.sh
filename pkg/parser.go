@@ -23,6 +23,8 @@ type ListItem struct {
 	IsHeaderTwo bool
 	IsImg       bool
 	IsPre       bool
+	IsChild     bool
+	Children    *ParsedText
 }
 
 type MetaData struct {
@@ -39,6 +41,8 @@ var imgToken = "=<"
 var headerOneToken = "#"
 var headerTwoToken = "##"
 var preToken = "```"
+var nestedSpaceToken = "  "
+var nestedTabToken = '\t'
 
 type SplitToken struct {
 	Key   string
@@ -132,6 +136,19 @@ func ParseText(text string) *ParsedText {
 			nextValue := strings.Replace(li.Value, preToken, "", 1)
 			prevItem.Value = fmt.Sprintf("%s\n%s", prevItem.Value, nextValue)
 			skip = true
+		} else if strings.HasPrefix(t, nestedSpaceToken) {
+			nextItem := ParseText(li.Value)
+
+			if prevItem.IsChild {
+				prevItem.Children.Items = append(prevItem.Children.Items, nextItem.Items...)
+				skip = true
+			} else {
+				li.IsChild = true
+				li.Children = &ParsedText{
+					MetaData: nextItem.MetaData,
+					Items:    nextItem.Items,
+				}
+			}
 		} else if strings.HasPrefix(li.Value, urlToken) {
 			li.IsURL = true
 			split := TextToSplitToken(strings.Replace(li.Value, urlToken, "", 1))

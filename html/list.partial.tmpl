@@ -1,5 +1,5 @@
 {{define "list"}}
-<ul style="list-style-type: {{.ListType}};">
+<ul style="list-style-type: {{.MetaData.ListType}};">
     {{range .Items}}
         {{if .IsText}}
             {{if .Value}}
@@ -20,15 +20,19 @@
         {{end}}
 
         {{if .IsHeaderOne}}
-        </ul><h2 class="text-xl font-bold">{{.Value}}</h2><ul style="list-style-type: {{$.ListType}};">
+        </ul><h2 class="text-xl font-bold">{{.Value}}</h2><ul style="list-style-type: {{$.MetaData.ListType}};">
         {{end}}
 
         {{if .IsHeaderTwo}}
-        </ul><h3 class="text-lg font-bold">{{.Value}}</h3><ul style="list-style-type: {{$.ListType}};">
+        </ul><h3 class="text-lg font-bold">{{.Value}}</h3><ul style="list-style-type: {{$.MetaData.ListType}};">
         {{end}}
 
         {{if .IsPre}}
         <li><pre>{{.Value}}</pre></li>
+        {{end}}
+
+        {{if .IsChild}}
+        <li style="list-style: none;">{{template "list" .Children}}</li>
         {{end}}
     {{end}}
 </ul>
