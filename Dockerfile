@@ -1,12 +1,13 @@
 FROM golang:1.18.1-alpine3.15 AS builder
-WORKDIR /app
-COPY . ./
 
 RUN apk add --no-cache git
 
-RUN go mod tidy
+WORKDIR /app
+COPY . ./
+
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/ssh ./cmd/ssh
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/web ./cmd/web
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/gemini ./cmd/gemini
 
 FROM alpine:3.15 AS ssh
 WORKDIR /app
@@ -19,3 +20,10 @@ COPY --from=0 /app/build/web ./
 COPY --from=0 /app/html ./html
 COPY --from=0 /app/public ./public
 CMD ["./web"]
+
+FROM alpine:3.15 AS gemini
+WORKDIR /app
+COPY --from=0 /app/build/gemini ./
+COPY --from=0 /app/gmi ./gmi
+ENV LISTS_SUBDOMAINS=0
+CMD ["./gemini"]

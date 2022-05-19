@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/db"
 	"go.uber.org/zap"
 )
@@ -31,7 +32,8 @@ func CreateServe(routes []Route, subdomainRoutes []Route, dbpool db.DB, logger *
 		var allow []string
 		curRoutes := routes
 		subdomain := GetRequestSubdomain(r)
-		if subdomain != "" {
+
+		if internal.IsSubdomains() && subdomain != "" {
 			curRoutes = subdomainRoutes
 		}
 

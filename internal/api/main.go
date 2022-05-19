@@ -17,14 +17,6 @@ import (
 	"github.com/neurosnap/lists.sh/pkg"
 )
 
-func PostURL(post *db.Post) string {
-	return fmt.Sprintf("//%s.%s/%s", post.Username, internal.Domain, post.Filename)
-}
-
-func ReadURL() string {
-	return fmt.Sprintf("https://%s/read", internal.Domain)
-}
-
 type PageData struct {
 	Site internal.SitePageData
 }
@@ -129,16 +121,16 @@ type ReadmeTxt struct {
 	Items    []*pkg.ListItem
 }
 
-func getUsernameFromRequest(r *http.Request) string {
+func GetUsernameFromRequest(r *http.Request) string {
 	subdomain := routeHelper.GetSubdomain(r)
-	if subdomain == "" {
+	if !internal.IsSubdomains() || subdomain == "" {
 		return routeHelper.GetField(r, 0)
 	}
 	return subdomain
 }
 
 func blogHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -167,7 +159,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: getBlogName(username),
+		Title: GetBlogName(username),
 		Bio:   "",
 	}
 	readmeTxt := &ReadmeTxt{}
@@ -197,7 +189,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			p := PostItemData{
-				URL:          template.URL(PostURL(post)),
+				URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 				BlogURL:      template.URL(internal.BlogURL(post.Username)),
 				Title:        internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
@@ -225,7 +217,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPostTitle(post *db.Post) string {
+func GetPostTitle(post *db.Post) string {
 	if post.Description == "" {
 		return post.Title
 	}
@@ -233,15 +225,15 @@ func getPostTitle(post *db.Post) string {
 	return fmt.Sprintf("%s: %s", post.Title, post.Description)
 }
 
-func getBlogName(username string) string {
+func GetBlogName(username string) string {
 	return fmt.Sprintf("%s's blog", username)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	subdomain := routeHelper.GetSubdomain(r)
 	var filename string
-	if subdomain == "" {
+	if !internal.IsSubdomains() || subdomain == "" {
 		filename = routeHelper.GetField(r, 1)
 	} else {
 		filename = routeHelper.GetField(r, 0)
@@ -258,7 +250,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
-	blogName := getBlogName(username)
+	blogName := GetBlogName(username)
 	if header != nil {
 		headerParsed := pkg.ParseText(header.Text)
 		if headerParsed.MetaData.Title != "" {
@@ -277,8 +269,8 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PostPageData{
 		Site:         internal.SiteData,
-		PageTitle:    getPostTitle(post),
-		URL:          template.URL(PostURL(post)),
+		PageTitle:    GetPostTitle(post),
+		URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 		BlogURL:      template.URL(internal.BlogURL(username)),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
@@ -376,7 +368,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, post := range pager.Data {
 		item := PostItemData{
-			URL:          template.URL(PostURL(post)),
+			URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 			BlogURL:      template.URL(internal.BlogURL(post.Username)),
 			Title:        internal.FilenameToTitle(post.Filename, post.Title),
 			Description:  post.Description,
@@ -395,7 +387,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -420,7 +412,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: getBlogName(username),
+		Title: GetBlogName(username),
 	}
 
 	for _, post := range posts {
@@ -460,7 +452,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: PostURL(post)},
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
@@ -498,7 +490,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
-		Link:        &feeds.Link{Href: ReadURL()},
+		Link:        &feeds.Link{Href: internal.ReadURL()},
 		Description: fmt.Sprintf("%s latest posts", internal.Domain),
 		Author:      &feeds.Author{Name: internal.Domain},
 		Created:     time.Now(),
@@ -518,7 +510,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: PostURL(post)},
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
