@@ -3,6 +3,7 @@ module github.com/neurosnap/lists.sh
 go 1.18
 
 require (
+	git.sr.ht/~adnano/go-gemini v0.2.3
 	github.com/charmbracelet/bubbles v0.10.3
 	github.com/charmbracelet/bubbletea v0.20.0
 	github.com/charmbracelet/lipgloss v0.5.0
@@ -33,6 +34,8 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20211210111614-af8b64212486 // indirect
 	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
+	golang.org/x/text v0.3.6 // indirect
 )

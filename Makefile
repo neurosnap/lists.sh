@@ -7,6 +7,7 @@ DB_CONTAINER?=listssh_db_1
 build:
 	go build -o build/web ./cmd/web
 	go build -o build/ssh ./cmd/ssh
+	go build -o build/gemini ./cmd/gemini
 .PHONY: build
 
 format:

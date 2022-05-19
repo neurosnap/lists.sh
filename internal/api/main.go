@@ -129,7 +129,7 @@ type ReadmeTxt struct {
 	Items    []*pkg.ListItem
 }
 
-func getUsernameFromRequest(r *http.Request) string {
+func GetUsernameFromRequest(r *http.Request) string {
 	subdomain := routeHelper.GetSubdomain(r)
 	if subdomain == "" {
 		return routeHelper.GetField(r, 0)
@@ -138,7 +138,7 @@ func getUsernameFromRequest(r *http.Request) string {
 }
 
 func blogHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -167,7 +167,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: getBlogName(username),
+		Title: GetBlogName(username),
 		Bio:   "",
 	}
 	readmeTxt := &ReadmeTxt{}
@@ -225,7 +225,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPostTitle(post *db.Post) string {
+func GetPostTitle(post *db.Post) string {
 	if post.Description == "" {
 		return post.Title
 	}
@@ -233,12 +233,12 @@ func getPostTitle(post *db.Post) string {
 	return fmt.Sprintf("%s: %s", post.Title, post.Description)
 }
 
-func getBlogName(username string) string {
+func GetBlogName(username string) string {
 	return fmt.Sprintf("%s's blog", username)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	subdomain := routeHelper.GetSubdomain(r)
 	var filename string
 	if subdomain == "" {
@@ -258,7 +258,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
-	blogName := getBlogName(username)
+	blogName := GetBlogName(username)
 	if header != nil {
 		headerParsed := pkg.ParseText(header.Text)
 		if headerParsed.MetaData.Title != "" {
@@ -277,7 +277,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PostPageData{
 		Site:         internal.SiteData,
-		PageTitle:    getPostTitle(post),
+		PageTitle:    GetPostTitle(post),
 		URL:          template.URL(PostURL(post)),
 		BlogURL:      template.URL(internal.BlogURL(username)),
 		Description:  post.Description,
@@ -395,7 +395,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
-	username := getUsernameFromRequest(r)
+	username := GetUsernameFromRequest(r)
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
@@ -420,7 +420,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headerTxt := &HeaderTxt{
-		Title: getBlogName(username),
+		Title: GetBlogName(username),
 	}
 
 	for _, post := range posts {

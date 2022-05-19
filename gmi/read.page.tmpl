@@ -1,0 +1,15 @@
+{{template "base" .}}
+
+{{define "body"}}
+# read
+discover interesting lists
+=> gemini://{{.Site.Domain}}/rss rss
+
+{{if .NextPage}}=> {{.NextPage}} next{{end}}
+{{if .PrevPage}}=> {{.PrevPage}} prev{{end}}
+
+{{range .Posts}}
+{{.PublishAt}}
+=> {{.URL}} {{.Title}}
+{{end}}
+{{end}}
