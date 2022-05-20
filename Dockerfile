@@ -1,10 +1,10 @@
 FROM golang:1.18.1-alpine3.15 AS builder
-WORKDIR /app
-COPY . ./
 
 RUN apk add --no-cache git
 
-RUN go mod tidy
+WORKDIR /app
+COPY . ./
+
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/ssh ./cmd/ssh
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/web ./cmd/web
 
