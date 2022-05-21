@@ -17,14 +17,6 @@ import (
 	"github.com/neurosnap/lists.sh/pkg"
 )
 
-func PostURL(post *db.Post) string {
-	return fmt.Sprintf("//%s.%s/%s", post.Username, internal.Domain, post.Filename)
-}
-
-func ReadURL() string {
-	return fmt.Sprintf("https://%s/read", internal.Domain)
-}
-
 type PageData struct {
 	Site internal.SitePageData
 }
@@ -197,7 +189,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			p := PostItemData{
-				URL:          template.URL(PostURL(post)),
+				URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 				BlogURL:      template.URL(internal.BlogURL(post.Username)),
 				Title:        internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
@@ -278,7 +270,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	data := PostPageData{
 		Site:         internal.SiteData,
 		PageTitle:    GetPostTitle(post),
-		URL:          template.URL(PostURL(post)),
+		URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 		BlogURL:      template.URL(internal.BlogURL(username)),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
@@ -376,7 +368,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, post := range pager.Data {
 		item := PostItemData{
-			URL:          template.URL(PostURL(post)),
+			URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
 			BlogURL:      template.URL(internal.BlogURL(post.Username)),
 			Title:        internal.FilenameToTitle(post.Filename, post.Title),
 			Description:  post.Description,
@@ -460,7 +452,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: PostURL(post)},
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,
@@ -498,7 +490,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
-		Link:        &feeds.Link{Href: ReadURL()},
+		Link:        &feeds.Link{Href: internal.ReadURL()},
 		Description: fmt.Sprintf("%s latest posts", internal.Domain),
 		Author:      &feeds.Author{Name: internal.Domain},
 		Created:     time.Now(),
@@ -518,7 +510,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		feedItems = append(feedItems, &feeds.Item{
 			Id:          post.ID,
 			Title:       post.Title,
-			Link:        &feeds.Link{Href: PostURL(post)},
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,
 			Content:     tpl.String(),
 			Created:     *post.PublishAt,

@@ -170,7 +170,7 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 			}
 		} else {
 			p := api.PostItemData{
-				URL:          html.URL(api.PostURL(post)),
+				URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
 				BlogURL:      html.URL(internal.BlogURL(post.Username)),
 				Title:        internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
@@ -236,8 +236,8 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	}
 	for _, post := range pager.Data {
 		item := api.PostItemData{
-			URL:          html.URL(fmt.Sprintf("/%s/%s", post.Username, post.Filename)),
-			BlogURL:      html.URL(fmt.Sprintf("/%s", post.Username)),
+			URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
+			BlogURL:      html.URL(internal.BlogURL(post.Username)),
 			Title:        internal.FilenameToTitle(post.Filename, post.Title),
 			Description:  post.Description,
 			Username:     post.Username,
@@ -245,6 +245,70 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 			PublishAtISO: post.PublishAt.Format(time.RFC3339),
 		}
 		data.Posts = append(data.Posts, item)
+	}
+
+	err = ts.Execute(w, data)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+	}
+}
+
+func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
+	username := GetField(ctx, 0)
+	filename := GetField(ctx, 1)
+
+	dbpool := GetDB(ctx)
+	logger := GetLogger(ctx)
+
+	user, err := dbpool.UserForName(username)
+	if err != nil {
+		logger.Infof("blog not found: %s", username)
+		w.WriteHeader(gemini.StatusNotFound, "blog not found")
+		return
+	}
+
+	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
+	blogName := api.GetBlogName(username)
+	if header != nil {
+		headerParsed := pkg.ParseText(header.Text)
+		if headerParsed.MetaData.Title != "" {
+			blogName = headerParsed.MetaData.Title
+		}
+	}
+
+	post, err := dbpool.FindPostWithFilename(filename, user.ID)
+	if err != nil {
+		logger.Infof("post not found %s/%s", username, filename)
+		w.WriteHeader(gemini.StatusNotFound, "post not found")
+		return
+	}
+
+	parsedText := pkg.ParseText(post.Text)
+
+	data := api.PostPageData{
+		Site:         internal.SiteData,
+		PageTitle:    api.GetPostTitle(post),
+		URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
+		BlogURL:      html.URL(internal.BlogURL(username)),
+		Description:  post.Description,
+		ListType:     parsedText.MetaData.ListType,
+		Title:        internal.FilenameToTitle(post.Filename, post.Title),
+		PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
+		PublishAtISO: post.PublishAt.Format(time.RFC3339),
+		Username:     username,
+		BlogName:     blogName,
+		Items:        parsedText.Items,
+	}
+
+	ts, err := renderTemplate([]string{
+		"./gmi/post.page.tmpl",
+		"./gmi/list.partial.tmpl",
+	})
+
+	if err != nil {
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
 	}
 
 	err = ts.Execute(w, data)
@@ -270,6 +334,7 @@ func StartServer() {
 		NewRoute("/", createPageHandler("./gmi/marketing.page.tmpl")),
 		NewRoute("/read", readHandler),
 		NewRoute("/([^/]+)", blogHandler),
+		NewRoute("/([^/]+)/([^/]+)", postHandler),
 	}
 	handler := CreateServe(routes, db, logger)
 	router := gemini.HandlerFunc(handler)

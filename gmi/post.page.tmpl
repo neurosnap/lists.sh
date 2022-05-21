@@ -3,6 +3,7 @@
 {{define "body"}}
 # {{.Title}}
 {{.PublishAt}} on {{.BlogName}}
+
 {{if .Description}}{{.Description}}{{end}}
 
 {{template "list" .}}

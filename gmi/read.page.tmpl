@@ -3,7 +3,7 @@
 {{define "body"}}
 # read
 discover interesting lists
-=> gemini://{{.Site.Domain}}/rss rss
+=> /rss rss
 
 {{if .NextPage}}=> {{.NextPage}} next{{end}}
 {{if .PrevPage}}=> {{.PrevPage}} prev{{end}}

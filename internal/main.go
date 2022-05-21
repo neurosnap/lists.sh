@@ -27,22 +27,55 @@ type SitePageData struct {
 
 var Domain = GetEnv("LISTS_DOMAIN", "lists.sh")
 var Email = GetEnv("LISTS_EMAIL", "support@lists.sh")
+var SubdomainsEnabled = GetEnv("LISTS_SUBDOMAINS", "0")
 var SiteData = SitePageData{
 	Domain:  template.URL(Domain),
 	HomeURL: template.URL(HomeURL()),
 	Email:   Email,
 }
 
+func IsSubdomains() bool {
+	return SubdomainsEnabled == "1"
+}
+
 func BlogURL(username string) string {
-	return fmt.Sprintf("//%s.%s", username, Domain)
+	if IsSubdomains() {
+		return fmt.Sprintf("//%s.%s", username, Domain)
+	}
+
+	return fmt.Sprintf("/%s", username)
 }
 
 func RssBlogURL(username string) string {
-	return fmt.Sprintf("//%s.%s/rss", username, Domain)
+	if IsSubdomains() {
+		return fmt.Sprintf("//%s.%s/rss", username, Domain)
+	}
+
+	return fmt.Sprintf("/%s/rss", username)
 }
 
 func HomeURL() string {
-	return fmt.Sprintf("//%s", Domain)
+	if IsSubdomains() {
+		return fmt.Sprintf("//%s", Domain)
+	}
+
+	return "/"
+}
+
+func PostURL(username string, filename string) string {
+	if IsSubdomains() {
+		return fmt.Sprintf("//%s.%s/%s", username, Domain, filename)
+	}
+
+	return fmt.Sprintf("/%s/%s", username, filename)
+}
+
+func ReadURL() string {
+	if IsSubdomains() {
+		return fmt.Sprintf("https://%s/read", Domain)
+	}
+
+	return "/read"
 }
 
 func CreateLogger() *zap.SugaredLogger {
