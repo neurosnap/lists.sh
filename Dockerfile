@@ -25,4 +25,5 @@ FROM alpine:3.15 AS gemini
 WORKDIR /app
 COPY --from=0 /app/build/web ./
 COPY --from=0 /app/gmi ./gmi
+ENV LISTS_SUBDOMAINS=0
 CMD ["./gemini"]
