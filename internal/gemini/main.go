@@ -517,7 +517,9 @@ func StartServer() {
 		NewRoute("/privacy", createPageHandler("./gmi/privacy.page.tmpl")),
 		NewRoute("/transparency", transparencyHandler),
 		NewRoute("/read", readHandler),
+		NewRoute("/rss", rssHandler),
 		NewRoute("/([^/]+)", blogHandler),
+		NewRoute("/([^/]+)/rss", rssBlogHandler),
 		NewRoute("/([^/]+)/([^/]+)", postHandler),
 	}
 	handler := CreateServe(routes, db, logger)
