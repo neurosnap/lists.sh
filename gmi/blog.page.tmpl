@@ -1,20 +1,20 @@
 {{template "base" .}}
 {{define "body"}}
 # {{.Header.Title}}
-
 {{.Header.Bio}}
 {{range .Header.Nav}}
 {{if .IsURL}}=> {{.URL}} {{.Value}}{{end}}
-{{end}}
+{{- end}}
 => {{.RSSURL}} rss
 
-{{if .Readme.HasItems}}---
-{{template "list" .Readme}}
-{{end}}
+{{- if .Readme.HasItems}}
+
 ---
+{{- template "list" .Readme -}}
+{{- end}}
 {{range .Posts}}
 {{.PublishAt}}
 => {{.URL}} {{.Title}}
 {{end}}
-{{template "footer" .}}
+{{- template "footer" . -}}
 {{end}}

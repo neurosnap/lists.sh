@@ -3,10 +3,10 @@
 {{define "body"}}
 # {{.Title}}
 {{.PublishAt}}
-=> {{.BlogURL}} {{.BlogName}}
 {{if .Description}}{{.Description}}{{end}}
+=> {{.BlogURL}} on {{.BlogName}}
 
-{{template "list" .}}
-
-{{template "footer" .}}
+---
+{{- template "list" . -}}
+{{- template "footer" . -}}
 {{end}}
