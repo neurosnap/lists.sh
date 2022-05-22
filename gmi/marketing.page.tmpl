@@ -3,7 +3,10 @@
 {{define "body"}}
 # {{.Site.Domain}}
 A microblog for lists
+
 => /read discover some interesting lists
+
+---
 
 ## Examples
 
@@ -15,13 +18,19 @@ A microblog for lists
 ## Create your account
 
 We don't want your email address.
+
 To get started, simply ssh into our content management system:
+
 => ssh {{.Site.Domain}}
+
 After that, just set a username and you're ready to start writing!
 
 ## You control the source files
+
 Create lists using your favorite editor in plain text files.
+
 `~/blog/days-in-week.txt`
+
 ```
 Sunday
 Monday
@@ -35,20 +44,22 @@ Saturday
 ## Publish your posts with one command
 
 When your post is ready to be published, copy the file to our server with a familiar command:
+
 ```
 scp ~/blog/*.txt {{.Site.Domain}}
 ```
+
 note: if using openssh v9+, also supply the `-O` flag.
 We'll either create or update the lists for you.
 
 ## Terminal workflow without installation
 
-Since we are leveraging tools you already have on your computer (`ssh` and `scp`), there is nothing to install.
-This provides the convenience of a web app, but from inside your terminal!
+Since we are leveraging tools you already have on your computer (`ssh` and `scp`), there is nothing to install. This provides the convenience of a web app, but from inside your terminal!
 
 ## Plain text format
 
 A simple specification that is flexible and with no frills.
+
 => /spec specification
 
 ## Features

@@ -2,7 +2,9 @@
 
 {{define "body"}}
 # {{.Title}}
-{{.PublishAt}} on {{.BlogName}}
+{{.PublishAt}}
+
+=> {{.BlogURL}} {{.BlogName}}
 
 {{if .Description}}{{.Description}}{{end}}
 

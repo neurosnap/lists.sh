@@ -2,7 +2,6 @@
 
 {{define "body"}}
 # Plain text list
-
 Speculative specification
 
 ## Overview
@@ -116,10 +115,11 @@ These variables will not be rendered to the user inside the list.
 
 ### List of available variables:
 
-* <code>title</code> (custom title not dependent on filename)</li>
-* <code>description</code> (what is the purpose of this list?)</li>
-* <code>publish_at</code> (format must be <code>YYYY-MM-DD</code>)</li>
-* <code>list_type</code> (customize bullets; value gets sent directly to css property list-style-type[3])
+* `title` (custom title not dependent on filename)
+* `description` (what is the purpose of this list?)
+* `publish_at` (format must be `YYYY-MM-DD`)
+* `list_type` (customize bullets; value gets sent directly to css property list-style-type[3])
 
 => https://developer.mozilla.org/en-US/docs/Web/CSS/list-style-type [3]
+{{template "marketing-footer" .}}
 {{end}}
