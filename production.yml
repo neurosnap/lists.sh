@@ -40,6 +40,8 @@ services:
       - "1965:1965"
     links:
       - db
+    volumes:
+      - gemini_data:/var/lib/gemini/certs
   ssh:
     image: neurosnap/lists-ssh
     restart: unless-stopped
@@ -57,3 +59,4 @@ volumes:
   caddy_data:
   ssh_data:
   caddy_config:
+  gemini_data:
