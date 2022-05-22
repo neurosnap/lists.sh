@@ -32,7 +32,7 @@ func (m Model) newStyledKey(styles common.Styles, post *db.Post) styledKey {
 		dateVal:   styles.LabelDim.Render(publishAt.Format("02 Jan, 2006")),
 		title:     post.Title,
 		urlLabel:  "url:",
-		url:       fmt.Sprintf("https://%s.%s/%s", post.Username, internal.Domain, post.Filename),
+		url:       internal.PostURL(post.Username, post.Filename),
 	}
 }
 

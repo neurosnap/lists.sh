@@ -123,7 +123,7 @@ type ReadmeTxt struct {
 
 func GetUsernameFromRequest(r *http.Request) string {
 	subdomain := routeHelper.GetSubdomain(r)
-	if subdomain == "" {
+	if !internal.IsSubdomains() || subdomain == "" {
 		return routeHelper.GetField(r, 0)
 	}
 	return subdomain
@@ -233,7 +233,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	username := GetUsernameFromRequest(r)
 	subdomain := routeHelper.GetSubdomain(r)
 	var filename string
-	if subdomain == "" {
+	if !internal.IsSubdomains() || subdomain == "" {
 		filename = routeHelper.GetField(r, 1)
 	} else {
 		filename = routeHelper.GetField(r, 0)
