@@ -1,6 +1,7 @@
 package gemini
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	html "html/template"
@@ -13,6 +14,7 @@ import (
 
 	"git.sr.ht/~adnano/go-gemini"
 	"git.sr.ht/~adnano/go-gemini/certificate"
+	"github.com/gorilla/feeds"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/api"
 	"github.com/neurosnap/lists.sh/internal/db"
@@ -318,6 +320,183 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	}
 }
 
+func transparencyHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
+	dbpool := GetDB(ctx)
+	logger := GetLogger(ctx)
+
+	analytics, err := dbpool.SiteAnalytics()
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	ts, err := template.ParseFiles(
+		"./gmi/transparency.page.tmpl",
+		"./gmi/footer.partial.tmpl",
+		"./gmi/marketing-footer.partial.tmpl",
+		"./gmi/base.layout.tmpl",
+	)
+
+	if err != nil {
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	data := api.TransparencyPageData{
+		Site:      internal.SiteData,
+		Analytics: analytics,
+	}
+	err = ts.Execute(w, data)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+	}
+}
+
+func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
+	username := GetField(ctx, 0)
+	dbpool := GetDB(ctx)
+	logger := GetLogger(ctx)
+
+	user, err := dbpool.UserForName(username)
+	if err != nil {
+		logger.Infof("rss feed not found: %s", username)
+		w.WriteHeader(gemini.StatusNotFound, "rss feed not found")
+		return
+	}
+	posts, err := dbpool.PostsForUser(user.ID)
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	ts, err := template.ParseFiles("./gmi/rss.page.tmpl", "./gmi/list.partial.tmpl")
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	headerTxt := &api.HeaderTxt{
+		Title: api.GetBlogName(username),
+	}
+
+	for _, post := range posts {
+		if post.Filename == "_header" {
+			parsedText := pkg.ParseText(post.Text)
+			if parsedText.MetaData.Title != "" {
+				headerTxt.Title = parsedText.MetaData.Title
+			}
+
+			if parsedText.MetaData.Description != "" {
+				headerTxt.Bio = parsedText.MetaData.Description
+			}
+
+			break
+		}
+	}
+
+	feed := &feeds.Feed{
+		Title:       headerTxt.Title,
+		Link:        &feeds.Link{Href: internal.BlogURL(username)},
+		Description: headerTxt.Bio,
+		Author:      &feeds.Author{Name: username},
+		Created:     time.Now(),
+	}
+
+	var feedItems []*feeds.Item
+	for _, post := range posts {
+		parsed := pkg.ParseText(post.Text)
+		var tpl bytes.Buffer
+		data := &api.PostPageData{
+			ListType: parsed.MetaData.ListType,
+			Items:    parsed.Items,
+		}
+		if err := ts.Execute(&tpl, data); err != nil {
+			continue
+		}
+		feedItems = append(feedItems, &feeds.Item{
+			Id:          post.ID,
+			Title:       post.Title,
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Description: post.Description,
+			Content:     tpl.String(),
+			Created:     *post.PublishAt,
+		})
+	}
+	feed.Items = feedItems
+
+	rss, err := feed.ToAtom()
+	if err != nil {
+		logger.Fatal(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, "Could not generate atom rss feed")
+		return
+	}
+
+	// w.Header().Add("Content-Type", "application/atom+xml")
+	fmt.Fprintf(w, rss)
+}
+
+func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
+	dbpool := GetDB(ctx)
+	logger := GetLogger(ctx)
+
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 50, Page: 0})
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	ts, err := template.ParseFiles("./gmi/rss.page.tmpl", "./gmi/list.partial.tmpl")
+	if err != nil {
+		logger.Error(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
+		return
+	}
+
+	feed := &feeds.Feed{
+		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
+		Link:        &feeds.Link{Href: internal.ReadURL()},
+		Description: fmt.Sprintf("%s latest posts", internal.Domain),
+		Author:      &feeds.Author{Name: internal.Domain},
+		Created:     time.Now(),
+	}
+
+	var feedItems []*feeds.Item
+	for _, post := range pager.Data {
+		parsed := pkg.ParseText(post.Text)
+		var tpl bytes.Buffer
+		data := &api.PostPageData{
+			ListType: parsed.MetaData.ListType,
+			Items:    parsed.Items,
+		}
+		if err := ts.Execute(&tpl, data); err != nil {
+			continue
+		}
+		feedItems = append(feedItems, &feeds.Item{
+			Id:          post.ID,
+			Title:       post.Title,
+			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Description: post.Description,
+			Content:     tpl.String(),
+			Created:     *post.PublishAt,
+		})
+	}
+	feed.Items = feedItems
+
+	rss, err := feed.ToAtom()
+	if err != nil {
+		logger.Fatal(err)
+		w.WriteHeader(gemini.StatusTemporaryFailure, "Could not generate atom rss feed")
+	}
+
+	// w.Header().Add("Content-Type", "application/atom+xml")
+	fmt.Fprintf(w, rss)
+}
+
 func StartServer() {
 	db := postgres.NewDB()
 	defer db.Close()
@@ -332,6 +511,11 @@ func StartServer() {
 
 	routes := []Route{
 		NewRoute("/", createPageHandler("./gmi/marketing.page.tmpl")),
+		NewRoute("/spec", createPageHandler("./gmi/spec.page.tmpl")),
+		NewRoute("/help", createPageHandler("./gmi/help.page.tmpl")),
+		NewRoute("/ops", createPageHandler("./gmi/ops.page.tmpl")),
+		NewRoute("/privacy", createPageHandler("./gmi/privacy.page.tmpl")),
+		NewRoute("/transparency", transparencyHandler),
 		NewRoute("/read", readHandler),
 		NewRoute("/([^/]+)", blogHandler),
 		NewRoute("/([^/]+)/([^/]+)", postHandler),
