@@ -62,7 +62,12 @@ bp-web:
 	docker push neurosnap/lists-web
 .PHONY: bp-web
 
-bp: bp-ssh bp-web bp-caddy
+bp-gemini:
+	docker build -t neurosnap/lists-gemini --target gemini .
+	docker push neurosnap/lists-gemini
+.PHONY: bp-gemini
+
+bp: bp-ssh bp-web bp-gemini bp-caddy
 .PHONY: bp
 
 deploy:
