@@ -8,8 +8,9 @@
 {{end}}
 => {{.RSSURL}} rss
 
----
-{{if .Readme.HasItems}}{{template "list" .Readme}}{{end}}
+{{if .Readme.HasItems}}---
+{{template "list" .Readme}}
+{{end}}
 ---
 {{range .Posts}}
 {{.PublishAt}}
