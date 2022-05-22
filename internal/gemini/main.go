@@ -499,12 +499,12 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 
 func StartServer() {
 	db := postgres.NewDB()
-	defer db.Close()
 	logger := internal.CreateLogger()
 
 	certificates := &certificate.Store{}
 	certificates.Register("localhost")
 	certificates.Register("lists.sh")
+	certificates.Register("*.lists.sh")
 	if err := certificates.Load("/var/lib/gemini/certs"); err != nil {
 		logger.Fatal(err)
 	}
@@ -550,6 +550,7 @@ func StartServer() {
 	case <-c:
 		// Shutdown the server
 		logger.Info("Shutting down...")
+		db.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		err := server.Shutdown(ctx)
