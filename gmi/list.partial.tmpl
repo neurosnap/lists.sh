@@ -10,10 +10,10 @@
 => {{.URL}} {{.Value}}
 {{- else if .IsBlock}}
 > {{.Value}}
-{{else if .IsHeaderOne}}
+{{- else if .IsHeaderOne}}
 
 ## {{.Value}}
-{{else if .IsHeaderTwo}}
+{{- else if .IsHeaderTwo}}
 
 ### {{.Value}}
 {{- else if .IsPre}}
