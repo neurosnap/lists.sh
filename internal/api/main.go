@@ -631,5 +631,9 @@ func StartServer() {
 	port := internal.GetEnv("LISTS_WEB_PORT", "3000")
 	portStr := fmt.Sprintf(":%s", port)
 	logger.Infof("Starting server on port %s", port)
+	logger.Infof("Subdomains enabled: %s", internal.SubdomainsEnabled)
+	logger.Infof("Domain: %s", internal.Domain)
+	logger.Infof("Email: %s", internal.Email)
+
 	logger.Fatal(http.ListenAndServe(portStr, router))
 }
