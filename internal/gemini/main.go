@@ -14,7 +14,7 @@ import (
 
 	"git.sr.ht/~adnano/go-gemini"
 	"git.sr.ht/~adnano/go-gemini/certificate"
-	"github.com/gorilla/feeds"
+	feeds "git.sr.ht/~aw/gorilla-feeds"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/internal/api"
 	"github.com/neurosnap/lists.sh/internal/db"

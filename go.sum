@@ -1,5 +1,7 @@
 git.sr.ht/~adnano/go-gemini v0.2.3 h1:oJ+Y0/mheZ4Vg0ABjtf5dlmvq1yoONStiaQvmWWkofc=
 git.sr.ht/~adnano/go-gemini v0.2.3/go.mod h1:hQ75Y0i5jSFL+FQ7AzWVAYr5LQsaFC7v3ZviNyj46dY=
+git.sr.ht/~aw/gorilla-feeds v1.1.4 h1:bL78pZ1DtHEhumHK0iWQi30uwEkWtetMfnyt9TFcdlc=
+git.sr.ht/~aw/gorilla-feeds v1.1.4/go.mod h1:VLpbtNDEWoaJKU41Crj6r3ChvlqYvBm56c0O6IM457g=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be h1:9AeTilPcZAjCFIImctFaOjnTIavg87rW78vTPkQqLI8=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be/go.mod h1:ySMOLuWl6zY27l47sB3qLNK6tF2fkHG55UZxx8oIVo4=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=

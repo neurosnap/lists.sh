@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	git.sr.ht/~adnano/go-gemini v0.2.3
+	git.sr.ht/~aw/gorilla-feeds v1.1.4
 	github.com/charmbracelet/bubbles v0.10.3
 	github.com/charmbracelet/bubbletea v0.20.0
 	github.com/charmbracelet/lipgloss v0.5.0
