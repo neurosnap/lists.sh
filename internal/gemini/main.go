@@ -417,14 +417,20 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 		if err := ts.Execute(&tpl, data); err != nil {
 			continue
 		}
-		feedItems = append(feedItems, &feeds.Item{
-			Id:          internal.PostURL(post.Username, post.Filename),
-			Title:       post.Title,
-			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
-			Description: post.Description,
-			Content:     tpl.String(),
-			Created:     *post.PublishAt,
-		})
+
+		item := &feeds.Item{
+			Id:      internal.PostURL(post.Username, post.Filename),
+			Title:   post.Title,
+			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Content: tpl.String(),
+			Created: *post.PublishAt,
+		}
+
+		if post.Description != "" {
+			item.Description = post.Description
+		}
+
+		feedItems = append(feedItems, item)
 	}
 	feed.Items = feedItems
 
@@ -476,14 +482,20 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 		if err := ts.Execute(&tpl, data); err != nil {
 			continue
 		}
-		feedItems = append(feedItems, &feeds.Item{
-			Id:          internal.PostURL(post.Username, post.Filename),
-			Title:       post.Title,
-			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
-			Description: post.Description,
-			Content:     tpl.String(),
-			Created:     *post.PublishAt,
-		})
+
+		item := &feeds.Item{
+			Id:      internal.PostURL(post.Username, post.Filename),
+			Title:   post.Title,
+			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Content: tpl.String(),
+			Created: *post.PublishAt,
+		}
+
+		if post.Description != "" {
+			item.Description = post.Description
+		}
+
+		feedItems = append(feedItems, item)
 	}
 	feed.Items = feedItems
 
