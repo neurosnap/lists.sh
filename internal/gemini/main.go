@@ -418,7 +418,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 			continue
 		}
 		feedItems = append(feedItems, &feeds.Item{
-			Id:          post.ID,
+			Id:          internal.PostURL(post.Username, post.Filename),
 			Title:       post.Title,
 			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,
@@ -477,7 +477,7 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 			continue
 		}
 		feedItems = append(feedItems, &feeds.Item{
-			Id:          post.ID,
+			Id:          internal.PostURL(post.Username, post.Filename),
 			Title:       post.Title,
 			Link:        &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
 			Description: post.Description,

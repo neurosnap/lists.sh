@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"math"
+	"net/url"
 	"os"
 	pathpkg "path"
 	"path/filepath"
@@ -63,11 +64,12 @@ func HomeURL() string {
 }
 
 func PostURL(username string, filename string) string {
+	fname := url.PathEscape(filename)
 	if IsSubdomains() {
-		return fmt.Sprintf("//%s.%s/%s", username, Domain, filename)
+		return fmt.Sprintf("//%s.%s/%s", username, Domain, fname)
 	}
 
-	return fmt.Sprintf("/%s/%s", username, filename)
+	return fmt.Sprintf("/%s/%s", username, fname)
 }
 
 func ReadURL() string {
