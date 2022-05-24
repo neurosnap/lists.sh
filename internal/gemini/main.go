@@ -243,8 +243,9 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 
 	longest := 0
 	for _, post := range pager.Data {
-		if len(post.Username) > longest {
-			longest = len(post.Username)
+		size := len(internal.TimeAgo(post.UpdatedAt))
+		if size > longest {
+			longest = size
 		}
 	}
 
@@ -259,8 +260,9 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 			PublishAtISO:   post.PublishAt.Format(time.RFC3339),
 			UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
 			UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
-			Padding:        strings.Repeat(" ", longest-len(post.Username)),
 		}
+
+		item.Padding = strings.Repeat(" ", longest-len(item.UpdatedTimeAgo))
 		data.Posts = append(data.Posts, item)
 	}
 
