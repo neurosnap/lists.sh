@@ -9,10 +9,7 @@
 {{define "body"}}
 <header class="text-center">
     <h1 class="text-2xl font-bold">read</h1>
-    <p class="text-lg">discover interesting lists</p>
-    <p class="text-lg">
-        <a href="/rss">rss</a>
-    </p>
+    <p class="text-lg">recently updated lists</p>
     <hr />
 </header>
 <main>
@@ -23,7 +20,7 @@
     {{range .Posts}}
     <article>
         <div class="flex items-center">
-            <time datetime="{{.PublishAtISO}}" class="font-italic text-sm post-date">{{.PublishAt}}</time>
+            <time datetime="{{.UpdatedAtISO}}" class="font-italic text-sm post-date">{{.UpdatedTimeAgo}}</time>
             <div class="flex-1">
                 <h2 class="inline"><a href="{{.URL}}">{{.Title}}</a></h2>
                 <address class="text-sm inline">
@@ -34,5 +31,5 @@
     </article>
     {{end}}
 </main>
-{{template "footer" .}}
+{{template "marketing-footer" .}}
 {{end}}

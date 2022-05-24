@@ -31,6 +31,7 @@ type Post struct {
 	Description string     `json:"description"`
 	PublishAt   *time.Time `json:"publish_at"`
 	Username    string     `json:"username"`
+	UpdatedAt   *time.Time `json:"updated_at"`
 }
 
 type Paginate[T any] struct {
@@ -81,6 +82,7 @@ type DB interface {
 	FindPostsForUser(userID string) ([]*Post, error)
 	FindPostWithFilename(filename string, userID string) (*Post, error)
 	FindAllPosts(pager *Pager) (*Paginate[*Post], error)
+	FindAllUpdatedPosts(pager *Pager) (*Paginate[*Post], error)
 	InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*Post, error)
 	UpdatePost(postID string, title string, text string, description string, publishAt *time.Time) (*Post, error)
 	RemovePosts(postIDs []string) error

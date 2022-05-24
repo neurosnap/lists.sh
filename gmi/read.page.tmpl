@@ -2,14 +2,12 @@
 
 {{define "body"}}
 # read
-discover interesting lists
-
-=> /rss rss
+recently updated lists
 
 {{if .NextPage}}=> {{.NextPage}} next{{end}}
 {{if .PrevPage}}=> {{.PrevPage}} prev{{end}}
 {{range .Posts}}
-{{.PublishAt}}
-=> {{.URL}} {{.Title}}
-{{end}}
+=> {{.URL}} {{.Title}} ({{.UpdatedTimeAgo}})
+{{- end}}
+{{template "marketing-footer" .}}
 {{end}}

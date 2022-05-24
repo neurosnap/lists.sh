@@ -29,10 +29,11 @@ const (
 	sqlSelectPostsLastMonth = `SELECT count(id) FROM posts WHERE created_at >= $1`
 	sqlSelectUsersWithPost  = `SELECT count(app_users.id) FROM app_users WHERE EXISTS (SELECT 1 FROM posts WHERE user_id = app_users.id);`
 
-	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
-	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
-	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 AND publish_at::date <= CURRENT_DATE ORDER BY publish_at DESC`
-	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' AND publish_at::date <= CURRENT_DATE ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
+	sqlSelectPostWithFilename = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username, posts.updated_at FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename = $1 AND user_id = $2`
+	sqlSelectPost             = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username, posts.updated_at FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE posts.id = $1`
+	sqlSelectPostsForUser     = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username, posts.updated_at FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE user_id = $1 AND publish_at::date <= CURRENT_DATE ORDER BY updated_at DESC`
+	sqlSelectAllPosts         = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username, posts.updated_at FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' AND publish_at::date <= CURRENT_DATE ORDER BY publish_at DESC LIMIT $1 OFFSET $2`
+	sqlSelectAllUpdatedPosts  = `SELECT posts.id, user_id, filename, title, text, description, publish_at, app_users.name as username, posts.updated_at FROM posts LEFT OUTER JOIN app_users ON app_users.id = posts.user_id WHERE filename <> '_readme' AND filename <> '_header' AND publish_at::date <= CURRENT_DATE ORDER BY updated_at DESC LIMIT $1 OFFSET $2`
 	sqlSelectPostCount        = `SELECT count(id) FROM posts WHERE filename <> '_readme' AND filename <> '_header'`
 
 	sqlInsertPublicKey = `INSERT INTO public_keys (user_id, public_key) VALUES ($1, $2)`
@@ -274,6 +275,7 @@ func (me *PsqlDB) FindPostWithFilename(filename string, persona_id string) (*db.
 		&post.Description,
 		&post.PublishAt,
 		&post.Username,
+		&post.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -294,6 +296,7 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 		&post.Description,
 		&post.PublishAt,
 		&post.Username,
+		&post.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -302,12 +305,8 @@ func (me *PsqlDB) FindPost(postID string) (*db.Post, error) {
 	return post, nil
 }
 
-func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
+func (me *PsqlDB) postPager(rs *sql.Rows, pageNum int) (*db.Paginate[*db.Post], error) {
 	var posts []*db.Post
-	rs, err := me.db.Query(sqlSelectAllPosts, page.Num, page.Num*page.Page)
-	if err != nil {
-		return nil, err
-	}
 	for rs.Next() {
 		post := &db.Post{}
 		err := rs.Scan(
@@ -319,6 +318,7 @@ func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 			&post.Description,
 			&post.PublishAt,
 			&post.Username,
+			&post.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -331,16 +331,35 @@ func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
 	}
 
 	var count int
-	err = me.db.QueryRow(sqlSelectPostCount).Scan(&count)
+	err := me.db.QueryRow(sqlSelectPostCount).Scan(&count)
 	if err != nil {
 		return nil, err
 	}
 
 	pager := &db.Paginate[*db.Post]{
 		Data:  posts,
-		Total: int(math.Ceil(float64(count) / float64(page.Num))),
+		Total: int(math.Ceil(float64(count) / float64(pageNum))),
 	}
+
 	return pager, nil
+}
+
+func (me *PsqlDB) FindAllPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
+	rs, err := me.db.Query(sqlSelectAllPosts, page.Num, page.Num*page.Page)
+	if err != nil {
+		return nil, err
+	}
+	return me.postPager(rs, page.Num)
+
+}
+
+func (me *PsqlDB) FindAllUpdatedPosts(page *db.Pager) (*db.Paginate[*db.Post], error) {
+	rs, err := me.db.Query(sqlSelectAllUpdatedPosts, page.Num, page.Num*page.Page)
+	if err != nil {
+		return nil, err
+	}
+	return me.postPager(rs, page.Num)
+
 }
 
 func (me *PsqlDB) InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*db.Post, error) {
@@ -384,6 +403,7 @@ func (me *PsqlDB) FindPostsForUser(userID string) ([]*db.Post, error) {
 			&post.Description,
 			&post.PublishAt,
 			&post.Username,
+			&post.UpdatedAt,
 		)
 		if err != nil {
 			return posts, err

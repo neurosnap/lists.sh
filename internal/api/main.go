@@ -23,13 +23,15 @@ type PageData struct {
 }
 
 type PostItemData struct {
-	URL          template.URL
-	BlogURL      template.URL
-	Username     string
-	Title        string
-	Description  string
-	PublishAtISO string
-	PublishAt    string
+	URL            template.URL
+	BlogURL        template.URL
+	Username       string
+	Title          string
+	Description    string
+	PublishAtISO   string
+	PublishAt      string
+	UpdatedAtISO   string
+	UpdatedTimeAgo string
 }
 
 type BlogPageData struct {
@@ -190,11 +192,13 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			p := PostItemData{
-				URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
-				BlogURL:      template.URL(internal.BlogURL(post.Username)),
-				Title:        internal.FilenameToTitle(post.Filename, post.Title),
-				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-				PublishAtISO: post.PublishAt.Format(time.RFC3339),
+				URL:            template.URL(internal.PostURL(post.Username, post.Filename)),
+				BlogURL:        template.URL(internal.BlogURL(post.Username)),
+				Title:          internal.FilenameToTitle(post.Filename, post.Title),
+				PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
+				PublishAtISO:   post.PublishAt.Format(time.RFC3339),
+				UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+				UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 			}
 			postCollection = append(postCollection, p)
 		}
@@ -337,7 +341,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	logger := routeHelper.GetLogger(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 20, Page: page})
+	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 20, Page: page})
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -369,13 +373,15 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, post := range pager.Data {
 		item := PostItemData{
-			URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
-			BlogURL:      template.URL(internal.BlogURL(post.Username)),
-			Title:        internal.FilenameToTitle(post.Filename, post.Title),
-			Description:  post.Description,
-			Username:     post.Username,
-			PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-			PublishAtISO: post.PublishAt.Format(time.RFC3339),
+			URL:            template.URL(internal.PostURL(post.Username, post.Filename)),
+			BlogURL:        template.URL(internal.BlogURL(post.Username)),
+			Title:          internal.FilenameToTitle(post.Filename, post.Title),
+			Description:    post.Description,
+			Username:       post.Username,
+			PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
+			PublishAtISO:   post.PublishAt.Format(time.RFC3339),
+			UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+			UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 		}
 		data.Posts = append(data.Posts, item)
 	}

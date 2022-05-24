@@ -173,11 +173,13 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 			}
 		} else {
 			p := api.PostItemData{
-				URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
-				BlogURL:      html.URL(internal.BlogURL(post.Username)),
-				Title:        internal.FilenameToTitle(post.Filename, post.Title),
-				PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-				PublishAtISO: post.PublishAt.Format(time.RFC3339),
+				URL:            html.URL(internal.PostURL(post.Username, post.Filename)),
+				BlogURL:        html.URL(internal.BlogURL(post.Username)),
+				Title:          internal.FilenameToTitle(post.Filename, post.Title),
+				PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
+				PublishAtISO:   post.PublishAt.Format(time.RFC3339),
+				UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+				UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 			}
 			postCollection = append(postCollection, p)
 		}
@@ -206,7 +208,7 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	logger := GetLogger(ctx)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 20, Page: page})
+	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 20, Page: page})
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
@@ -239,13 +241,15 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	}
 	for _, post := range pager.Data {
 		item := api.PostItemData{
-			URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
-			BlogURL:      html.URL(internal.BlogURL(post.Username)),
-			Title:        internal.FilenameToTitle(post.Filename, post.Title),
-			Description:  post.Description,
-			Username:     post.Username,
-			PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-			PublishAtISO: post.PublishAt.Format(time.RFC3339),
+			URL:            html.URL(internal.PostURL(post.Username, post.Filename)),
+			BlogURL:        html.URL(internal.BlogURL(post.Username)),
+			Title:          internal.FilenameToTitle(post.Filename, post.Title),
+			Description:    post.Description,
+			Username:       post.Username,
+			PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
+			PublishAtISO:   post.PublishAt.Format(time.RFC3339),
+			UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+			UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 		}
 		data.Posts = append(data.Posts, item)
 	}

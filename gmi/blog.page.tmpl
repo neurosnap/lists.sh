@@ -12,9 +12,8 @@
 ---
 {{- template "list" .Readme -}}
 {{- end}}
-{{range .Posts}}
-{{.PublishAt}}
-=> {{.URL}} {{.Title}}
-{{end}}
+{{- range .Posts}}
+=> {{.URL}} {{.Title}} ({{.UpdatedTimeAgo}})
+{{- end}}
 {{- template "footer" . -}}
 {{end}}
