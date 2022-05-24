@@ -454,7 +454,7 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
 
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 50, Page: 0})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0})
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
