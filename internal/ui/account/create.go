@@ -279,7 +279,7 @@ func registerUser(m CreateModel) (*db.User, error) {
 		return nil, err
 	}
 
-	user, err := m.dbpool.UserForKey(m.publicKey)
+	user, err := m.dbpool.FindUserForKey(m.publicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func createAccount(m CreateModel) tea.Cmd {
 			return errMsg{err}
 		}
 
-		user, err = m.dbpool.UserForKey(m.publicKey)
+		user, err = m.dbpool.FindUserForKey(m.publicKey)
 		if err != nil {
 			return errMsg{err}
 		}

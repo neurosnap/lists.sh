@@ -315,7 +315,7 @@ func LoadPosts(m Model) tea.Cmd {
 
 func fetchPosts(dbpool db.DB, userID string) tea.Cmd {
 	return func() tea.Msg {
-		posts, _ := dbpool.PostsForUser(userID)
+		posts, _ := dbpool.FindPostsForUser(userID)
 		loader := PostLoader{
 			Posts: posts,
 		}

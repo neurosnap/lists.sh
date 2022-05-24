@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	html "html/template"
+	"net/url"
 	"os"
 	"os/signal"
 	"regexp"
@@ -117,13 +118,13 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("blog not found: %s", username)
 		w.WriteHeader(gemini.StatusNotFound, "blog not found")
 		return
 	}
-	posts, err := dbpool.PostsForUser(user.ID)
+	posts, err := dbpool.FindPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, "could not fetch posts for blog")
@@ -258,12 +259,12 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 
 func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
 	username := GetField(ctx, 0)
-	filename := GetField(ctx, 1)
+	filename, _ := url.PathUnescape(GetField(ctx, 1))
 
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("blog not found: %s", username)
 		w.WriteHeader(gemini.StatusNotFound, "blog not found")
@@ -324,7 +325,7 @@ func transparencyHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
 
-	analytics, err := dbpool.SiteAnalytics()
+	analytics, err := dbpool.FindSiteAnalytics()
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
@@ -359,13 +360,13 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("rss feed not found: %s", username)
 		w.WriteHeader(gemini.StatusNotFound, "rss feed not found")
 		return
 	}
-	posts, err := dbpool.PostsForUser(user.ID)
+	posts, err := dbpool.FindPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())

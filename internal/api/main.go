@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -134,13 +135,13 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("blog not found: %s", username)
 		http.Error(w, "blog not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.PostsForUser(user.ID)
+	posts, err := dbpool.FindPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, "could not fetch posts for blog", http.StatusInternalServerError)
@@ -234,15 +235,15 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	subdomain := routeHelper.GetSubdomain(r)
 	var filename string
 	if !internal.IsSubdomains() || subdomain == "" {
-		filename = routeHelper.GetField(r, 1)
+		filename, _ = url.PathUnescape(routeHelper.GetField(r, 1))
 	} else {
-		filename = routeHelper.GetField(r, 0)
+		filename, _ = url.PathUnescape(routeHelper.GetField(r, 0))
 	}
 
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("blog not found: %s", username)
 		http.Error(w, "blog not found", http.StatusNotFound)
@@ -302,7 +303,7 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
-	analytics, err := dbpool.SiteAnalytics()
+	analytics, err := dbpool.FindSiteAnalytics()
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -391,13 +392,13 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	dbpool := routeHelper.GetDB(r)
 	logger := routeHelper.GetLogger(r)
 
-	user, err := dbpool.UserForName(username)
+	user, err := dbpool.FindUserForName(username)
 	if err != nil {
 		logger.Infof("rss feed not found: %s", username)
 		http.Error(w, "rss feed not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.PostsForUser(user.ID)
+	posts, err := dbpool.FindPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

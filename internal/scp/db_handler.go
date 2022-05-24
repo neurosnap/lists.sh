@@ -71,6 +71,11 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = parsedText.MetaData.PublishAt
 		}
+		if text == post.Text {
+			logger.Infof("(%s) found, but text is identical, skipping")
+			return nil
+		}
+
 		logger.Infof("(%s) found, updating record", filename)
 		post, err = dbpool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {

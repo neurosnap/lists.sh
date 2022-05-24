@@ -64,21 +64,21 @@ type DB interface {
 	AddUser() (string, error)
 	RemoveUsers(userIDs []string) error
 	LinkUserKey(userID string, key string) error
-	PublicKeyForKey(key string) (*PublicKey, error)
-	ListKeysForUser(user *User) ([]*PublicKey, error)
+	FindPublicKeyForKey(key string) (*PublicKey, error)
+	FindKeysForUser(user *User) ([]*PublicKey, error)
 	RemoveKeys(keyIDs []string) error
 
-	SiteAnalytics() (*Analytics, error)
+	FindSiteAnalytics() (*Analytics, error)
 
-	UserForName(name string) (*User, error)
-	UserForNameAndKey(name string, key string) (*User, error)
-	UserForKey(key string) (*User, error)
-	User(userID string) (*User, error)
+	FindUserForName(name string) (*User, error)
+	FindUserForNameAndKey(name string, key string) (*User, error)
+	FindUserForKey(key string) (*User, error)
+	FindUser(userID string) (*User, error)
 	ValidateName(name string) bool
 	SetUserName(userID string, name string) error
 
 	FindPost(postID string) (*Post, error)
-	PostsForUser(userID string) ([]*Post, error)
+	FindPostsForUser(userID string) ([]*Post, error)
 	FindPostWithFilename(filename string, userID string) (*Post, error)
 	FindAllPosts(pager *Pager) (*Paginate[*Post], error)
 	InsertPost(userID string, filename string, title string, text string, description string, publishAt *time.Time) (*Post, error)

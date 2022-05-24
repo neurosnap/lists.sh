@@ -84,7 +84,7 @@ func (me *PsqlDB) LinkUserKey(userID string, key string) error {
 	return err
 }
 
-func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
+func (me *PsqlDB) FindPublicKeyForKey(key string) (*db.PublicKey, error) {
 	var keys []*db.PublicKey
 	rs, err := me.db.Query(sqlSelectPublicKey, key)
 	if err != nil {
@@ -120,7 +120,7 @@ func (me *PsqlDB) PublicKeyForKey(key string) (*db.PublicKey, error) {
 	return keys[0], nil
 }
 
-func (me *PsqlDB) ListKeysForUser(user *db.User) ([]*db.PublicKey, error) {
+func (me *PsqlDB) FindKeysForUser(user *db.User) ([]*db.PublicKey, error) {
 	var keys []*db.PublicKey
 	rs, err := me.db.Query(sqlSelectPublicKeys, user.ID)
 	if err != nil {
@@ -146,7 +146,7 @@ func (me *PsqlDB) RemoveKeys(keyIDs []string) error {
 	return err
 }
 
-func (me *PsqlDB) SiteAnalytics() (*db.Analytics, error) {
+func (me *PsqlDB) FindSiteAnalytics() (*db.Analytics, error) {
 	analytics := &db.Analytics{}
 	r := me.db.QueryRow(sqlSelectTotalUsers)
 	err := r.Scan(&analytics.TotalUsers)
@@ -185,13 +185,13 @@ func (me *PsqlDB) SiteAnalytics() (*db.Analytics, error) {
 	return analytics, nil
 }
 
-func (me *PsqlDB) UserForKey(key string) (*db.User, error) {
-	pk, err := me.PublicKeyForKey(key)
+func (me *PsqlDB) FindUserForKey(key string) (*db.User, error) {
+	pk, err := me.FindPublicKeyForKey(key)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := me.User(pk.UserID)
+	user, err := me.FindUser(pk.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (me *PsqlDB) UserForKey(key string) (*db.User, error) {
 	return user, nil
 }
 
-func (me *PsqlDB) User(userID string) (*db.User, error) {
+func (me *PsqlDB) FindUser(userID string) (*db.User, error) {
 	user := &db.User{}
 	var un sql.NullString
 	r := me.db.QueryRow(sqlSelectUser, userID)
@@ -224,11 +224,11 @@ func (me *PsqlDB) ValidateName(name string) bool {
 	if !v {
 		return false
 	}
-	user, _ := me.UserForName(lower)
+	user, _ := me.FindUserForName(lower)
 	return user == nil
 }
 
-func (me *PsqlDB) UserForName(name string) (*db.User, error) {
+func (me *PsqlDB) FindUserForName(name string) (*db.User, error) {
 	user := &db.User{}
 	r := me.db.QueryRow(sqlSelectUserForName, strings.ToLower(name))
 	err := r.Scan(&user.ID, &user.Name, &user.CreatedAt)
@@ -238,7 +238,7 @@ func (me *PsqlDB) UserForName(name string) (*db.User, error) {
 	return user, nil
 }
 
-func (me *PsqlDB) UserForNameAndKey(name string, key string) (*db.User, error) {
+func (me *PsqlDB) FindUserForNameAndKey(name string, key string) (*db.User, error) {
 	user := &db.User{}
 	pk := &db.PublicKey{}
 
@@ -367,7 +367,7 @@ func (me *PsqlDB) RemovePosts(postIDs []string) error {
 	return err
 }
 
-func (me *PsqlDB) PostsForUser(userID string) ([]*db.Post, error) {
+func (me *PsqlDB) FindPostsForUser(userID string) ([]*db.Post, error) {
 	var posts []*db.Post
 	rs, err := me.db.Query(sqlSelectPostsForUser, userID)
 	if err != nil {

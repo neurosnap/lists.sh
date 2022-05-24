@@ -386,7 +386,7 @@ func LoadKeys(m Model) tea.Cmd {
 // fetchKeys loads the current set of keys via the charm client.
 func fetchKeys(dbpool db.DB, user *db.User) tea.Cmd {
 	return func() tea.Msg {
-		ak, err := dbpool.ListKeysForUser(user)
+		ak, err := dbpool.FindKeysForUser(user)
 		if err != nil {
 			return errMsg{err}
 		}
