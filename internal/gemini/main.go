@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -208,7 +209,7 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	logger := GetLogger(ctx)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 20, Page: page})
+	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page})
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
@@ -239,6 +240,14 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		NextPage: nextPage,
 		PrevPage: prevPage,
 	}
+
+	longest := 0
+	for _, post := range pager.Data {
+		if len(post.Username) > longest {
+			longest = len(post.Username)
+		}
+	}
+
 	for _, post := range pager.Data {
 		item := api.PostItemData{
 			URL:            html.URL(internal.PostURL(post.Username, post.Filename)),
@@ -250,6 +259,7 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 			PublishAtISO:   post.PublishAt.Format(time.RFC3339),
 			UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
 			UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
+			Padding:        strings.Repeat(" ", longest-len(post.Username)),
 		}
 		data.Posts = append(data.Posts, item)
 	}
