@@ -48,7 +48,7 @@ cp /dev/null delete.txt
 scp ./delete.txt {{.Site.Domain}}:/
 ```
 
-Alternatively, you can go to `ssh {{.Site.Domain}}` and select "Manage posts." Then you can highlight the post you want to delete and then press "X."  It will ask for confirmation before actually removing the list.
+Alternatively, you can go to `ssh <username>@{{.Site.Domain}}` and select "Manage posts." Then you can highlight the post you want to delete and then press "X."  It will ask for confirmation before actually removing the list.
 
 ## When I want to publish a new post, do I have to upload all posts everytime?
 
@@ -101,5 +101,10 @@ There is a github action that we built to make it easy to publish your blog auto
 A user also created a systemd task to automatically publish new posts.
 
 => https://github.com/neurosnap/lists.sh/discussions/24 Check out this github discussion for more details.
+
+## Can I create multiple accounts?
+
+Yes!  You can either a) create a new keypair and use that for authentication or b) use the same keypair and ssh into our CMS using our special username `ssh new@{{.Site.Domain}}`.
+Please note that if you use the same keypair for multiple accounts, you will need to always specify the user when logging into our CMS.
 {{template "marketing-footer" .}}
 {{end}}

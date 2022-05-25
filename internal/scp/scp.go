@@ -50,7 +50,7 @@ func Middleware(wh CopyFromClientHandler, dbpool db.DB) wish.Middleware {
 				return
 			}
 
-			user, err := dbpool.FindUserForKey(key)
+			user, err := dbpool.FindUserForKey(s.User(), key)
 			if err != nil {
 				errHandler(s, fmt.Errorf("user not found"))
 				return

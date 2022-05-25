@@ -59,7 +59,7 @@ func (m *ErrMultiplePublicKeys) Error() string {
 }
 
 var NameValidator = regexp.MustCompile("^[a-zA-Z0-9]{1,50}$")
-var DenyList = []string{"admin", "abuse", "cgi", "ops", "help", "spec", "root"}
+var DenyList = []string{"admin", "abuse", "cgi", "ops", "help", "spec", "root", "new", "create"}
 
 type DB interface {
 	AddUser() (string, error)
@@ -73,7 +73,7 @@ type DB interface {
 
 	FindUserForName(name string) (*User, error)
 	FindUserForNameAndKey(name string, key string) (*User, error)
-	FindUserForKey(key string) (*User, error)
+	FindUserForKey(name string, key string) (*User, error)
 	FindUser(userID string) (*User, error)
 	ValidateName(name string) bool
 	SetUserName(userID string, name string) error
