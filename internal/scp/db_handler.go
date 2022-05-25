@@ -72,7 +72,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *FileEntry, user *db.User, dbpool
 			publishAt = parsedText.MetaData.PublishAt
 		}
 		if text == post.Text {
-			logger.Infof("(%s) found, but text is identical, skipping")
+			logger.Infof("(%s) found, but text is identical, skipping", filename)
 			return nil
 		}
 
