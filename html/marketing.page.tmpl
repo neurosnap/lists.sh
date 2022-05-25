@@ -47,9 +47,15 @@
         <h2 class="text-lg font-bold">Create your account with Public-Key Cryptography</h2>
         <p>We don't want your email address.</p>
         <p>To get started, simply ssh into our content management system:</p>
-        <pre>ssh {{.Site.Domain}}</pre>
-        <div class="text-sm font-italic note">note: Ed25519 signing algorithm is recommended.</div>
-        <p>After that, just set a username and you're ready to start writing!</p>
+        <pre>ssh new@{{.Site.Domain}}</pre>
+        <div class="text-sm font-italic note">
+            note: <code>new</code> is a special username that will always send you to account
+            creation.
+        </div>
+        <p>
+            After that, just set a username and you're ready to start writing! When you SSH
+            again, use your username that you set in the CMS.
+        </p>
     </section>
 
     <section>
@@ -138,7 +144,6 @@ Saturday</pre>
     <section>
         <h2 class="text-lg font-bold">Roadmap</h2>
         <ol>
-            <li>Ability to have multiple accounts with one key</li>
             <li>Support <code>text/plain</code> as a content-type for web server</li>
         </ol>
     </section>

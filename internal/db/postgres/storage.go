@@ -186,20 +186,34 @@ func (me *PsqlDB) FindSiteAnalytics() (*db.Analytics, error) {
 	return analytics, nil
 }
 
-func (me *PsqlDB) FindUserForKey(key string) (*db.User, error) {
+func (me *PsqlDB) FindUserForKey(username string, key string) (*db.User, error) {
+	logger := internal.CreateLogger()
+
+	logger.Infof("Attempting to find user with only public key (%s)", key)
 	pk, err := me.FindPublicKeyForKey(key)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		user, err := me.FindUser(pk.UserID)
+		if err != nil {
+			return nil, err
+		}
+		user.PublicKey = pk
+		return user, nil
 	}
 
-	user, err := me.FindUser(pk.UserID)
-	if err != nil {
-		return nil, err
+	if errors.Is(err, &db.ErrMultiplePublicKeys{}) {
+		logger.Infof("Detected multiple users with same public key, using ssh username (%s) to find correct one", username)
+		user, err := me.FindUserForNameAndKey(username, key)
+		if err != nil {
+			logger.Infof("Could not find user by username (%s) and public key (%s)", username, key)
+			// this is a little hacky but if we cannot find a user by name and public key
+			// then we return the multiple keys detected error so the user knows to specify their
+			// when logging in
+			return nil, &db.ErrMultiplePublicKeys{}
+		}
+		return user, nil
 	}
 
-	user.PublicKey = pk
-
-	return user, nil
+	return nil, err
 }
 
 func (me *PsqlDB) FindUser(userID string) (*db.User, error) {

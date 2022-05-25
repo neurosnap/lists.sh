@@ -142,6 +142,19 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
             A user also created a systemd task to automatically publish new posts.  <a href="https://github.com/neurosnap/lists.sh/discussions/24">Check out this github discussion for more details.</a>
         </p>
     </section>
+
+    <section id="multiple-accounts">
+        <h2 class="text-xl">Can I create multiple accounts?</h2>
+        <p>
+           Yes!  You can either a) create a new keypair and use that for authentication
+           or b) use the same keypair and ssh into our CMS using our special username
+           <code>ssh new@{{.Site.Domain}}</code>.
+        </p>
+        <p>
+            Please note that if you use the same keypair for multiple accounts, you will need to
+            always specify the user when logging into our CMS.
+        </p>
+    </section>
 </main>
 {{template "marketing-footer" .}}
 {{end}}

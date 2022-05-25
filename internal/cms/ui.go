@@ -155,14 +155,12 @@ func FindUser(dbpool db.DB, publicKey string, sshUser string) (*db.User, error) 
 	logger := internal.CreateLogger()
 	var user *db.User
 
-	logger.Infof("Finding user based on ssh user (%s)", sshUser)
-	user, _ = dbpool.FindUserForNameAndKey(sshUser, publicKey)
-
-	var err error
-	if user == nil {
-		logger.Infof("(%s) not found with provided key, finding user based on public key (%s)", sshUser, publicKey)
-		user, err = dbpool.FindUserForKey(publicKey)
+	if sshUser == "new" {
+		logger.Infof("User requesting to register account")
+		return nil, nil
 	}
+
+	user, err := dbpool.FindUserForKey(sshUser, publicKey)
 
 	if err != nil {
 		logger.Error(err)
