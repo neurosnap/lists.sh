@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -18,62 +17,10 @@ import (
 	"git.sr.ht/~adnano/go-gemini/certificate"
 	feeds "git.sr.ht/~aw/gorilla-feeds"
 	"github.com/neurosnap/lists.sh/internal"
-	"github.com/neurosnap/lists.sh/internal/api"
-	"github.com/neurosnap/lists.sh/internal/db"
-	"github.com/neurosnap/lists.sh/internal/db/postgres"
 	"github.com/neurosnap/lists.sh/pkg"
-	"go.uber.org/zap"
+	"github.com/picosh/cms/db"
+	"github.com/picosh/cms/db/postgres"
 )
-
-type ctxKey struct{}
-type ctxDBKey struct{}
-type ctxLoggerKey struct{}
-type ctxSubdomainKey struct{}
-
-func GetLogger(ctx context.Context) *zap.SugaredLogger {
-	return ctx.Value(ctxLoggerKey{}).(*zap.SugaredLogger)
-}
-
-func GetDB(ctx context.Context) db.DB {
-	return ctx.Value(ctxDBKey{}).(db.DB)
-}
-
-func GetField(ctx context.Context, index int) string {
-	fields := ctx.Value(ctxKey{}).([]string)
-	return fields[index]
-}
-
-type Route struct {
-	regex   *regexp.Regexp
-	handler gemini.HandlerFunc
-}
-
-func NewRoute(pattern string, handler gemini.HandlerFunc) Route {
-	return Route{
-		regexp.MustCompile("^" + pattern + "$"),
-		handler,
-	}
-}
-
-type ServeFn func(context.Context, gemini.ResponseWriter, *gemini.Request)
-
-func CreateServe(routes []Route, dbpool db.DB, logger *zap.SugaredLogger) ServeFn {
-	return func(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
-		curRoutes := routes
-
-		for _, route := range curRoutes {
-			matches := route.regex.FindStringSubmatch(r.URL.Path)
-			if len(matches) > 0 {
-				ctx = context.WithValue(ctx, ctxLoggerKey{}, logger)
-				ctx = context.WithValue(ctx, ctxDBKey{}, dbpool)
-				ctx = context.WithValue(ctx, ctxKey{}, matches[1:])
-				route.handler(ctx, w, r)
-				return
-			}
-		}
-		w.WriteHeader(gemini.StatusTemporaryFailure, "Internal Service Error")
-	}
-}
 
 func renderTemplate(templates []string) (*template.Template, error) {
 	files := make([]string, len(templates))
@@ -95,6 +42,7 @@ func renderTemplate(templates []string) (*template.Template, error) {
 func createPageHandler(fname string) gemini.HandlerFunc {
 	return func(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
 		logger := GetLogger(ctx)
+		cfg := GetCfg(ctx)
 		ts, err := renderTemplate([]string{fname})
 
 		if err != nil {
@@ -103,8 +51,8 @@ func createPageHandler(fname string) gemini.HandlerFunc {
 			return
 		}
 
-		data := api.PageData{
-			Site: internal.SiteData,
+		data := internal.PageData{
+			Site: *cfg.GetSiteData(),
 		}
 		err = ts.Execute(w, data)
 		if err != nil {
@@ -118,6 +66,7 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	username := GetField(ctx, 0)
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -143,13 +92,13 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		return
 	}
 
-	headerTxt := &api.HeaderTxt{
-		Title: api.GetBlogName(username),
+	headerTxt := &internal.HeaderTxt{
+		Title: internal.GetBlogName(username),
 		Bio:   "",
 	}
-	readmeTxt := &api.ReadmeTxt{}
+	readmeTxt := &internal.ReadmeTxt{}
 
-	postCollection := make([]api.PostItemData, 0, len(posts))
+	postCollection := make([]internal.PostItemData, 0, len(posts))
 	for _, post := range posts {
 		if post.Filename == "_header" {
 			parsedText := pkg.ParseText(post.Text)
@@ -173,9 +122,9 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 				readmeTxt.HasItems = true
 			}
 		} else {
-			p := api.PostItemData{
-				URL:            html.URL(internal.PostURL(post.Username, post.Filename)),
-				BlogURL:        html.URL(internal.BlogURL(post.Username)),
+			p := internal.PostItemData{
+				URL:            html.URL(cfg.PostURL(post.Username, post.Filename)),
+				BlogURL:        html.URL(cfg.BlogURL(post.Username)),
 				Title:          internal.FilenameToTitle(post.Filename, post.Title),
 				PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
 				PublishAtISO:   post.PublishAt.Format(time.RFC3339),
@@ -186,11 +135,11 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		}
 	}
 
-	data := api.BlogPageData{
-		Site:      internal.SiteData,
+	data := internal.BlogPageData{
+		Site:      *cfg.GetSiteData(),
 		PageTitle: headerTxt.Title,
-		URL:       html.URL(internal.BlogURL(username)),
-		RSSURL:    html.URL(internal.RssBlogURL(username)),
+		URL:       html.URL(cfg.BlogURL(username)),
+		RSSURL:    html.URL(cfg.RssBlogURL(username)),
 		Readme:    readmeTxt,
 		Header:    headerTxt,
 		Username:  username,
@@ -207,6 +156,7 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page})
@@ -235,8 +185,8 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		prevPage = fmt.Sprintf("/read?page=%d", page-1)
 	}
 
-	data := api.ReadPageData{
-		Site:     internal.SiteData,
+	data := internal.ReadPageData{
+		Site:     *cfg.GetSiteData(),
 		NextPage: nextPage,
 		PrevPage: prevPage,
 	}
@@ -250,9 +200,9 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	}
 
 	for _, post := range pager.Data {
-		item := api.PostItemData{
-			URL:            html.URL(internal.PostURL(post.Username, post.Filename)),
-			BlogURL:        html.URL(internal.BlogURL(post.Username)),
+		item := internal.PostItemData{
+			URL:            html.URL(cfg.PostURL(post.Username, post.Filename)),
+			BlogURL:        html.URL(cfg.BlogURL(post.Username)),
 			Title:          internal.FilenameToTitle(post.Filename, post.Title),
 			Description:    post.Description,
 			Username:       post.Username,
@@ -279,6 +229,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -288,7 +239,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	}
 
 	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
-	blogName := api.GetBlogName(username)
+	blogName := internal.GetBlogName(username)
 	if header != nil {
 		headerParsed := pkg.ParseText(header.Text)
 		if headerParsed.MetaData.Title != "" {
@@ -305,11 +256,11 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 
 	parsedText := pkg.ParseText(post.Text)
 
-	data := api.PostPageData{
-		Site:         internal.SiteData,
-		PageTitle:    api.GetPostTitle(post),
-		URL:          html.URL(internal.PostURL(post.Username, post.Filename)),
-		BlogURL:      html.URL(internal.BlogURL(username)),
+	data := internal.PostPageData{
+		Site:         *cfg.GetSiteData(),
+		PageTitle:    internal.GetPostTitle(post),
+		URL:          html.URL(cfg.PostURL(post.Username, post.Filename)),
+		BlogURL:      html.URL(cfg.BlogURL(username)),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
 		Title:        internal.FilenameToTitle(post.Filename, post.Title),
@@ -340,6 +291,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 func transparencyHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	analytics, err := dbpool.FindSiteAnalytics()
 	if err != nil {
@@ -360,8 +312,8 @@ func transparencyHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini
 		return
 	}
 
-	data := api.TransparencyPageData{
-		Site:      internal.SiteData,
+	data := internal.TransparencyPageData{
+		Site:      *cfg.GetSiteData(),
 		Analytics: analytics,
 	}
 	err = ts.Execute(w, data)
@@ -375,6 +327,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 	username := GetField(ctx, 0)
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -396,8 +349,8 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 		return
 	}
 
-	headerTxt := &api.HeaderTxt{
-		Title: api.GetBlogName(username),
+	headerTxt := &internal.HeaderTxt{
+		Title: internal.GetBlogName(username),
 	}
 
 	for _, post := range posts {
@@ -417,7 +370,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 
 	feed := &feeds.Feed{
 		Title:       headerTxt.Title,
-		Link:        &feeds.Link{Href: internal.BlogURL(username)},
+		Link:        &feeds.Link{Href: cfg.BlogURL(username)},
 		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
@@ -427,7 +380,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 	for _, post := range posts {
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
-		data := &api.PostPageData{
+		data := &internal.PostPageData{
 			ListType: parsed.MetaData.ListType,
 			Items:    parsed.Items,
 		}
@@ -436,9 +389,9 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 		}
 
 		item := &feeds.Item{
-			Id:      internal.PostURL(post.Username, post.Filename),
+			Id:      cfg.PostURL(post.Username, post.Filename),
 			Title:   post.Title,
-			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,
 		}
@@ -465,6 +418,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
 	dbpool := GetDB(ctx)
 	logger := GetLogger(ctx)
+	cfg := GetCfg(ctx)
 
 	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0})
 	if err != nil {
@@ -481,10 +435,10 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 	}
 
 	feed := &feeds.Feed{
-		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
-		Link:        &feeds.Link{Href: internal.ReadURL()},
-		Description: fmt.Sprintf("%s latest posts", internal.Domain),
-		Author:      &feeds.Author{Name: internal.Domain},
+		Title:       fmt.Sprintf("%s discovery feed", cfg.Domain),
+		Link:        &feeds.Link{Href: cfg.ReadURL()},
+		Description: fmt.Sprintf("%s latest posts", cfg.Domain),
+		Author:      &feeds.Author{Name: cfg.Domain},
 		Created:     time.Now(),
 	}
 
@@ -492,7 +446,7 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 	for _, post := range pager.Data {
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
-		data := &api.PostPageData{
+		data := &internal.PostPageData{
 			ListType: parsed.MetaData.ListType,
 			Items:    parsed.Items,
 		}
@@ -501,9 +455,9 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 		}
 
 		item := &feeds.Item{
-			Id:      internal.PostURL(post.Username, post.Filename),
+			Id:      cfg.PostURL(post.Username, post.Filename),
 			Title:   post.Title,
-			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,
 		}
@@ -527,13 +481,14 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 }
 
 func StartServer() {
-	db := postgres.NewDB()
-	logger := internal.CreateLogger()
+	cfg := internal.NewConfigSite()
+	db := postgres.NewDB(cfg.ConfigCms)
+	logger := cfg.CreateLogger()
 
 	certificates := &certificate.Store{}
 	certificates.Register("localhost")
-	certificates.Register("lists.sh")
-	certificates.Register("*.lists.sh")
+	certificates.Register(cfg.Domain)
+	certificates.Register(fmt.Sprintf("*.%s", cfg.Domain))
 	if err := certificates.Load("/var/lib/gemini/certs"); err != nil {
 		logger.Fatal(err)
 	}
@@ -551,7 +506,7 @@ func StartServer() {
 		NewRoute("/([^/]+)/rss", rssBlogHandler),
 		NewRoute("/([^/]+)/([^/]+)", postHandler),
 	}
-	handler := CreateServe(routes, db, logger)
+	handler := CreateServe(routes, cfg, db, logger)
 	router := gemini.HandlerFunc(handler)
 
 	server := &gemini.Server{

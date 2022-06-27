@@ -16,9 +16,9 @@ import (
 	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
 	"github.com/neurosnap/lists.sh/internal"
-	"github.com/neurosnap/lists.sh/internal/cms"
-	"github.com/neurosnap/lists.sh/internal/db/postgres"
-	"github.com/neurosnap/lists.sh/internal/scp"
+	"github.com/picosh/cms"
+	"github.com/picosh/cms/db/postgres"
+	"github.com/picosh/send"
 )
 
 type SSHServer struct{}
@@ -39,10 +39,11 @@ func proxyMiddleware() wish.Middleware {
 	return func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			cmd := s.Command()
+			cfg := internal.NewConfigSite()
 
 			if len(cmd) == 0 {
 				fn := withMiddleware(
-					bm.Middleware(cms.Handler),
+					bm.Middleware(cms.Middleware(cfg.ConfigCms)),
 					lm.Middleware(),
 				)
 				fn(s)
@@ -50,10 +51,10 @@ func proxyMiddleware() wish.Middleware {
 			}
 
 			if cmd[0] == "scp" {
-				handler := &scp.DbHandler{}
-				dbh := postgres.NewDB()
+				dbh := postgres.NewDB(cfg.ConfigCms)
+				handler := internal.NewDbHandler(dbh)
 				defer dbh.Close()
-				fn := withMiddleware(scp.Middleware(handler, dbh))
+				fn := withMiddleware(send.Middleware(handler))
 				fn(s)
 				return
 			}
@@ -62,7 +63,8 @@ func proxyMiddleware() wish.Middleware {
 }
 
 func main() {
-	logger := internal.CreateLogger()
+	cfg := internal.NewConfigSite()
+	logger := cfg.CreateLogger()
 	host := internal.GetEnv("LISTS_HOST", "0.0.0.0")
 	port := internal.GetEnv("LISTS_SSH_PORT", "2222")
 

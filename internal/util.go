@@ -3,10 +3,7 @@ package internal
 import (
 	"encoding/base64"
 	"fmt"
-	"html/template"
-	"log"
 	"math"
-	"net/url"
 	"os"
 	pathpkg "path"
 	"path/filepath"
@@ -17,78 +14,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/gliderlabs/ssh"
-	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
-
-type SitePageData struct {
-	Domain  template.URL
-	HomeURL template.URL
-	Email   string
-}
-
-var Domain = GetEnv("LISTS_DOMAIN", "lists.sh")
-var Email = GetEnv("LISTS_EMAIL", "support@lists.sh")
-var SubdomainsEnabled = GetEnv("LISTS_SUBDOMAINS", "0")
-var SiteData = SitePageData{
-	Domain:  template.URL(Domain),
-	HomeURL: template.URL(HomeURL()),
-	Email:   Email,
-}
-
-func IsSubdomains() bool {
-	return SubdomainsEnabled == "1"
-}
-
-func BlogURL(username string) string {
-	if IsSubdomains() {
-		return fmt.Sprintf("//%s.%s", username, Domain)
-	}
-
-	return fmt.Sprintf("/%s", username)
-}
-
-func RssBlogURL(username string) string {
-	if IsSubdomains() {
-		return fmt.Sprintf("//%s.%s/rss", username, Domain)
-	}
-
-	return fmt.Sprintf("/%s/rss", username)
-}
-
-func HomeURL() string {
-	if IsSubdomains() {
-		return fmt.Sprintf("//%s", Domain)
-	}
-
-	return "/"
-}
-
-func PostURL(username string, filename string) string {
-	fname := url.PathEscape(filename)
-	if IsSubdomains() {
-		return fmt.Sprintf("//%s.%s/%s", username, Domain, fname)
-	}
-
-	return fmt.Sprintf("/%s/%s", username, fname)
-}
-
-func ReadURL() string {
-	if IsSubdomains() {
-		return fmt.Sprintf("https://%s/read", Domain)
-	}
-
-	return "/read"
-}
-
-func CreateLogger() *zap.SugaredLogger {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return logger.Sugar()
-}
 
 var fnameRe = regexp.MustCompile(`[-_]+`)
 

@@ -1,0 +1,67 @@
+package gemini
+
+import (
+	"context"
+	"regexp"
+
+	"git.sr.ht/~adnano/go-gemini"
+	"github.com/neurosnap/lists.sh/internal"
+	"github.com/picosh/cms/db"
+	"go.uber.org/zap"
+)
+
+type ctxKey struct{}
+type ctxDBKey struct{}
+type ctxLoggerKey struct{}
+type ctxSubdomainKey struct{}
+type ctxCfgKey struct{}
+
+func GetLogger(ctx context.Context) *zap.SugaredLogger {
+	return ctx.Value(ctxLoggerKey{}).(*zap.SugaredLogger)
+}
+
+func GetCfg(ctx context.Context) *internal.ConfigSite {
+	return ctx.Value(ctxCfgKey{}).(*internal.ConfigSite)
+}
+
+func GetDB(ctx context.Context) db.DB {
+	return ctx.Value(ctxDBKey{}).(db.DB)
+}
+
+func GetField(ctx context.Context, index int) string {
+	fields := ctx.Value(ctxKey{}).([]string)
+	return fields[index]
+}
+
+type Route struct {
+	regex   *regexp.Regexp
+	handler gemini.HandlerFunc
+}
+
+func NewRoute(pattern string, handler gemini.HandlerFunc) Route {
+	return Route{
+		regexp.MustCompile("^" + pattern + "$"),
+		handler,
+	}
+}
+
+type ServeFn func(context.Context, gemini.ResponseWriter, *gemini.Request)
+
+func CreateServe(routes []Route, cfg *internal.ConfigSite, dbpool db.DB, logger *zap.SugaredLogger) ServeFn {
+	return func(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
+		curRoutes := routes
+
+		for _, route := range curRoutes {
+			matches := route.regex.FindStringSubmatch(r.URL.Path)
+			if len(matches) > 0 {
+				ctx = context.WithValue(ctx, ctxLoggerKey{}, logger)
+				ctx = context.WithValue(ctx, ctxDBKey{}, dbpool)
+				ctx = context.WithValue(ctx, ctxCfgKey{}, matches[1:])
+				ctx = context.WithValue(ctx, ctxKey{}, cfg)
+				route.handler(ctx, w, r)
+				return
+			}
+		}
+		w.WriteHeader(gemini.StatusTemporaryFailure, "Internal Service Error")
+	}
+}
