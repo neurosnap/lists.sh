@@ -1,4 +1,4 @@
-package api
+package internal
 
 import (
 	"bytes"
@@ -11,15 +11,13 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/neurosnap/lists.sh/internal"
-	"github.com/neurosnap/lists.sh/internal/db"
-	"github.com/neurosnap/lists.sh/internal/db/postgres"
-	routeHelper "github.com/neurosnap/lists.sh/internal/router"
 	"github.com/neurosnap/lists.sh/pkg"
+	"github.com/picosh/cms/db"
+	"github.com/picosh/cms/db/postgres"
 )
 
 type PageData struct {
-	Site internal.SitePageData
+	Site SitePageData
 }
 
 type PostItemData struct {
@@ -36,7 +34,7 @@ type PostItemData struct {
 }
 
 type BlogPageData struct {
-	Site      internal.SitePageData
+	Site      SitePageData
 	PageTitle string
 	URL       template.URL
 	RSSURL    template.URL
@@ -47,14 +45,14 @@ type BlogPageData struct {
 }
 
 type ReadPageData struct {
-	Site     internal.SitePageData
+	Site     SitePageData
 	NextPage string
 	PrevPage string
 	Posts    []PostItemData
 }
 
 type PostPageData struct {
-	Site         internal.SitePageData
+	Site         SitePageData
 	PageTitle    string
 	URL          template.URL
 	BlogURL      template.URL
@@ -69,7 +67,7 @@ type PostPageData struct {
 }
 
 type TransparencyPageData struct {
-	Site      internal.SitePageData
+	Site      SitePageData
 	Analytics *db.Analytics
 }
 
@@ -92,7 +90,8 @@ func renderTemplate(templates []string) (*template.Template, error) {
 
 func createPageHandler(fname string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := routeHelper.GetLogger(r)
+		logger := GetLogger(r)
+		cfg := GetCfg(r)
 		ts, err := renderTemplate([]string{fname})
 
 		if err != nil {
@@ -102,7 +101,7 @@ func createPageHandler(fname string) http.HandlerFunc {
 		}
 
 		data := PageData{
-			Site: internal.SiteData,
+			Site: *cfg.GetSiteData(),
 		}
 		err = ts.Execute(w, data)
 		if err != nil {
@@ -126,17 +125,20 @@ type ReadmeTxt struct {
 }
 
 func GetUsernameFromRequest(r *http.Request) string {
-	subdomain := routeHelper.GetSubdomain(r)
-	if !internal.IsSubdomains() || subdomain == "" {
-		return routeHelper.GetField(r, 0)
+	subdomain := GetSubdomain(r)
+	cfg := GetCfg(r)
+
+	if !cfg.IsSubdomains() || subdomain == "" {
+		return GetField(r, 0)
 	}
 	return subdomain
 }
 
 func blogHandler(w http.ResponseWriter, r *http.Request) {
 	username := GetUsernameFromRequest(r)
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
+	cfg := GetCfg(r)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -193,12 +195,12 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			p := PostItemData{
-				URL:            template.URL(internal.PostURL(post.Username, post.Filename)),
-				BlogURL:        template.URL(internal.BlogURL(post.Username)),
-				Title:          internal.FilenameToTitle(post.Filename, post.Title),
+				URL:            template.URL(cfg.PostURL(post.Username, post.Filename)),
+				BlogURL:        template.URL(cfg.BlogURL(post.Username)),
+				Title:          FilenameToTitle(post.Filename, post.Title),
 				PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
 				PublishAtISO:   post.PublishAt.Format(time.RFC3339),
-				UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+				UpdatedTimeAgo: TimeAgo(post.UpdatedAt),
 				UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 			}
 			postCollection = append(postCollection, p)
@@ -206,10 +208,10 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := BlogPageData{
-		Site:      internal.SiteData,
+		Site:      *cfg.GetSiteData(),
 		PageTitle: headerTxt.Title,
-		URL:       template.URL(internal.BlogURL(username)),
-		RSSURL:    template.URL(internal.RssBlogURL(username)),
+		URL:       template.URL(cfg.BlogURL(username)),
+		RSSURL:    template.URL(cfg.RssBlogURL(username)),
 		Readme:    readmeTxt,
 		Header:    headerTxt,
 		Username:  username,
@@ -237,16 +239,18 @@ func GetBlogName(username string) string {
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	username := GetUsernameFromRequest(r)
-	subdomain := routeHelper.GetSubdomain(r)
+	subdomain := GetSubdomain(r)
+	cfg := GetCfg(r)
+
 	var filename string
-	if !internal.IsSubdomains() || subdomain == "" {
-		filename, _ = url.PathUnescape(routeHelper.GetField(r, 1))
+	if !cfg.IsSubdomains() || subdomain == "" {
+		filename, _ = url.PathUnescape(GetField(r, 1))
 	} else {
-		filename, _ = url.PathUnescape(routeHelper.GetField(r, 0))
+		filename, _ = url.PathUnescape(GetField(r, 0))
 	}
 
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -274,13 +278,13 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	parsedText := pkg.ParseText(post.Text)
 
 	data := PostPageData{
-		Site:         internal.SiteData,
+		Site:         *cfg.GetSiteData(),
 		PageTitle:    GetPostTitle(post),
-		URL:          template.URL(internal.PostURL(post.Username, post.Filename)),
-		BlogURL:      template.URL(internal.BlogURL(username)),
+		URL:          template.URL(cfg.PostURL(post.Username, post.Filename)),
+		BlogURL:      template.URL(cfg.BlogURL(username)),
 		Description:  post.Description,
 		ListType:     parsedText.MetaData.ListType,
-		Title:        internal.FilenameToTitle(post.Filename, post.Title),
+		Title:        FilenameToTitle(post.Filename, post.Title),
 		PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
 		PublishAtISO: post.PublishAt.Format(time.RFC3339),
 		Username:     username,
@@ -305,8 +309,9 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func transparencyHandler(w http.ResponseWriter, r *http.Request) {
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
+	cfg := GetCfg(r)
 
 	analytics, err := dbpool.FindSiteAnalytics()
 	if err != nil {
@@ -327,7 +332,7 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := TransparencyPageData{
-		Site:      internal.SiteData,
+		Site:      *cfg.GetSiteData(),
 		Analytics: analytics,
 	}
 	err = ts.Execute(w, data)
@@ -338,8 +343,9 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func readHandler(w http.ResponseWriter, r *http.Request) {
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
+	cfg := GetCfg(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page})
@@ -368,20 +374,20 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ReadPageData{
-		Site:     internal.SiteData,
+		Site:     *cfg.GetSiteData(),
 		NextPage: nextPage,
 		PrevPage: prevPage,
 	}
 	for _, post := range pager.Data {
 		item := PostItemData{
-			URL:            template.URL(internal.PostURL(post.Username, post.Filename)),
-			BlogURL:        template.URL(internal.BlogURL(post.Username)),
-			Title:          internal.FilenameToTitle(post.Filename, post.Title),
+			URL:            template.URL(cfg.PostURL(post.Username, post.Filename)),
+			BlogURL:        template.URL(cfg.BlogURL(post.Username)),
+			Title:          FilenameToTitle(post.Filename, post.Title),
 			Description:    post.Description,
 			Username:       post.Username,
 			PublishAt:      post.PublishAt.Format("02 Jan, 2006"),
 			PublishAtISO:   post.PublishAt.Format(time.RFC3339),
-			UpdatedTimeAgo: internal.TimeAgo(post.UpdatedAt),
+			UpdatedTimeAgo: TimeAgo(post.UpdatedAt),
 			UpdatedAtISO:   post.UpdatedAt.Format(time.RFC3339),
 		}
 		data.Posts = append(data.Posts, item)
@@ -396,8 +402,9 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 
 func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 	username := GetUsernameFromRequest(r)
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
+	cfg := GetCfg(r)
 
 	user, err := dbpool.FindUserForName(username)
 	if err != nil {
@@ -440,7 +447,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	feed := &feeds.Feed{
 		Title:       headerTxt.Title,
-		Link:        &feeds.Link{Href: internal.BlogURL(username)},
+		Link:        &feeds.Link{Href: cfg.BlogURL(username)},
 		Description: headerTxt.Bio,
 		Author:      &feeds.Author{Name: username},
 		Created:     time.Now(),
@@ -459,9 +466,9 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		item := &feeds.Item{
-			Id:      internal.PostURL(post.Username, post.Filename),
+			Id:      cfg.PostURL(post.Username, post.Filename),
 			Title:   post.Title,
-			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,
 		}
@@ -485,8 +492,9 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
-	dbpool := routeHelper.GetDB(r)
-	logger := routeHelper.GetLogger(r)
+	dbpool := GetDB(r)
+	logger := GetLogger(r)
+	cfg := GetCfg(r)
 
 	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0})
 	if err != nil {
@@ -503,10 +511,10 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	feed := &feeds.Feed{
-		Title:       fmt.Sprintf("%s discovery feed", internal.Domain),
-		Link:        &feeds.Link{Href: internal.ReadURL()},
-		Description: fmt.Sprintf("%s latest posts", internal.Domain),
-		Author:      &feeds.Author{Name: internal.Domain},
+		Title:       fmt.Sprintf("%s discovery feed", cfg.Domain),
+		Link:        &feeds.Link{Href: cfg.ReadURL()},
+		Description: fmt.Sprintf("%s latest posts", cfg.Domain),
+		Author:      &feeds.Author{Name: cfg.Domain},
 		Created:     time.Now(),
 	}
 
@@ -523,9 +531,9 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		item := &feeds.Item{
-			Id:      internal.PostURL(post.Username, post.Filename),
+			Id:      cfg.PostURL(post.Username, post.Filename),
 			Title:   post.Title,
-			Link:    &feeds.Link{Href: internal.PostURL(post.Username, post.Filename)},
+			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,
 		}
@@ -550,7 +558,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 func serveFile(file string, contentType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := routeHelper.GetLogger(r)
+		logger := GetLogger(r)
 
 		contents, err := ioutil.ReadFile(fmt.Sprintf("./public/%s", file))
 		if err != nil {
@@ -562,53 +570,27 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 	}
 }
 
-func createStaticRoutes() []routeHelper.Route {
-	return []routeHelper.Route{
-		routeHelper.NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
-		routeHelper.NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
-		routeHelper.NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
-		routeHelper.NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
-		routeHelper.NewRoute("GET", "/apple-touch-icon.png", serveFile("apple-touch-icon.png", "image/png")),
-		routeHelper.NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
-		routeHelper.NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
+func createStaticRoutes() []Route {
+	return []Route{
+		NewRoute("GET", "/main.css", serveFile("main.css", "text/css")),
+		NewRoute("GET", "/card.png", serveFile("card.png", "image/png")),
+		NewRoute("GET", "/favicon-16x16.png", serveFile("favicon-16x16.png", "image/png")),
+		NewRoute("GET", "/favicon-32x32.png", serveFile("favicon-32x32.png", "image/png")),
+		NewRoute("GET", "/apple-touch-icon.png", serveFile("apple-touch-icon.png", "image/png")),
+		NewRoute("GET", "/favicon.ico", serveFile("favicon.ico", "image/x-icon")),
+		NewRoute("GET", "/robots.txt", serveFile("robots.txt", "text/plain")),
 	}
 }
 
-func createMainRoutes(staticRoutes []routeHelper.Route) []routeHelper.Route {
-	routes := []routeHelper.Route{
-		routeHelper.NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
-		routeHelper.NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
-		routeHelper.NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
-		routeHelper.NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
-		routeHelper.NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
-		routeHelper.NewRoute("GET", "/transparency", transparencyHandler),
-		routeHelper.NewRoute("GET", "/read", readHandler),
-	}
-
-	routes = append(
-		routes,
-		staticRoutes...,
-	)
-
-	routes = append(
-		routes,
-		routeHelper.NewRoute("GET", "/rss", rssHandler),
-		routeHelper.NewRoute("GET", "/rss.xml", rssHandler),
-		routeHelper.NewRoute("GET", "/atom.xml", rssHandler),
-		routeHelper.NewRoute("GET", "/feed.xml", rssHandler),
-
-		routeHelper.NewRoute("GET", "/([^/]+)", blogHandler),
-		routeHelper.NewRoute("GET", "/([^/]+)/rss", rssBlogHandler),
-		routeHelper.NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
-	)
-
-	return routes
-}
-
-func createSubdomainRoutes(staticRoutes []routeHelper.Route) []routeHelper.Route {
-	routes := []routeHelper.Route{
-		routeHelper.NewRoute("GET", "/", blogHandler),
-		routeHelper.NewRoute("GET", "/rss", rssBlogHandler),
+func createMainRoutes(staticRoutes []Route) []Route {
+	routes := []Route{
+		NewRoute("GET", "/", createPageHandler("./html/marketing.page.tmpl")),
+		NewRoute("GET", "/spec", createPageHandler("./html/spec.page.tmpl")),
+		NewRoute("GET", "/ops", createPageHandler("./html/ops.page.tmpl")),
+		NewRoute("GET", "/privacy", createPageHandler("./html/privacy.page.tmpl")),
+		NewRoute("GET", "/help", createPageHandler("./html/help.page.tmpl")),
+		NewRoute("GET", "/transparency", transparencyHandler),
+		NewRoute("GET", "/read", readHandler),
 	}
 
 	routes = append(
@@ -618,30 +600,57 @@ func createSubdomainRoutes(staticRoutes []routeHelper.Route) []routeHelper.Route
 
 	routes = append(
 		routes,
-		routeHelper.NewRoute("GET", "/([^/]+)", postHandler),
+		NewRoute("GET", "/rss", rssHandler),
+		NewRoute("GET", "/rss.xml", rssHandler),
+		NewRoute("GET", "/atom.xml", rssHandler),
+		NewRoute("GET", "/feed.xml", rssHandler),
+
+		NewRoute("GET", "/([^/]+)", blogHandler),
+		NewRoute("GET", "/([^/]+)/rss", rssBlogHandler),
+		NewRoute("GET", "/([^/]+)/([^/]+)", postHandler),
 	)
 
 	return routes
 }
 
-func StartServer() {
-	db := postgres.NewDB()
+func createSubdomainRoutes(staticRoutes []Route) []Route {
+	routes := []Route{
+		NewRoute("GET", "/", blogHandler),
+		NewRoute("GET", "/rss", rssBlogHandler),
+	}
+
+	routes = append(
+		routes,
+		staticRoutes...,
+	)
+
+	routes = append(
+		routes,
+		NewRoute("GET", "/([^/]+)", postHandler),
+	)
+
+	return routes
+}
+
+func StartApiServer() {
+	cfg := NewConfigSite()
+	db := postgres.NewDB(cfg.ConfigCms)
 	defer db.Close()
-	logger := internal.CreateLogger()
+	logger := cfg.CreateLogger()
 
 	staticRoutes := createStaticRoutes()
 	mainRoutes := createMainRoutes(staticRoutes)
 	subdomainRoutes := createSubdomainRoutes(staticRoutes)
 
-	handler := routeHelper.CreateServe(mainRoutes, subdomainRoutes, db, logger)
+	handler := CreateServe(mainRoutes, subdomainRoutes, cfg, db, logger)
 	router := http.HandlerFunc(handler)
 
-	port := internal.GetEnv("LISTS_WEB_PORT", "3000")
+	port := GetEnv("LISTS_WEB_PORT", "3000")
 	portStr := fmt.Sprintf(":%s", port)
 	logger.Infof("Starting server on port %s", port)
-	logger.Infof("Subdomains enabled: %s", internal.SubdomainsEnabled)
-	logger.Infof("Domain: %s", internal.Domain)
-	logger.Infof("Email: %s", internal.Email)
+	logger.Infof("Subdomains enabled: %t", cfg.SubdomainsEnabled)
+	logger.Infof("Domain: %s", cfg.Domain)
+	logger.Infof("Email: %s", cfg.Email)
 
 	logger.Fatal(http.ListenAndServe(portStr, router))
 }

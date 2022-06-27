@@ -1,7 +1,7 @@
 package main
 
-import "github.com/neurosnap/lists.sh/internal/api"
+import "github.com/neurosnap/lists.sh/internal"
 
 func main() {
-	api.StartServer()
+	internal.StartApiServer()
 }

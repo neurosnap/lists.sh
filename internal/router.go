@@ -1,4 +1,4 @@
-package router
+package internal
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/neurosnap/lists.sh/internal"
-	"github.com/neurosnap/lists.sh/internal/db"
+	"github.com/picosh/cms/db"
 	"go.uber.org/zap"
 )
 
@@ -27,13 +26,13 @@ func NewRoute(method, pattern string, handler http.HandlerFunc) Route {
 
 type ServeFn func(http.ResponseWriter, *http.Request)
 
-func CreateServe(routes []Route, subdomainRoutes []Route, dbpool db.DB, logger *zap.SugaredLogger) ServeFn {
+func CreateServe(routes []Route, subdomainRoutes []Route, cfg *ConfigSite, dbpool db.DB, logger *zap.SugaredLogger) ServeFn {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var allow []string
 		curRoutes := routes
 		subdomain := GetRequestSubdomain(r)
 
-		if internal.IsSubdomains() && subdomain != "" {
+		if cfg.IsSubdomains() && subdomain != "" {
 			curRoutes = subdomainRoutes
 		}
 
@@ -47,7 +46,8 @@ func CreateServe(routes []Route, subdomainRoutes []Route, dbpool db.DB, logger *
 				loggerCtx := context.WithValue(r.Context(), ctxLoggerKey{}, logger)
 				subdomainCtx := context.WithValue(loggerCtx, ctxSubdomainKey{}, subdomain)
 				dbCtx := context.WithValue(subdomainCtx, ctxDBKey{}, dbpool)
-				ctx := context.WithValue(dbCtx, ctxKey{}, matches[1:])
+				cfgCtx := context.WithValue(dbCtx, ctxCfg{}, cfg)
+				ctx := context.WithValue(cfgCtx, ctxKey{}, matches[1:])
 				route.handler(w, r.WithContext(ctx))
 				return
 			}
@@ -65,6 +65,11 @@ type ctxDBKey struct{}
 type ctxKey struct{}
 type ctxLoggerKey struct{}
 type ctxSubdomainKey struct{}
+type ctxCfg struct{}
+
+func GetCfg(r *http.Request) *ConfigSite {
+	return r.Context().Value(ctxCfg{}).(*ConfigSite)
+}
 
 func GetLogger(r *http.Request) *zap.SugaredLogger {
 	return r.Context().Value(ctxLoggerKey{}).(*zap.SugaredLogger)
