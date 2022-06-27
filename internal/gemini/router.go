@@ -56,8 +56,8 @@ func CreateServe(routes []Route, cfg *internal.ConfigSite, dbpool db.DB, logger 
 			if len(matches) > 0 {
 				ctx = context.WithValue(ctx, ctxLoggerKey{}, logger)
 				ctx = context.WithValue(ctx, ctxDBKey{}, dbpool)
-				ctx = context.WithValue(ctx, ctxCfgKey{}, matches[1:])
-				ctx = context.WithValue(ctx, ctxKey{}, cfg)
+				ctx = context.WithValue(ctx, ctxCfgKey{}, cfg)
+				ctx = context.WithValue(ctx, ctxKey{}, matches[1:])
 				route.handler(ctx, w, r)
 				return
 			}
