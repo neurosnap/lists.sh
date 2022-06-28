@@ -60,7 +60,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
 
 	post, err := h.dbpool.FindPostWithFilename(filename, userID)
 	if err != nil {
-		return fmt.Errorf("Unable to find post with filename: %s", err.Error())
+		logger.Debug("unable to load post, continuing:", err)
 	}
 
 	var text string
