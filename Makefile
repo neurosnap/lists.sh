@@ -5,7 +5,7 @@ PORT?="5432"
 DB_CONTAINER?=listssh_db_1
 
 test:
-	go vet ./...
+	docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:latest golangci-lint run -E goimports -E godot
 .PHONY: test
 
 build:

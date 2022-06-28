@@ -46,7 +46,7 @@ func proxyMiddleware(server *ssh.Server) error {
 		return err
 	}
 
-	wish.WithMiddleware(func(sh ssh.Handler) ssh.Handler {
+	err = wish.WithMiddleware(func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			cmd := s.Command()
 
@@ -66,6 +66,10 @@ func proxyMiddleware(server *ssh.Server) error {
 			}
 		}
 	})(server)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
