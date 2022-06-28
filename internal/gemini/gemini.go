@@ -406,13 +406,16 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 
 	rss, err := feed.ToAtom()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, "Could not generate atom rss feed")
 		return
 	}
 
 	// w.Header().Add("Content-Type", "application/atom+xml")
-	fmt.Fprintf(w, rss)
+	_, err = w.Write([]byte(rss))
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request) {
@@ -472,12 +475,15 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 
 	rss, err := feed.ToAtom()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, "Could not generate atom rss feed")
 	}
 
 	// w.Header().Add("Content-Type", "application/atom+xml")
-	fmt.Fprintf(w, rss)
+	_, err = w.Write([]byte(rss))
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func StartServer() {

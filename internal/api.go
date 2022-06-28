@@ -483,12 +483,15 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	rss, err := feed.ToAtom()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 		http.Error(w, "Could not generate atom rss feed", http.StatusInternalServerError)
 	}
 
 	w.Header().Add("Content-Type", "application/atom+xml")
-	fmt.Fprintf(w, rss)
+	_, err = w.Write([]byte(rss))
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
@@ -548,12 +551,15 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	rss, err := feed.ToAtom()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error(err)
 		http.Error(w, "Could not generate atom rss feed", http.StatusInternalServerError)
 	}
 
 	w.Header().Add("Content-Type", "application/atom+xml")
-	fmt.Fprintf(w, rss)
+	_, err = w.Write([]byte(rss))
+	if err != nil {
+		logger.Error(err)
+	}
 }
 
 func serveFile(file string, contentType string) http.HandlerFunc {
@@ -565,8 +571,13 @@ func serveFile(file string, contentType string) http.HandlerFunc {
 			logger.Error(err)
 			http.Error(w, "file not found", 404)
 		}
+
 		w.Header().Add("Content-Type", contentType)
-		w.Write(contents)
+
+		_, err = w.Write(contents)
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/picosh/cms"
 	"github.com/picosh/cms/db/postgres"
 	"github.com/picosh/send"
+	"github.com/picosh/send/scp"
 )
 
 type SSHServer struct{}
@@ -35,11 +36,19 @@ func withMiddleware(mw ...wish.Middleware) ssh.Handler {
 	return h
 }
 
-func proxyMiddleware() wish.Middleware {
-	return func(sh ssh.Handler) ssh.Handler {
+func proxyMiddleware(server *ssh.Server) error {
+	cfg := internal.NewConfigSite()
+	dbh := postgres.NewDB(cfg.ConfigCms)
+	handler := internal.NewDbHandler(dbh)
+
+	err := send.Middleware(handler)(server)
+	if err != nil {
+		return err
+	}
+
+	wish.WithMiddleware(func(sh ssh.Handler) ssh.Handler {
 		return func(s ssh.Session) {
 			cmd := s.Command()
-			cfg := internal.NewConfigSite()
 
 			if len(cmd) == 0 {
 				fn := withMiddleware(
@@ -51,15 +60,14 @@ func proxyMiddleware() wish.Middleware {
 			}
 
 			if cmd[0] == "scp" {
-				dbh := postgres.NewDB(cfg.ConfigCms)
-				handler := internal.NewDbHandler(dbh)
-				defer dbh.Close()
-				fn := withMiddleware(send.Middleware(handler))
+				fn := withMiddleware(scp.Middleware(handler))
 				fn(s)
 				return
 			}
 		}
-	}
+	})(server)
+
+	return nil
 }
 
 func main() {
@@ -73,7 +81,7 @@ func main() {
 		wish.WithAddress(fmt.Sprintf("%s:%s", host, port)),
 		wish.WithHostKeyPath("ssh_data/term_info_ed25519"),
 		wish.WithPublicKeyAuth(sshServer.authHandler),
-		wish.WithMiddleware(proxyMiddleware()),
+		proxyMiddleware,
 	)
 	if err != nil {
 		logger.Fatal(err)

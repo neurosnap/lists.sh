@@ -13,7 +13,6 @@ import (
 type ctxKey struct{}
 type ctxDBKey struct{}
 type ctxLoggerKey struct{}
-type ctxSubdomainKey struct{}
 type ctxCfgKey struct{}
 
 func GetLogger(ctx context.Context) *zap.SugaredLogger {
