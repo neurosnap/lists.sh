@@ -9,11 +9,11 @@ import (
 	"github.com/neurosnap/lists.sh/pkg"
 	"github.com/picosh/cms/db"
 	"github.com/picosh/cms/util"
-	"github.com/picosh/send"
+	sendutils "github.com/picosh/send/utils"
 )
 
 type Opener struct {
-	entry *send.FileEntry
+	entry *sendutils.FileEntry
 }
 
 func (o *Opener) Open(name string) (io.Reader, error) {
@@ -52,12 +52,16 @@ func (h *DbHandler) Validate(s ssh.Session) error {
 	return nil
 }
 
-func (h *DbHandler) Write(s ssh.Session, entry *send.FileEntry) error {
+func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
 	logger := h.cfg.CreateLogger()
 	userID := h.user.ID
 	filename := SanitizeFileExt(entry.Name)
 	title := filename
+
 	post, err := h.dbpool.FindPostWithFilename(filename, userID)
+	if err != nil {
+		logger.Debug("unable to load post, continuing:", err)
+	}
 
 	var text string
 	if b, err := io.ReadAll(entry.Reader); err == nil {
@@ -93,7 +97,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *send.FileEntry) error {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
 		logger.Infof("(%s) not found, adding record", filename)
-		post, err = h.dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
+		_, err = h.dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", filename, err)
 		}
@@ -108,7 +112,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *send.FileEntry) error {
 		}
 
 		logger.Infof("(%s) found, updating record", filename)
-		post, err = h.dbpool.UpdatePost(post.ID, title, text, description, publishAt)
+		_, err = h.dbpool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", filename, err)
 		}
