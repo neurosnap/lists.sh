@@ -39,7 +39,7 @@ func withMiddleware(mw ...wish.Middleware) ssh.Handler {
 func proxyMiddleware(server *ssh.Server) error {
 	cfg := internal.NewConfigSite()
 	dbh := postgres.NewDB(&cfg.ConfigCms)
-	handler := internal.NewDbHandler(dbh)
+	handler := internal.NewDbHandler(dbh, cfg)
 
 	err := send.Middleware(handler)(server)
 	if err != nil {

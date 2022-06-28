@@ -4,6 +4,10 @@ PGUSER?="postgres"
 PORT?="5432"
 DB_CONTAINER?=listssh_db_1
 
+test:
+	go vet ./...
+.PHONY: test
+
 build:
 	go build -o build/web ./cmd/web
 	go build -o build/ssh ./cmd/ssh

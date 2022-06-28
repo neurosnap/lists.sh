@@ -26,9 +26,10 @@ type DbHandler struct {
 	cfg    *ConfigSite
 }
 
-func NewDbHandler(dbpool db.DB) *DbHandler {
+func NewDbHandler(dbpool db.DB, cfg *ConfigSite) *DbHandler {
 	return &DbHandler{
 		dbpool: dbpool,
+		cfg:    cfg,
 	}
 }
 
