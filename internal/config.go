@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/url"
 
 	"github.com/picosh/cms/config"
 	"go.uber.org/zap"
@@ -16,7 +17,9 @@ type SitePageData struct {
 }
 
 type ConfigSite struct {
-	*config.ConfigCms
+	config.ConfigCms
+	config.ConfigURL
+	SubdomainsEnabled bool
 }
 
 func NewConfigSite() *ConfigSite {
@@ -29,12 +32,21 @@ func NewConfigSite() *ConfigSite {
 		subdomainsEnabled = true
 	}
 
+	intro := "To get started, enter a username.\n"
+	intro += "Then create a folder locally (e.g. ~/blog).\n"
+	intro += "Then write your lists in plain text files (e.g. hello-world.txt).\n"
+	intro += "Finally, send your list files to us:\n\n"
+	intro += fmt.Sprintf("scp ~/blog/*.txt %s:/\n\n", domain)
+
 	return &ConfigSite{
-		&config.ConfigCms{
-			Domain:            domain,
-			Email:             email,
-			SubdomainsEnabled: subdomainsEnabled,
-			DbURL:             dbURL,
+		SubdomainsEnabled: subdomainsEnabled,
+		ConfigCms: config.ConfigCms{
+			Domain:      domain,
+			Email:       email,
+			DbURL:       dbURL,
+			Description: "A microblog for your lists.",
+			IntroText:   intro,
+			Logger:      CreateLogger(),
 		},
 	}
 }
@@ -45,6 +57,27 @@ func (c *ConfigSite) GetSiteData() *SitePageData {
 		HomeURL: template.URL(c.HomeURL()),
 		Email:   c.Email,
 	}
+}
+
+func (c *ConfigSite) BlogURL(username string) string {
+	if c.IsSubdomains() {
+		return fmt.Sprintf("//%s.%s", username, c.Domain)
+	}
+
+	return fmt.Sprintf("/%s", username)
+}
+
+func (c *ConfigSite) PostURL(username, filename string) string {
+	fname := url.PathEscape(filename)
+	if c.IsSubdomains() {
+		return fmt.Sprintf("//%s.%s/%s", username, c.Domain, fname)
+	}
+
+	return fmt.Sprintf("/%s/%s", username, fname)
+}
+
+func (c *ConfigSite) IsSubdomains() bool {
+	return c.SubdomainsEnabled
 }
 
 func (c *ConfigSite) RssBlogURL(username string) string {
@@ -71,7 +104,7 @@ func (c *ConfigSite) ReadURL() string {
 	return "/read"
 }
 
-func (c *ConfigSite) CreateLogger() *zap.SugaredLogger {
+func CreateLogger() *zap.SugaredLogger {
 	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatal(err)

@@ -488,8 +488,8 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 
 func StartServer() {
 	cfg := internal.NewConfigSite()
-	db := postgres.NewDB(cfg.ConfigCms)
-	logger := cfg.CreateLogger()
+	db := postgres.NewDB(&cfg.ConfigCms)
+	logger := cfg.Logger
 
 	certificates := &certificate.Store{}
 	certificates.Register("localhost")

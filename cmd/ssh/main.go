@@ -38,7 +38,7 @@ func withMiddleware(mw ...wish.Middleware) ssh.Handler {
 
 func proxyMiddleware(server *ssh.Server) error {
 	cfg := internal.NewConfigSite()
-	dbh := postgres.NewDB(cfg.ConfigCms)
+	dbh := postgres.NewDB(&cfg.ConfigCms)
 	handler := internal.NewDbHandler(dbh)
 
 	err := send.Middleware(handler)(server)
@@ -52,7 +52,7 @@ func proxyMiddleware(server *ssh.Server) error {
 
 			if len(cmd) == 0 {
 				fn := withMiddleware(
-					bm.Middleware(cms.Middleware(cfg.ConfigCms)),
+					bm.Middleware(cms.Middleware(&cfg.ConfigCms, cfg)),
 					lm.Middleware(),
 				)
 				fn(s)
@@ -72,7 +72,7 @@ func proxyMiddleware(server *ssh.Server) error {
 
 func main() {
 	cfg := internal.NewConfigSite()
-	logger := cfg.CreateLogger()
+	logger := cfg.Logger
 	host := internal.GetEnv("LISTS_HOST", "0.0.0.0")
 	port := internal.GetEnv("LISTS_SSH_PORT", "2222")
 

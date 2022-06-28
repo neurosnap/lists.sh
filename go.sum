@@ -70,6 +70,8 @@ github.com/muesli/termenv v0.12.0 h1:KuQRUE3PgxRFWhq4gHvZtPSLCGDqM5q/cYr1pZ39ytc
 github.com/muesli/termenv v0.12.0/go.mod h1:WCCv32tusQ/EEZ5S8oUIIrC/nIuBcxCVqlN4Xfkv+7A=
 github.com/picosh/cms v0.0.0-20220627163829-91fd078ba0ed h1:EGKSCpW/a9Bc+Xzb2mZaK/+EXASOeTKDNrsDuQY/xdE=
 github.com/picosh/cms v0.0.0-20220627163829-91fd078ba0ed/go.mod h1:+J3g/y3Fkqq32JVNsMvvW81bYAz8fHeocOCoD306tIU=
+github.com/picosh/cms v0.0.0-20220628165515-db245895ebb1 h1:+E9OSvCM4wGqByNX9ZILbmKSv/U0yTIudGkbgVK98v4=
+github.com/picosh/cms v0.0.0-20220628165515-db245895ebb1/go.mod h1:+J3g/y3Fkqq32JVNsMvvW81bYAz8fHeocOCoD306tIU=
 github.com/picosh/send v0.0.0-20220628035829-67b7a8e93387 h1:bvoKxSIzI5S6RcgHOLn1no74B/Jwx7KRbs22vRZ/960=
 github.com/picosh/send v0.0.0-20220628035829-67b7a8e93387/go.mod h1:HFF8K5RDm6r8vMFsPEHLHDpYHkNxaRTxrkmKWaw99xg=
 github.com/picosh/send v0.0.0-20220628191700-86d50642a68a h1:N7DTwruOuRS/m9qdmR2tpSAsIK/rvzpHPCj1fODcDuA=

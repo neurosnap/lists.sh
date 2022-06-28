@@ -53,7 +53,7 @@ func (h *DbHandler) Validate(s ssh.Session) error {
 }
 
 func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
-	logger := h.cfg.CreateLogger()
+	logger := h.cfg.Logger
 	userID := h.user.ID
 	filename := SanitizeFileExt(entry.Name)
 	title := filename
