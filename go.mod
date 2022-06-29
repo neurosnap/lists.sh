@@ -9,7 +9,7 @@ require (
 	github.com/gliderlabs/ssh v0.3.4
 	github.com/gorilla/feeds v1.1.1
 	github.com/picosh/cms v0.0.0-20220628165515-db245895ebb1
-	github.com/picosh/send v0.0.0-20220628191700-86d50642a68a
+	github.com/picosh/send v0.0.0-20220629040654-ed7e6351cef5
 	go.uber.org/zap v1.21.0
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 )

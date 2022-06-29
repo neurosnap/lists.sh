@@ -76,6 +76,8 @@ github.com/picosh/send v0.0.0-20220628035829-67b7a8e93387 h1:bvoKxSIzI5S6RcgHOLn
 github.com/picosh/send v0.0.0-20220628035829-67b7a8e93387/go.mod h1:HFF8K5RDm6r8vMFsPEHLHDpYHkNxaRTxrkmKWaw99xg=
 github.com/picosh/send v0.0.0-20220628191700-86d50642a68a h1:N7DTwruOuRS/m9qdmR2tpSAsIK/rvzpHPCj1fODcDuA=
 github.com/picosh/send v0.0.0-20220628191700-86d50642a68a/go.mod h1:HFF8K5RDm6r8vMFsPEHLHDpYHkNxaRTxrkmKWaw99xg=
+github.com/picosh/send v0.0.0-20220629040654-ed7e6351cef5 h1:ZwbKzjmLNNyhDlcHMGP7WNvm1RxK8Mn6aksOjOpceFE=
+github.com/picosh/send v0.0.0-20220629040654-ed7e6351cef5/go.mod h1:HFF8K5RDm6r8vMFsPEHLHDpYHkNxaRTxrkmKWaw99xg=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.13.5 h1:a3RLUqkyjYRtBTZJZ1VRrKbN3zhuPLlUc3sphVz81go=
