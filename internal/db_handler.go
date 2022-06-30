@@ -21,15 +21,15 @@ func (o *Opener) Open(name string) (io.Reader, error) {
 }
 
 type DbHandler struct {
-	user   *db.User
-	dbpool db.DB
-	cfg    *ConfigSite
+	User   *db.User
+	DBPool db.DB
+	Cfg    *ConfigSite
 }
 
 func NewDbHandler(dbpool db.DB, cfg *ConfigSite) *DbHandler {
 	return &DbHandler{
-		dbpool: dbpool,
-		cfg:    cfg,
+		DBPool: dbpool,
+		Cfg:    cfg,
 	}
 }
 
@@ -40,7 +40,7 @@ func (h *DbHandler) Validate(s ssh.Session) error {
 		return fmt.Errorf("key not found")
 	}
 
-	user, err := h.dbpool.FindUserForKey(s.User(), key)
+	user, err := h.DBPool.FindUserForKey(s.User(), key)
 	if err != nil {
 		return err
 	}
@@ -49,17 +49,17 @@ func (h *DbHandler) Validate(s ssh.Session) error {
 		return fmt.Errorf("must have username set")
 	}
 
-	h.user = user
+	h.User = user
 	return nil
 }
 
 func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
-	logger := h.cfg.Logger
-	userID := h.user.ID
+	logger := h.Cfg.Logger
+	userID := h.User.ID
 	filename := SanitizeFileExt(entry.Name)
 	title := filename
 
-	post, err := h.dbpool.FindPostWithFilename(filename, userID)
+	post, err := h.DBPool.FindPostWithFilename(filename, userID)
 	if err != nil {
 		logger.Debug("unable to load post, continuing:", err)
 	}
@@ -87,7 +87,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
 			return nil
 		}
 
-		err := h.dbpool.RemovePosts([]string{post.ID})
+		err := h.DBPool.RemovePosts([]string{post.ID})
 		logger.Infof("(%s) is empty, removing record", filename)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", filename, err)
@@ -98,7 +98,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
 		logger.Infof("(%s) not found, adding record", filename)
-		_, err = h.dbpool.InsertPost(userID, filename, title, text, description, &publishAt)
+		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", filename, err)
 		}
@@ -113,7 +113,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) error {
 		}
 
 		logger.Infof("(%s) found, updating record", filename)
-		_, err = h.dbpool.UpdatePost(post.ID, title, text, description, publishAt)
+		_, err = h.DBPool.UpdatePost(post.ID, title, text, description, publishAt)
 		if err != nil {
 			return fmt.Errorf("error for %s: %v", filename, err)
 		}
