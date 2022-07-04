@@ -68,8 +68,8 @@ github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0/go.mod h1:Bd5NYQ
 github.com/muesli/termenv v0.11.1-0.20220212125758-44cd13922739/go.mod h1:Bd5NYQ7pd+SrtBSrSNoBBmXlcY8+Xj4BMJgh8qcZrvs=
 github.com/muesli/termenv v0.12.0 h1:KuQRUE3PgxRFWhq4gHvZtPSLCGDqM5q/cYr1pZ39ytc=
 github.com/muesli/termenv v0.12.0/go.mod h1:WCCv32tusQ/EEZ5S8oUIIrC/nIuBcxCVqlN4Xfkv+7A=
-github.com/picosh/cms v0.0.0-20220628165515-db245895ebb1 h1:+E9OSvCM4wGqByNX9ZILbmKSv/U0yTIudGkbgVK98v4=
-github.com/picosh/cms v0.0.0-20220628165515-db245895ebb1/go.mod h1:+J3g/y3Fkqq32JVNsMvvW81bYAz8fHeocOCoD306tIU=
+github.com/picosh/cms v0.0.0-20220704044154-9ea8524401dc h1:zctkYmRnxVCH9NyBhGkh+VpvUMY6sHkuMxsTzZG7Anw=
+github.com/picosh/cms v0.0.0-20220704044154-9ea8524401dc/go.mod h1:+J3g/y3Fkqq32JVNsMvvW81bYAz8fHeocOCoD306tIU=
 github.com/picosh/proxy v0.0.0-20220630041107-8ccb71a7591e h1:uwegpGGPESmlXqHIC22emZNOhkKUahB7DXj6jfJnh4U=
 github.com/picosh/proxy v0.0.0-20220630041107-8ccb71a7591e/go.mod h1:JvCY+Ux50WdVEztz8ZNoZRKKOai+5o0nG9KIFrYD23E=
 github.com/picosh/send v0.0.0-20220630020731-8c0bcdb0c71c h1:YBfVVBzPu9T1Bcdf+b6aMPMMsHNzx8vPD5V4iwdpOW8=
@@ -133,8 +133,8 @@ golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b h1:2n253B2r0pYSmEV+UNCQoPfU/FiaizQEK5Gu4Bq4JE8=
-golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220702020025-31831981b65f h1:xdsejrW/0Wf2diT5CPp3XmKUNbr7Xvw8kYilQ+6qjRY=
+golang.org/x/sys v0.0.0-20220702020025-31831981b65f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 h1:CBpWXWQpIRjzmkkA+M7q9Fqnwd2mZr3AFqexg8YTfoM=
