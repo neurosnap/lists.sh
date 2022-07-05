@@ -146,7 +146,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "blog not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.FindPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, "could not fetch posts for blog", http.StatusInternalServerError)
@@ -412,7 +412,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "rss feed not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.FindPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

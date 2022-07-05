@@ -74,7 +74,7 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		w.WriteHeader(gemini.StatusNotFound, "blog not found")
 		return
 	}
-	posts, err := dbpool.FindPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, "could not fetch posts for blog")
@@ -335,7 +335,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 		w.WriteHeader(gemini.StatusNotFound, "rss feed not found")
 		return
 	}
-	posts, err := dbpool.FindPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
