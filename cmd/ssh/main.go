@@ -12,7 +12,7 @@ import (
 	bm "github.com/charmbracelet/wish/bubbletea"
 	lm "github.com/charmbracelet/wish/logging"
 	"github.com/gliderlabs/ssh"
-	"github.com/neurosnap/lists.sh/internal"
+	"git.sr.ht/~erock/lists.sh/internal"
 	"git.sr.ht/~erock/wish/cms"
 	"git.sr.ht/~erock/wish/cms/db/postgres"
 	"git.sr.ht/~erock/wish/proxy"

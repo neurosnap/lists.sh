@@ -1,6 +1,6 @@
 package main
 
-import "github.com/neurosnap/lists.sh/internal"
+import "git.sr.ht/~erock/lists.sh/internal"
 
 func main() {
 	internal.StartApiServer()

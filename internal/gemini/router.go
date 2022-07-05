@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"git.sr.ht/~adnano/go-gemini"
-	"github.com/neurosnap/lists.sh/internal"
+	"git.sr.ht/~erock/lists.sh/internal"
 	"git.sr.ht/~erock/wish/cms/db"
 	"go.uber.org/zap"
 )

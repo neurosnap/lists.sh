@@ -16,8 +16,8 @@ import (
 	"git.sr.ht/~adnano/go-gemini"
 	"git.sr.ht/~adnano/go-gemini/certificate"
 	feeds "git.sr.ht/~aw/gorilla-feeds"
-	"github.com/neurosnap/lists.sh/internal"
-	"github.com/neurosnap/lists.sh/pkg"
+	"git.sr.ht/~erock/lists.sh/internal"
+	"git.sr.ht/~erock/lists.sh/pkg"
 	"git.sr.ht/~erock/wish/cms/db"
 	"git.sr.ht/~erock/wish/cms/db/postgres"
 )

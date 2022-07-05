@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/feeds"
-	"github.com/neurosnap/lists.sh/pkg"
+	"git.sr.ht/~erock/lists.sh/pkg"
 	"git.sr.ht/~erock/wish/cms/db"
 	"git.sr.ht/~erock/wish/cms/db/postgres"
 )

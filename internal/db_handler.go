@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gliderlabs/ssh"
-	"github.com/neurosnap/lists.sh/pkg"
+	"git.sr.ht/~erock/lists.sh/pkg"
 	"git.sr.ht/~erock/wish/cms/db"
 	"git.sr.ht/~erock/wish/cms/util"
 	sendutils "git.sr.ht/~erock/wish/send/utils"

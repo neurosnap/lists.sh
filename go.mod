@@ -1,4 +1,4 @@
-module github.com/neurosnap/lists.sh
+module git.sr.ht/~erock/list.sh
 
 go 1.18
 
