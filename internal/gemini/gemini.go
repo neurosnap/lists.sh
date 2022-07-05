@@ -18,8 +18,8 @@ import (
 	feeds "git.sr.ht/~aw/gorilla-feeds"
 	"github.com/neurosnap/lists.sh/internal"
 	"github.com/neurosnap/lists.sh/pkg"
-	"github.com/picosh/cms/db"
-	"github.com/picosh/cms/db/postgres"
+	"git.sr.ht/~erock/wish/cms/db"
+	"git.sr.ht/~erock/wish/cms/db/postgres"
 )
 
 func renderTemplate(templates []string) (*template.Template, error) {

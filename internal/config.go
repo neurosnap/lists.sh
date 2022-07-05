@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/url"
 
-	"github.com/picosh/cms/config"
+	"git.sr.ht/~erock/wish/cms/config"
 	"go.uber.org/zap"
 )
 

@@ -7,9 +7,9 @@ import (
 
 	"github.com/gliderlabs/ssh"
 	"github.com/neurosnap/lists.sh/pkg"
-	"github.com/picosh/cms/db"
-	"github.com/picosh/cms/util"
-	sendutils "github.com/picosh/send/utils"
+	"git.sr.ht/~erock/wish/cms/db"
+	"git.sr.ht/~erock/wish/cms/util"
+	sendutils "git.sr.ht/~erock/wish/send/utils"
 )
 
 type Opener struct {

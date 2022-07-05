@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/picosh/cms/db"
+	"git.sr.ht/~erock/wish/cms/db"
 	"go.uber.org/zap"
 )
 

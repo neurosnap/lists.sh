@@ -2,6 +2,8 @@ git.sr.ht/~adnano/go-gemini v0.2.3 h1:oJ+Y0/mheZ4Vg0ABjtf5dlmvq1yoONStiaQvmWWkof
 git.sr.ht/~adnano/go-gemini v0.2.3/go.mod h1:hQ75Y0i5jSFL+FQ7AzWVAYr5LQsaFC7v3ZviNyj46dY=
 git.sr.ht/~aw/gorilla-feeds v1.1.4 h1:bL78pZ1DtHEhumHK0iWQi30uwEkWtetMfnyt9TFcdlc=
 git.sr.ht/~aw/gorilla-feeds v1.1.4/go.mod h1:VLpbtNDEWoaJKU41Crj6r3ChvlqYvBm56c0O6IM457g=
+git.sr.ht/~erock/wish v0.0.0-20220704220931-0e051eba5255 h1:GqLO9ualX94dgD5CdE7nTKTUV3l1WiU49hoXfmvNz8U=
+git.sr.ht/~erock/wish v0.0.0-20220704220931-0e051eba5255/go.mod h1:QZKk7m9jc9iXah90daPGhQkSfNfxSVvpb6nfVeI+MM0=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be h1:9AeTilPcZAjCFIImctFaOjnTIavg87rW78vTPkQqLI8=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be/go.mod h1:ySMOLuWl6zY27l47sB3qLNK6tF2fkHG55UZxx8oIVo4=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
@@ -68,12 +70,6 @@ github.com/muesli/termenv v0.11.1-0.20220204035834-5ac8409525e0/go.mod h1:Bd5NYQ
 github.com/muesli/termenv v0.11.1-0.20220212125758-44cd13922739/go.mod h1:Bd5NYQ7pd+SrtBSrSNoBBmXlcY8+Xj4BMJgh8qcZrvs=
 github.com/muesli/termenv v0.12.0 h1:KuQRUE3PgxRFWhq4gHvZtPSLCGDqM5q/cYr1pZ39ytc=
 github.com/muesli/termenv v0.12.0/go.mod h1:WCCv32tusQ/EEZ5S8oUIIrC/nIuBcxCVqlN4Xfkv+7A=
-github.com/picosh/cms v0.0.0-20220704044154-9ea8524401dc h1:zctkYmRnxVCH9NyBhGkh+VpvUMY6sHkuMxsTzZG7Anw=
-github.com/picosh/cms v0.0.0-20220704044154-9ea8524401dc/go.mod h1:+J3g/y3Fkqq32JVNsMvvW81bYAz8fHeocOCoD306tIU=
-github.com/picosh/proxy v0.0.0-20220630041107-8ccb71a7591e h1:uwegpGGPESmlXqHIC22emZNOhkKUahB7DXj6jfJnh4U=
-github.com/picosh/proxy v0.0.0-20220630041107-8ccb71a7591e/go.mod h1:JvCY+Ux50WdVEztz8ZNoZRKKOai+5o0nG9KIFrYD23E=
-github.com/picosh/send v0.0.0-20220630020731-8c0bcdb0c71c h1:YBfVVBzPu9T1Bcdf+b6aMPMMsHNzx8vPD5V4iwdpOW8=
-github.com/picosh/send v0.0.0-20220630020731-8c0bcdb0c71c/go.mod h1:HFF8K5RDm6r8vMFsPEHLHDpYHkNxaRTxrkmKWaw99xg=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.13.5 h1:a3RLUqkyjYRtBTZJZ1VRrKbN3zhuPLlUc3sphVz81go=

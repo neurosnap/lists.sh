@@ -12,8 +12,8 @@ import (
 
 	"github.com/gorilla/feeds"
 	"github.com/neurosnap/lists.sh/pkg"
-	"github.com/picosh/cms/db"
-	"github.com/picosh/cms/db/postgres"
+	"git.sr.ht/~erock/wish/cms/db"
+	"git.sr.ht/~erock/wish/cms/db/postgres"
 )
 
 type PageData struct {

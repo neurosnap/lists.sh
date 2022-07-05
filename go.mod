@@ -5,12 +5,10 @@ go 1.18
 require (
 	git.sr.ht/~adnano/go-gemini v0.2.3
 	git.sr.ht/~aw/gorilla-feeds v1.1.4
+	git.sr.ht/~erock/wish v0.0.0-20220704220931-0e051eba5255
 	github.com/charmbracelet/wish v0.5.0
 	github.com/gliderlabs/ssh v0.3.4
 	github.com/gorilla/feeds v1.1.1
-	github.com/picosh/cms v0.0.0-20220704044154-9ea8524401dc
-	github.com/picosh/proxy v0.0.0-20220630041107-8ccb71a7591e
-	github.com/picosh/send v0.0.0-20220630020731-8c0bcdb0c71c
 	go.uber.org/zap v1.21.0
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 )
