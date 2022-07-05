@@ -1,4 +1,4 @@
-module git.sr.ht/~erock/list.sh
+module git.sr.ht/~erock/lists.sh
 
 go 1.18
 
