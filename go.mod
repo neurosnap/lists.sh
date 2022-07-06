@@ -5,7 +5,7 @@ go 1.18
 require (
 	git.sr.ht/~adnano/go-gemini v0.2.3
 	git.sr.ht/~aw/gorilla-feeds v1.1.4
-	git.sr.ht/~erock/wish v0.0.0-20220705182935-a4976b5f449d
+	git.sr.ht/~erock/wish v0.0.0-20220706032104-46c62b17c3fc
 	github.com/charmbracelet/wish v0.5.0
 	github.com/gliderlabs/ssh v0.3.4
 	github.com/gorilla/feeds v1.1.1
