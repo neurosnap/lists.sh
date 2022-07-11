@@ -12,6 +12,27 @@
     <p>Here are some common questions on using this platform that we would like to answer.</p>
 </header>
 <main>
+    <section id="permission-denied">
+        <h2 class="text-xl">I get a permission denied when trying to SSH</h2>
+        <p>
+            Unfortunately SHA-2 RSA keys are <strong>not</strong> currently supported.
+        </p>
+        <p>
+            Unfortunately, due to a shortcoming in Go’s x/crypto/ssh package, Soft Serve does
+            not currently support access via new SSH RSA keys: only the old SHA-1 ones will work.
+            Until we sort this out you’ll either need an SHA-1 RSA key or a key with another
+            algorithm, e.g. Ed25519. Not sure what type of keys you have? You can check with the
+            following:
+        </p>
+        <pre>$ find ~/.ssh/id_*.pub -exec ssh-keygen -l -f {} \;</pre>
+        <p>If you’re curious about the inner workings of this problem have a look at:</p>
+        <ul>
+            <li><a href="https://github.com/golang/go/issues/37278">golang/go#37278</a></li>
+            <li><a href="https://go-review.googlesource.com/c/crypto/+/220037">go-review</a></li>
+            <li><a href="https://github.com/golang/crypto/pull/197">golang/crypto#197</a></li>
+        </ul>
+    </section>
+
     <section id="blog-ssh-key">
         <h2 class="text-xl">Generating a new SSH key</h2>
         <p>

@@ -5,6 +5,20 @@
 
 Here are some common questions on using this platform that we would like to answer.
 
+## I get a permission denied when trying to SSH
+
+Unfortunately, due to a shortcoming in Go’s x/crypto/ssh package, Soft Serve does not currently support access via new SSH RSA keys: only the old SHA-1 ones will work. Until we sort this out you’ll either need an SHA-1 RSA key or a key with another algorithm, e.g. Ed25519. Not sure what type of keys you have? You can check with the following:
+
+```
+$ find ~/.ssh/id_*.pub -exec ssh-keygen -l -f {} \;
+```
+
+If you’re curious about the inner workings of this problem have a look at:
+
+=> https://github.com/golang/go/issues/37278 golang/go#37278
+=> https://go-review.googlesource.com/c/crypto/+/220037 go-review
+=> https://github.com/golang/crypto/pull/197 golang/crypto#197
+
 ## Generating a new SSH key
 
 => https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent Github reference
