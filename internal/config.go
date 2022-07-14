@@ -26,6 +26,8 @@ func NewConfigSite() *ConfigSite {
 	domain := GetEnv("LISTS_DOMAIN", "lists.sh")
 	email := GetEnv("LISTS_EMAIL", "support@lists.sh")
 	subdomains := GetEnv("LISTS_SUBDOMAINS", "0")
+	port := GetEnv("LISTS_WEB_PORT", "3000")
+	protocol := GetEnv("LISTS_PROTOCOL", "https")
 	dbURL := GetEnv("DATABASE_URL", "")
 	subdomainsEnabled := false
 	if subdomains == "1" {
@@ -43,6 +45,8 @@ func NewConfigSite() *ConfigSite {
 		ConfigCms: config.ConfigCms{
 			Domain:      domain,
 			Email:       email,
+			Port:        port,
+			Protocol:    protocol,
 			DbURL:       dbURL,
 			Description: "A microblog for your lists.",
 			IntroText:   intro,

@@ -23,6 +23,7 @@ export LISTS_SSH_PORT=2222
 export LISTS_WEB_PORT=3000
 export LISTS_DOMAIN="lists.sh"
 export LISTS_EMAIL="support@lists.sh"
+export LISTS_PROTOCOL="http"
 ```
 
 I just use `direnv` which will load my `.env` file.

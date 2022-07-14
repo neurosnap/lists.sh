@@ -656,9 +656,8 @@ func StartApiServer() {
 	handler := CreateServe(mainRoutes, subdomainRoutes, cfg, db, logger)
 	router := http.HandlerFunc(handler)
 
-	port := GetEnv("LISTS_WEB_PORT", "3000")
-	portStr := fmt.Sprintf(":%s", port)
-	logger.Infof("Starting server on port %s", port)
+	portStr := fmt.Sprintf(":%s", cfg.Port)
+	logger.Infof("Starting server on port %s", cfg.Port)
 	logger.Infof("Subdomains enabled: %t", cfg.SubdomainsEnabled)
 	logger.Infof("Domain: %s", cfg.Domain)
 	logger.Infof("Email: %s", cfg.Email)
