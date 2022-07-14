@@ -65,7 +65,7 @@ func (c *ConfigSite) GetSiteData() *SitePageData {
 
 func (c *ConfigSite) BlogURL(username string) string {
 	if c.IsSubdomains() {
-		return fmt.Sprintf("//%s.%s", username, c.Domain)
+		return fmt.Sprintf("%s://%s.%s", c.Protocol, username, c.Domain)
 	}
 
 	return fmt.Sprintf("/%s", username)
@@ -74,7 +74,7 @@ func (c *ConfigSite) BlogURL(username string) string {
 func (c *ConfigSite) PostURL(username, filename string) string {
 	fname := url.PathEscape(filename)
 	if c.IsSubdomains() {
-		return fmt.Sprintf("//%s.%s/%s", username, c.Domain, fname)
+		return fmt.Sprintf("%s://%s.%s/%s", c.Protocol, username, c.Domain, fname)
 	}
 
 	return fmt.Sprintf("/%s/%s", username, fname)
@@ -86,7 +86,7 @@ func (c *ConfigSite) IsSubdomains() bool {
 
 func (c *ConfigSite) RssBlogURL(username string) string {
 	if c.IsSubdomains() {
-		return fmt.Sprintf("//%s.%s/rss", username, c.Domain)
+		return fmt.Sprintf("%s://%s.%s/rss", c.Protocol, username, c.Domain)
 	}
 
 	return fmt.Sprintf("/%s/rss", username)
@@ -94,7 +94,7 @@ func (c *ConfigSite) RssBlogURL(username string) string {
 
 func (c *ConfigSite) HomeURL() string {
 	if c.IsSubdomains() {
-		return fmt.Sprintf("//%s", c.Domain)
+		return fmt.Sprintf("%s://%s", c.Protocol, c.Domain)
 	}
 
 	return "/"
@@ -102,7 +102,7 @@ func (c *ConfigSite) HomeURL() string {
 
 func (c *ConfigSite) ReadURL() string {
 	if c.IsSubdomains() {
-		return fmt.Sprintf("https://%s/read", c.Domain)
+		return fmt.Sprintf("%s://%s/read", c.Protocol, c.Domain)
 	}
 
 	return "/read"
