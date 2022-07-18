@@ -13,7 +13,10 @@
 </header>
 <main>
     <section id="permission-denied">
-        <h2 class="text-xl">I get a permission denied when trying to SSH</h2>
+        <h2 class="text-xl">
+            <a href="#permission-denied" rel="nofollow noopener">#</a>
+            I get a permission denied when trying to SSH
+        </h2>
         <p>
             Unfortunately SHA-2 RSA keys are <strong>not</strong> currently supported.
         </p>
@@ -33,8 +36,11 @@
         </ul>
     </section>
 
-    <section id="blog-ssh-key">
-        <h2 class="text-xl">Generating a new SSH key</h2>
+    <section id="ssh-key">
+        <h2 class="text-xl">
+            <a href="#ssh-key" rel="nofollow noopener">#</a>
+            Generating a new SSH key
+        </h2>
         <p>
             <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">Github reference</a>
         </p>
@@ -46,7 +52,10 @@
     </section>
 
     <section id="blog-structure">
-        <h2 class="text-xl">What should my blog folder look like?</h2>
+        <h2 class="text-xl">
+            <a href="#blog-structure" rel="nofollow noopener">#</a>
+            What should my blog folder look like?
+        </h2>
         <p>
             Currently {{.Site.Domain}} only supports a flat folder structure.  Therefore,
             <code>scp -r</code> is not permitted.  We also only allow <code>.txt</code> files to be
@@ -68,16 +77,22 @@ third-post.txt</pre>
         </p>
     </section>
 
-    <section id="blog-update">
-        <h2 class="text-xl">How do I update a list?</h2>
+    <section id="post-update">
+        <h2 class="text-xl">
+            <a href="#post-update" rel="nofollow noopener">#</a>
+            How do I update a list?
+        </h2>
         <p>
             Updating a list requires that you update the source document and then run the <code>scp</code>
             command again.  If the filename remains the same, then the list will be updated.
         </p>
     </section>
 
-    <section id="blog-delete">
-        <h2 class="text-xl">How do I delete a list?</h2>
+    <section id="post-delete">
+        <h2 class="text-xl">
+            <a href="#post-delete" rel="nofollow noopener">#</a>
+            How do I delete a list?
+        </h2>
         <p>
             Because <code>scp</code> does not natively support deleting files, I didn't want to bake
             that behavior into my ssh server.
@@ -101,7 +116,10 @@ scp ./delete.txt {{.Site.Domain}}:/</pre>
     </section>
 
     <section id="blog-upload-single-file">
-        <h2 class="text-xl">When I want to publish a new post, do I have to upload all posts everytime?</h2>
+        <h2 class="text-xl">
+            <a href="#blog-upload-single-file" rel="nofollow noopener">#</a>
+            When I want to publish a new post, do I have to upload all posts everytime?
+        </h2>
         <p>
             Nope!  Just <code>scp</code> the file you want to publish.  For example, if you created
             a new post called <code>taco-tuesday.txt</code> then you would publish it like this:
@@ -110,7 +128,10 @@ scp ./delete.txt {{.Site.Domain}}:/</pre>
     </section>
 
     <section id="blog-header">
-        <h2 class="text-xl">How do I change my blog's name?</h2>
+        <h2 class="text-xl">
+            <a href="#blog-header" rel="nofollow noopener">#</a>
+            How do I change my blog's name?
+        </h2>
         <p>
             All you have to do is create a post titled <code>_header.txt</code> and add some
             information to the list.
@@ -127,7 +148,10 @@ scp ./delete.txt {{.Site.Domain}}:/</pre>
     </section>
 
     <section id="blog-readme">
-        <h2 class="text-xl">How do I add an introduction to my blog?</h2>
+        <h2 class="text-xl">
+            <a href="#blog-readme" rel="nofollow noopener">#</a>
+            How do I add an introduction to my blog?
+        </h2>
         <p>
             All you have to do is create a post titled <code>_readme.txt</code> and add some
             information to the list.
@@ -142,12 +166,18 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
     </section>
 
     <section id="blog-url">
-        <h2 class="text-xl">What is my blog URL?</h2>
+        <h2 class="text-xl">
+            <a href="#blog-url" rel="nofollow noopener">#</a>
+            What is my blog URL?
+        </h2>
         <pre>https://{username}.{{.Site.Domain}}</pre>
     </section>
 
     <section id="continuous-deployment">
-        <h2 class="text-xl">How can I automatically publish my post?</h2>
+        <h2 class="text-xl">
+            <a href="#continuous-deployment" rel="nofollow noopener">#</a>
+            How can I automatically publish my post?
+        </h2>
         <p>
             There is a github action that we built to make it easy to publish your blog automatically.
         </p>
@@ -165,7 +195,10 @@ I like to sing. Dance. And I like to have fun fun fun!</pre>
     </section>
 
     <section id="multiple-accounts">
-        <h2 class="text-xl">Can I create multiple accounts?</h2>
+        <h2 class="text-xl">
+            <a href="#multiple-accounts" rel="nofollow noopener">#</a>
+            Can I create multiple accounts?
+        </h2>
         <p>
            Yes!  You can either a) create a new keypair and use that for authentication
            or b) use the same keypair and ssh into our CMS using our special username
