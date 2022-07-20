@@ -268,28 +268,45 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var data PostPageData
 	post, err := dbpool.FindPostWithFilename(filename, user.ID)
-	if err != nil {
+	if err == nil {
+		parsedText := pkg.ParseText(post.Text)
+
+		data = PostPageData{
+			Site:         *cfg.GetSiteData(),
+			PageTitle:    GetPostTitle(post),
+			URL:          template.URL(cfg.PostURL(post.Username, post.Filename)),
+			BlogURL:      template.URL(cfg.BlogURL(username)),
+			Description:  post.Description,
+			ListType:     parsedText.MetaData.ListType,
+			Title:        FilenameToTitle(post.Filename, post.Title),
+			PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
+			PublishAtISO: post.PublishAt.Format(time.RFC3339),
+			Username:     username,
+			BlogName:     blogName,
+			Items:        parsedText.Items,
+		}
+	} else {
 		logger.Infof("post not found %s/%s", username, filename)
-		http.Error(w, "post not found", http.StatusNotFound)
-		return
-	}
-
-	parsedText := pkg.ParseText(post.Text)
-
-	data := PostPageData{
-		Site:         *cfg.GetSiteData(),
-		PageTitle:    GetPostTitle(post),
-		URL:          template.URL(cfg.PostURL(post.Username, post.Filename)),
-		BlogURL:      template.URL(cfg.BlogURL(username)),
-		Description:  post.Description,
-		ListType:     parsedText.MetaData.ListType,
-		Title:        FilenameToTitle(post.Filename, post.Title),
-		PublishAt:    post.PublishAt.Format("02 Jan, 2006"),
-		PublishAtISO: post.PublishAt.Format(time.RFC3339),
-		Username:     username,
-		BlogName:     blogName,
-		Items:        parsedText.Items,
+		data = PostPageData{
+			Site:         *cfg.GetSiteData(),
+			PageTitle:    "Post not found",
+			Description:  "Post not found",
+			Title:        "Post not found",
+			ListType:     "none",
+			BlogURL:      template.URL(cfg.BlogURL(username)),
+			PublishAt:    time.Now().Format("02 Jan, 2006"),
+			PublishAtISO: time.Now().Format(time.RFC3339),
+			Username:     username,
+			BlogName:     blogName,
+			Items: []*pkg.ListItem{
+				{
+					Value:  "oops!  we can't seem to find this post.",
+					IsText: true,
+				},
+			},
+		}
 	}
 
 	ts, err := renderTemplate([]string{
