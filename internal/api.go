@@ -71,6 +71,10 @@ type TransparencyPageData struct {
 	Analytics *db.Analytics
 }
 
+func isRequestTrackable(r *http.Request) bool {
+	return true
+}
+
 func renderTemplate(templates []string) (*template.Template, error) {
 	files := make([]string, len(templates))
 	copy(files, templates)
@@ -272,6 +276,23 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	post, err := dbpool.FindPostWithFilename(filename, user.ID)
 	if err == nil {
 		parsedText := pkg.ParseText(post.Text)
+
+		// we need the blog name from the readme unfortunately
+		readme, err := dbpool.FindPostWithFilename("_readme", user.ID)
+		if err == nil {
+			readmeParsed := pkg.ParseText(readme.Text)
+			if readmeParsed.MetaData.Title != "" {
+				blogName = readmeParsed.MetaData.Title
+			}
+		}
+
+		// validate and fire off analytic event
+		if isRequestTrackable(r) {
+			_, err := dbpool.AddViewCount(post.ID)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
 
 		data = PostPageData{
 			Site:         *cfg.GetSiteData(),

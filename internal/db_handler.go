@@ -10,7 +10,10 @@ import (
 	"git.sr.ht/~erock/wish/cms/util"
 	sendutils "git.sr.ht/~erock/wish/send/utils"
 	"github.com/gliderlabs/ssh"
+	"golang.org/x/exp/slices"
 )
+
+var hiddenPosts = []string{"_readme", "_header"}
 
 type Opener struct {
 	entry *sendutils.FileEntry
@@ -102,8 +105,10 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) (string, er
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
+		hidden := slices.Contains(hiddenPosts, filename)
+
 		logger.Infof("(%s) not found, adding record", filename)
-		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt)
+		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt, hidden)
 		if err != nil {
 			return "", fmt.Errorf("error for %s: %v", filename, err)
 		}

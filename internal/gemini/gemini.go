@@ -256,6 +256,20 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 
 	parsedText := pkg.ParseText(post.Text)
 
+	// we need the blog name from the readme unfortunately
+	readme, err := dbpool.FindPostWithFilename("_readme", user.ID)
+	if err == nil {
+		readmeParsed := pkg.ParseText(readme.Text)
+		if readmeParsed.MetaData.Title != "" {
+			blogName = readmeParsed.MetaData.Title
+		}
+	}
+
+	_, err = dbpool.AddViewCount(post.ID)
+	if err != nil {
+		logger.Error(err)
+	}
+
 	data := internal.PostPageData{
 		Site:         *cfg.GetSiteData(),
 		PageTitle:    internal.GetPostTitle(post),
