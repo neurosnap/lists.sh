@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~erock/wish/cms/db"
 	"git.sr.ht/~erock/wish/cms/db/postgres"
 	"github.com/gorilla/feeds"
+	"golang.org/x/exp/slices"
 )
 
 type PageData struct {
@@ -493,6 +494,10 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 	var feedItems []*feeds.Item
 	for _, post := range posts {
+		if slices.Contains(HiddenPosts, post.Filename) {
+			continue
+		}
+
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
 		data := &PostPageData{

@@ -20,6 +20,7 @@ import (
 	"git.sr.ht/~erock/lists.sh/pkg"
 	"git.sr.ht/~erock/wish/cms/db"
 	"git.sr.ht/~erock/wish/cms/db/postgres"
+	"golang.org/x/exp/slices"
 )
 
 func renderTemplate(templates []string) (*template.Template, error) {
@@ -392,6 +393,9 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 
 	var feedItems []*feeds.Item
 	for _, post := range posts {
+		if slices.Contains(internal.HiddenPosts, post.Filename) {
+			continue
+		}
 		parsed := pkg.ParseText(post.Text)
 		var tpl bytes.Buffer
 		data := &internal.PostPageData{

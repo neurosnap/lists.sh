@@ -13,7 +13,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var hiddenPosts = []string{"_readme", "_header"}
+var HiddenPosts = []string{"_readme", "_header"}
 
 type Opener struct {
 	entry *sendutils.FileEntry
@@ -105,7 +105,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) (string, er
 		if parsedText.MetaData.PublishAt != nil {
 			publishAt = *parsedText.MetaData.PublishAt
 		}
-		hidden := slices.Contains(hiddenPosts, filename)
+		hidden := slices.Contains(HiddenPosts, filename)
 
 		logger.Infof("(%s) not found, adding record", filename)
 		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt, hidden)
