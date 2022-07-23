@@ -9,22 +9,41 @@
 :-moz-focusring { outline: 1px dotted ButtonText; }
 :-moz-ui-invalid { box-shadow: none; }
 
-:root[data-theme="theme-dark"] {
-  --white: #f2f2f2;
-  --black: #252525;
-  --purple: #bd93f9;
-  --blue: #8be9fd;
-  --yellow: #ffff80;
-  --pink: #ff80bf;
-  --orange: #ffca80;
-  --green: #50fa7b;
-  --grey: #414558;
-  --greyer: #282a36;
+@media (prefers-color-scheme: light) {
+  :root {
+    --white: #6a737d;
+    --code: rgba(255, 229, 100, 0.2);
+    --pre: #f6f8fa;
+    --bg-color: #fff;
+    --text-color: #24292f;
+    --link-color: #005cc5;
+    --visited: #6f42c1;
+    --blockquote: #785840;
+    --blockquote-bg: #fff;
+    --hover: #d73a49;
+    --grey: #ccc;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --white: #f2f2f2;
+    --code: #252525;
+    --pre: #252525;
+    --bg-color: #282a36;
+    --text-color: #f2f2f2;
+    --link-color: #8be9fd;
+    --visited: #bd93f9;
+    --blockquote: #bd93f9;
+    --blockquote-bg: #414558;
+    --hover: #ff80bf;
+    --grey: #414558;
+  }
 }
 
 html {
-  background-color: var(--greyer);
-  color: var(--white);
+  background-color: var(--bg-color);
+  color: var(--text-color);
   line-height: 1.5;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
     "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
@@ -50,13 +69,21 @@ b, strong {
 
 code, kbd, samp, pre {
 	font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
-	font-size: 1rem;
-  background-color: var(--black);
+	font-size: 0.8rem;
+}
+
+code, kbd, samp {
+  background-color: var(--code);
+}
+
+pre > code {
+  background-color: inherit;
+  padding: 0;
 }
 
 code {
-  padding: 0.1rem 0.4rem;
-  border-radius: 5px;
+  border-radius: 0.3rem;
+  padding: .15rem .2rem .05rem;
 }
 
 pre {
@@ -64,6 +91,7 @@ pre {
   padding: 1rem;
   overflow-x: auto;
   margin: 0;
+  background-color: var(--pre) !important;
 }
 
 small {
@@ -95,15 +123,15 @@ hr {
 
 a {
   text-decoration: underline;
-  color: var(--blue);
+  color: var(--link-color);
 }
 
 a:hover, a:visited:hover {
-  color: var(--pink);
+  color: var(--hover);
 }
 
 a:visited {
-  color: var(--purple);
+  color: var(--visited);
 }
 
 a.link-grey {
@@ -136,10 +164,10 @@ article {
 }
 
 blockquote {
-  border-left: 5px solid var(--purple);
-  background-color: var(--grey);
+  border-left: 5px solid var(--blockquote);
+  background-color: var(--blockquote-bg);
   padding: 0.5rem;
-  margin: 0;
+  margin: 0.5rem 0;
 }
 
 ul, ol {
