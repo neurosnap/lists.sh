@@ -239,7 +239,7 @@ func GetPostTitle(post *db.Post) string {
 }
 
 func GetBlogName(username string) string {
-	return fmt.Sprintf("%s's blog", username)
+	return fmt.Sprintf("%s's lists", username)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
