@@ -510,7 +510,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 		item := &feeds.Item{
 			Id:      cfg.PostURL(post.Username, post.Filename),
-			Title:   post.Title,
+			Title:   FilenameToTitle(post.Filename, post.Title),
 			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,

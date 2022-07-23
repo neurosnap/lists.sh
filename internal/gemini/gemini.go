@@ -408,7 +408,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 
 		item := &feeds.Item{
 			Id:      cfg.PostURL(post.Username, post.Filename),
-			Title:   post.Title,
+			Title:   internal.FilenameToTitle(post.Filename, post.Title),
 			Link:    &feeds.Link{Href: cfg.PostURL(post.Username, post.Filename)},
 			Content: tpl.String(),
 			Created: *post.PublishAt,
