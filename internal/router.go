@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -30,10 +31,13 @@ func CreateServe(routes []Route, subdomainRoutes []Route, cfg *ConfigSite, dbpoo
 	return func(w http.ResponseWriter, r *http.Request) {
 		var allow []string
 		curRoutes := routes
-		subdomain := GetRequestSubdomain(r)
 
-		if cfg.IsSubdomains() && subdomain != "" {
-			curRoutes = subdomainRoutes
+		hostDomain := strings.ToLower(strings.Split(r.Host, ":")[0])
+		appDomain := strings.ToLower(strings.Split(cfg.ConfigCms.Domain, ":")[0])
+
+		subdomain := ""
+		if hostDomain != appDomain && strings.Contains(hostDomain, appDomain) {
+			subdomain = strings.TrimSuffix(hostDomain, fmt.Sprintf(".%s", appDomain))
 		}
 
 		for _, route := range curRoutes {
@@ -86,38 +90,4 @@ func GetField(r *http.Request, index int) string {
 
 func GetSubdomain(r *http.Request) string {
 	return r.Context().Value(ctxSubdomainKey{}).(string)
-}
-
-// https://stackoverflow.com/a/66445657/1713216
-func GetRequestSubdomain(r *http.Request) string {
-	// The Host that the user queried.
-	host := r.Host
-	host = strings.TrimSpace(host)
-	// Figure out if a subdomain exists in the host given.
-	hostParts := strings.Split(host, ".")
-
-	lengthOfHostParts := len(hostParts)
-
-	// scenarios
-	// A. site.com  -> length : 2
-	// B. www.site.com -> length : 3
-	// C. www.hello.site.com -> length : 4
-
-	if lengthOfHostParts == 4 {
-		// scenario C
-		return strings.Join([]string{hostParts[1]}, "")
-	}
-
-	// scenario B with a check
-	if lengthOfHostParts == 3 {
-		subdomain := strings.Join([]string{hostParts[0]}, "")
-
-		if subdomain == "www" {
-			return ""
-		} else {
-			return subdomain
-		}
-	}
-
-	return "" // scenario A
 }
