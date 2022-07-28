@@ -40,6 +40,10 @@ func CreateServe(routes []Route, subdomainRoutes []Route, cfg *ConfigSite, dbpoo
 			subdomain = strings.TrimSuffix(hostDomain, fmt.Sprintf(".%s", appDomain))
 		}
 
+		if cfg.IsSubdomains() && subdomain != "" {
+			curRoutes = subdomainRoutes
+		}
+
 		for _, route := range curRoutes {
 			matches := route.regex.FindStringSubmatch(r.URL.Path)
 			if len(matches) > 0 {
