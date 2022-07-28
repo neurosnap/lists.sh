@@ -2,6 +2,8 @@ module git.sr.ht/~erock/lists.sh
 
 go 1.18
 
+replace git.sr.ht/~erock/wish => /home/erock/pico/wish
+
 require (
 	git.sr.ht/~adnano/go-gemini v0.2.3
 	git.sr.ht/~aw/gorilla-feeds v1.1.4

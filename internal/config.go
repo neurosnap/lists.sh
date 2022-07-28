@@ -50,6 +50,7 @@ func NewConfigSite() *ConfigSite {
 			DbURL:       dbURL,
 			Description: "A microblog for your lists.",
 			IntroText:   intro,
+			Space:       "lists",
 			Logger:      CreateLogger(),
 		},
 	}

@@ -151,7 +151,7 @@ func blogHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "blog not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, "could not fetch posts for blog", http.StatusInternalServerError)
@@ -264,7 +264,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
+	header, _ := dbpool.FindPostWithFilename("_header", user.ID, cfg.Space)
 	blogName := GetBlogName(username)
 	if header != nil {
 		headerParsed := pkg.ParseText(header.Text)
@@ -274,12 +274,12 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data PostPageData
-	post, err := dbpool.FindPostWithFilename(filename, user.ID)
+	post, err := dbpool.FindPostWithFilename(filename, user.ID, cfg.Space)
 	if err == nil {
 		parsedText := pkg.ParseText(post.Text)
 
 		// we need the blog name from the readme unfortunately
-		readme, err := dbpool.FindPostWithFilename("_readme", user.ID)
+		readme, err := dbpool.FindPostWithFilename("_readme", user.ID, cfg.Space)
 		if err == nil {
 			readmeParsed := pkg.ParseText(readme.Text)
 			if readmeParsed.MetaData.Title != "" {
@@ -352,7 +352,7 @@ func transparencyHandler(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r)
 	cfg := GetCfg(r)
 
-	analytics, err := dbpool.FindSiteAnalytics()
+	analytics, err := dbpool.FindSiteAnalytics(cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -387,7 +387,7 @@ func readHandler(w http.ResponseWriter, r *http.Request) {
 	cfg := GetCfg(r)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page})
+	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page}, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -451,7 +451,7 @@ func rssBlogHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "rss feed not found", http.StatusNotFound)
 		return
 	}
-	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -542,7 +542,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	logger := GetLogger(r)
 	cfg := GetCfg(r)
 
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0}, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -62,7 +62,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) (string, er
 	filename := SanitizeFileExt(entry.Name)
 	title := filename
 
-	post, err := h.DBPool.FindPostWithFilename(filename, userID)
+	post, err := h.DBPool.FindPostWithFilename(filename, userID, h.Cfg.Space)
 	if err != nil {
 		logger.Debug("unable to load post, continuing:", err)
 	}
@@ -108,7 +108,7 @@ func (h *DbHandler) Write(s ssh.Session, entry *sendutils.FileEntry) (string, er
 		hidden := slices.Contains(HiddenPosts, filename)
 
 		logger.Infof("(%s) not found, adding record", filename)
-		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt, hidden)
+		_, err = h.DBPool.InsertPost(userID, filename, title, text, description, &publishAt, hidden, h.Cfg.Space)
 		if err != nil {
 			return "", fmt.Errorf("error for %s: %v", filename, err)
 		}

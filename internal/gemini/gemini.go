@@ -75,7 +75,7 @@ func blogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		w.WriteHeader(gemini.StatusNotFound, "blog not found")
 		return
 	}
-	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, "could not fetch posts for blog")
@@ -160,7 +160,7 @@ func readHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	cfg := GetCfg(ctx)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page})
+	pager, err := dbpool.FindAllUpdatedPosts(&db.Pager{Num: 30, Page: page}, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
@@ -239,7 +239,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		return
 	}
 
-	header, _ := dbpool.FindPostWithFilename("_header", user.ID)
+	header, _ := dbpool.FindPostWithFilename("_header", user.ID, cfg.Space)
 	blogName := internal.GetBlogName(username)
 	if header != nil {
 		headerParsed := pkg.ParseText(header.Text)
@@ -248,7 +248,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 		}
 	}
 
-	post, err := dbpool.FindPostWithFilename(filename, user.ID)
+	post, err := dbpool.FindPostWithFilename(filename, user.ID, cfg.Space)
 	if err != nil {
 		logger.Infof("post not found %s/%s", username, filename)
 		w.WriteHeader(gemini.StatusNotFound, "post not found")
@@ -258,7 +258,7 @@ func postHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request
 	parsedText := pkg.ParseText(post.Text)
 
 	// we need the blog name from the readme unfortunately
-	readme, err := dbpool.FindPostWithFilename("_readme", user.ID)
+	readme, err := dbpool.FindPostWithFilename("_readme", user.ID, cfg.Space)
 	if err == nil {
 		readmeParsed := pkg.ParseText(readme.Text)
 		if readmeParsed.MetaData.Title != "" {
@@ -350,7 +350,7 @@ func rssBlogHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Requ
 		w.WriteHeader(gemini.StatusNotFound, "rss feed not found")
 		return
 	}
-	posts, err := dbpool.FindUpdatedPostsForUser(user.ID)
+	posts, err := dbpool.FindUpdatedPostsForUser(user.ID, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
@@ -441,7 +441,7 @@ func rssHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini.Request)
 	logger := GetLogger(ctx)
 	cfg := GetCfg(ctx)
 
-	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0})
+	pager, err := dbpool.FindAllPosts(&db.Pager{Num: 25, Page: 0}, cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
