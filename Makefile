@@ -77,7 +77,7 @@ bp-gemini: bp-setup
 	docker buildx build --push --platform linux/amd64,linux/arm64 -t neurosnap/lists-gemini:$(DOCKER_TAG) --target gemini .
 .PHONY: bp-gemini
 
-bp: bp-ssh bp-web bp-caddy
+bp: bp-ssh bp-web bp-gemini bp-caddy
 .PHONY: bp
 
 deploy:

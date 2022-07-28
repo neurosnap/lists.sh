@@ -7,6 +7,7 @@ COPY . ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/ssh ./cmd/ssh
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/web ./cmd/web
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/gemini ./cmd/gemini
 
 FROM alpine:3.15 AS ssh
 WORKDIR /app
