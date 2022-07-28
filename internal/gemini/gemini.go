@@ -308,7 +308,7 @@ func transparencyHandler(ctx context.Context, w gemini.ResponseWriter, r *gemini
 	logger := GetLogger(ctx)
 	cfg := GetCfg(ctx)
 
-	analytics, err := dbpool.FindSiteAnalytics()
+	analytics, err := dbpool.FindSiteAnalytics(cfg.Space)
 	if err != nil {
 		logger.Error(err)
 		w.WriteHeader(gemini.StatusTemporaryFailure, err.Error())
